@@ -67,3 +67,35 @@ func TestCount(t *testing.T) {
 	}
 
 }
+
+func TestMax(t *testing.T) {
+	qb := NewQueryBuilder()
+
+	f := qb.Field("test")
+
+	result := qb.Max(f)
+	expected := " MAX(test) AS max"
+
+	if result.String() != expected {
+		t.Errorf("Field() = %s; want %s", result, expected)
+	}
+}
+
+func TestSimpleSELECTQuery(t *testing.T) {
+	qb := NewQueryBuilder()
+
+	f1 := qb.Field("field1")
+	f2 := qb.Field("field2")
+	f3 := qb.Field("field3")
+	tab := qb.Table("test")
+
+	result := qb.SELECT(f1, f2, f3).
+		FROM(tab).
+		WHERE(f1, qb.EqualTo()).
+		Build()
+	expected := "SELECT field1, field2, field3 FROM test WHERE field1 = ?"
+
+	if string(result) != expected {
+		t.Errorf("Field() = %s; want %s", result, expected)
+	}
+}

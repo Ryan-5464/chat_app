@@ -85,10 +85,10 @@ func (q *queryBuilder) Count(f field) field {
 	return field{name: b.String()}
 }
 
-func (q *queryBuilder) Max(fields ...field) field {
+func (q *queryBuilder) Max(f field) field {
 	var b strings.Builder
 	b.WriteString(" MAX(")
-	b.WriteString(q.concatFields(fields...))
+	b.WriteString(f.String())
 	b.WriteString(") AS max")
 	return field{name: b.String()}
 }
