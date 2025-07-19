@@ -25,7 +25,7 @@ func NewPwdHash(pwd []byte) (PwdHash, error) {
 
 	pwdHash, err := bcrypt.GenerateFromPassword(pwd, bcrypt.DefaultCost)
 	if err != nil {
-		return nil, xerr.PwdHashFail
+		return nil, fmt.Errorf("failed to generate password hash: %w", err)
 	}
 	return PwdHash(pwdHash), nil
 }
@@ -39,7 +39,7 @@ func (p PwdHash) String() string {
 func (p PwdHash) Compare(pwd []byte) error {
 	err := bcrypt.CompareHashAndPassword([]byte(p), pwd)
 	if err != nil {
-		return xerr.InvalidPwd
+		return fmt.Errorf("password hash comparison failed: %w", err)
 	}
 	return nil
 }
