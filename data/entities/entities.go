@@ -31,4 +31,5 @@ type User struct {
 	Email   typ.Email
 	PwdHash typ.PwdHash
 	Joined  time.Time
+	Token   typ.JWE
 }
