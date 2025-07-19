@@ -4,6 +4,8 @@ import (
 	"strings"
 )
 
+// The returned QueryBuilder simply appends strings, it is up to the
+// user to construct valid SQL queries. Misuse is not guarded against.
 func NewQueryBuilder() *queryBuilder {
 	qb := &queryBuilder{
 		b: strings.Builder{},
@@ -15,12 +17,18 @@ type queryBuilder struct {
 	b strings.Builder
 }
 
-type SQLQuery string
-
 // type field string
 type on string
 type placeholders string
 type values string
+
+type SQLQuery struct {
+	query string
+}
+
+func (s *SQLQuery) String() string {
+	return s.query
+}
 
 type field struct {
 	name string
@@ -40,7 +48,7 @@ func (t *table) String() string {
 
 func (q *queryBuilder) Build() SQLQuery {
 	s := strings.TrimSpace(q.b.String())
-	return SQLQuery(s)
+	return SQLQuery{query: s}
 }
 
 // =============================================================================
@@ -59,7 +67,7 @@ func (q *queryBuilder) FieldWithAlias(name string, tag string) field {
 }
 
 func (q *queryBuilder) All() field {
-	return field{name: " * "}
+	return field{name: "*"}
 }
 
 func (q *queryBuilder) Table(name string) table {
@@ -160,22 +168,22 @@ func (q *queryBuilder) GROUPBY(f field) *queryBuilder {
 
 func (q *queryBuilder) VALUES(v ...any) *queryBuilder {
 	lenValues := len(v)
-	var b strings.Builder
-	b.WriteString(" (")
-	b.WriteString(q.generatePlaceholdersString(lenValues))
-	b.WriteString(")")
+	q.b.WriteString(" VALUES ")
+	q.b.WriteString("(")
+	q.b.WriteString(q.generatePlaceholdersString(lenValues))
+	q.b.WriteString(")")
 	return q
 }
 
 func (q *queryBuilder) ON(fieldA field, fieldB field) on {
 	var b strings.Builder
 	b.WriteString(fieldA.String())
-	b.WriteString("= ")
+	b.WriteString(" = ")
 	b.WriteString(fieldB.String())
 	return on(b.String())
 }
 
-func (q *queryBuilder) IN(v []any) placeholders {
+func (q *queryBuilder) IN(v ...any) placeholders {
 	lenValues := len(v)
 	var b strings.Builder
 	b.WriteString("IN (")
@@ -209,7 +217,7 @@ func (q *queryBuilder) concatFields(fields ...field) string {
 }
 
 func (q *queryBuilder) generatePlaceholdersString(len int) string {
-	p := strings.Repeat("?,", len)
-	p = strings.TrimRight(p, ",")
+	p := strings.Repeat("?, ", len)
+	p = strings.TrimRight(p, ", ")
 	return p
 }
