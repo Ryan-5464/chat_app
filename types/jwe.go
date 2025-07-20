@@ -13,12 +13,84 @@ type Claims struct {
 	TokenExpiry time.Time
 }
 
-func NewJWEToken(claims Claims, key SecretKey) (JWE, error) {
+func NewJWE(userId UserId, key SecretKey) (JWE, error) {
+	tokenExpiry := time.Now().Add(time.Hour)
+	claims := Claims{
+		UserId: userId,
+		TokenExpiry: tokenExpiry,
+	}
 	jwe, err := generateJWE(claims, key)
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate JWE : %w", err)
 	}
 	return jwe, nil
+}
+
+func ParseAndVerifyJWE(token string, key SecretKey) (JWE, error) {
+	var jwe JWE
+
+	verifiedToken, err := decryptAndVerifyToken(token, key)
+	if err != nil {
+		return nil, fmt.Errorf("failed to decrypt token: %w", err)
+	}
+
+	var claims Claims
+	if err := json.Unmarshal(verifiedToken, &claims); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal claims; %w", err
+	}
+
+	if err := validateClaims(&claims); err != nil {
+		return nil, fmt.Errorf("invalid claims: %w", err)
+	}
+
+	return updateJWE(claims.UserId, key)
+}
+
+func updateJWE(userId UserId, key SecretKey) (JWE, error) {
+	return NewJWE(userId, key)
+}
+
+func decryptAndVerifyToken(token string, key SecretKey) ([]byte, error) {
+
+	jweObject, err := jose.ParseEncrypted(token)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse encrypted token: %w", err
+	}
+
+	signedJWT, err := jweObject.Decrypt(key.Bytes())
+	if err != nil {
+		return nil, fmt.Errorf("failed to decrypt token: %w", err)
+	}
+
+	jwsObject, err := jose.ParseSigned(signedJWT)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse decrypted token: %w", err)
+	}
+
+	verifiedToken, err := jwsObject.Verify(key.Bytes())
+	if err != nil {
+		return nil, fmt.Errorf("failed to verify decrypted token : %w", err)
+	}
+
+	return verifiedToken, nil
+}
+
+func validateClaims(claims Claims) error {
+	now := time.Now()
+
+	if claims.UserId == "" {
+		return errors.New("invalid claims: subject (UserId) is empty")
+	}
+
+	if claims.IssuedAt.After(now) {
+		return errors.New("invalid claims: issued-at time is in the future")
+	}
+
+	if now.After(claims.TokenExpiry) {
+		return errors.New("invalid claims: token has expired")
+	}
+
+	return nil
 }
 
 func generateJWE(claims Claims, key SecretKey) (JWE, error) {
@@ -74,4 +146,19 @@ func generateJWE(claims Claims, key SecretKey) (JWE, error) {
 	return JWE(token), nil
 }
 
-type JWE []byte
+type JWE struct {
+	claims Claims
+	token []byte
+}
+
+func (j *JWE) String() string {
+	return string(j.token)
+}
+
+func (j *JWE) Bytes() []byte {
+	return j.token
+}
+
+func (j *JWE) UserId() UserId {
+	return j.claims.UserId
+}
