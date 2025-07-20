@@ -4,12 +4,12 @@ import (
 	"database/sql"
 	"fmt"
 	"server/data/entities"
-	typ "server/types"
+	prov "server/services/dbService/providers"
 
 	_ "github.com/mattn/go-sqlite3"
 )
 
-func NewDbService(c typ.Credentials) (*DbService, error) {
+func NewDbService(c prov.Credentials) (*DbService, error) {
 	conn, err := sql.Open(c.Value("driver"), c.Value("path"))
 	if err != nil {
 		return nil, fmt.Errorf("failed to connect to database: %w", err)

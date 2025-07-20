@@ -3,10 +3,10 @@ package dbservice
 import (
 	"fmt"
 	i "server/interfaces"
-	typ "server/types"
+	prov "server/services/dbService/providers"
 )
 
-func NewDbService(c typ.Credentials) (i.DbService, error) {
+func NewDbService(c prov.Credentials) (i.DbService, error) {
 	dbS, err := dbServiceFactory(c)
 	if err != nil {
 		return nil, fmt.Errorf("failed to initialize dbService: %w", err)

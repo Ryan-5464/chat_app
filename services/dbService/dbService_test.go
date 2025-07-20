@@ -2,28 +2,28 @@ package dbservice
 
 import (
 	"server/data/entities"
-	typ "server/types"
+	prov "server/services/dbService/providers"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 )
 
-func testDetails() map[string]string {
-	details := make(map[string]string)
-	details["driver"] = "sqlite3"
-	details["path"] = ":memory:"
-	return details
+func testConfig() prov.DbConfig {
+	config := prov.DbConfig{}
+	config.Add("driver", "sqlite3")
+	config.Add("path", ":memory:")
+	return config
 }
 
 func TestNewCredentials(t *testing.T) {
-	c := typ.NewCredentials(typ.SQLite3, testDetails())
-	assert.Equal(t, c.Provider(), string(typ.SQLite3))
+	c := prov.NewCredentials(prov.SQLite3, testConfig())
+	assert.Equal(t, c.Provider(), prov.SQLite3.String())
 	assert.Equal(t, c.Value("driver"), "sqlite3")
 	assert.Equal(t, c.Value("path"), ":memory:")
 }
 
 func TestDbServiceFactory(t *testing.T) {
-	c := typ.NewCredentials(typ.SQLite3, testDetails())
+	c := prov.NewCredentials(prov.SQLite3, testConfig())
 	dbS, err := dbServiceFactory(c)
 	if err != nil {
 		t.Errorf("failed to initialize dbService %v", err)

@@ -3,11 +3,11 @@ package dbservice
 import (
 	i "server/interfaces"
 	"server/services/dbService/SQL"
-	typ "server/types"
+	prov "server/services/dbService/providers"
 	xerr "server/xerrors"
 )
 
-func dbServiceFactory(c typ.Credentials) (i.DbService, error) {
+func dbServiceFactory(c prov.Credentials) (i.DbService, error) {
 	switch c.Provider() {
 	case "sqlite3":
 		return SQL.NewDbService(c)
