@@ -1,4 +1,4 @@
-package dbServiceModels
+package models
 
 import (
 	typ "server/types"
