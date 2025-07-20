@@ -25,3 +25,11 @@ type DbService struct {
 func (db *DbService) GetUsers() []entities.User {
 	return []entities.User{}
 }
+
+func (db *DbService) GetChats() []entities.Chat {
+	return []entities.Chat{}
+}
+
+func (db *DbService) GetMessage() []entities.Message {
+	return []entities.Message{}
+}
