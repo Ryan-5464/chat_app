@@ -30,6 +30,6 @@ func (db *DbService) GetChats() []entities.Chat {
 	return []entities.Chat{}
 }
 
-func (db *DbService) GetMessage() []entities.Message {
+func (db *DbService) GetMessages() []entities.Message {
 	return []entities.Message{}
 }

@@ -1,5 +1,9 @@
 package interfaces
 
+import (
+	"server/data/entities"
+)
+
 type UserRepository interface {
 	NewUser()
 	EditUser()
@@ -24,4 +28,10 @@ type MessageRepository interface {
 	GetMessages()
 	GetMessage()
 	CountUnreadMessages()
+}
+
+type DbService interface {
+	GetUsers() []entities.User
+	GetChats() []entities.Chat
+	GetMessages() []entities.Message
 }

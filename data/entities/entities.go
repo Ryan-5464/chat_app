@@ -1,4 +1,4 @@
-package dataEntities
+package entities
 
 import (
 	typ "server/types"

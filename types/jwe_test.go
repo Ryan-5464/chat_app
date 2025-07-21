@@ -9,6 +9,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+// refactor with channels and remove sleep
 func secretKey() skey.SecretKey {
 	s := skey.NewSecretKeyService(100000)
 	// keys generated via go routine. Sleep gives time for keys te be generated
