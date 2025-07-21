@@ -5,18 +5,50 @@ import (
 	"log"
 	"net/http"
 	"server/data/entities"
+	i "server/interfaces"
 	"text/template"
-	"time"
 
 	ws "github.com/gorilla/websocket"
 )
 
 type ChatRenderer struct {
+	authS i.AuthService
+	chatS i.ChatService
+	msgS  i.MessageService
 }
 
 func (cr *ChatRenderer) RenderChat(w http.ResponseWriter, r *http.Request) {
-	tmpl, err := template.ParseFiles("./static/templates/chat.html")
+	cookie, err := r.Cookie("session_token")
+	if err != nil {
+		log.Println("no session cookie found")
+		http.Error(w, "no session cookie found", http.StatusInternalServerError)
+		return
+	}
 
+	session, err := cr.authS.ValidateAndRefreshSession(cookie.Value)
+	if err != nil {
+		log.Println("failed to valdiate session token")
+		http.Error(w, "internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	http.SetCookie(w, session.Cookie())
+
+	chats, err := cr.chatS.GetChats()
+	if err != nil {
+		log.Println("failed to get chat data for user")
+		http.Error(w, "interrnal server error", http.StatusInternalServerError)
+		return
+	}
+
+	messages, err := cr.msgS.GetMessages()
+	if err != nil {
+		log.Println("failed to get message data for user")
+		http.Error(w, "interrnal server error", http.StatusInternalServerError)
+		return
+	}
+
+	tmpl, err := template.ParseFiles("./static/templates/chat.html")
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -26,8 +58,8 @@ func (cr *ChatRenderer) RenderChat(w http.ResponseWriter, r *http.Request) {
 		Chats    []entities.Chat
 		Messages []entities.Message
 	}{
-		Chats:    testChats(),
-		Messages: testMessages(),
+		Chats:    chats,
+		Messages: messages,
 	}
 
 	err = tmpl.Execute(w, data)
@@ -82,50 +114,4 @@ func establishWebsocket(w http.ResponseWriter, r *http.Request) (*ws.Conn, error
 	}
 
 	return conn, nil
-}
-
-func testChats() []entities.Chat {
-	chat1 := entities.Chat{
-		Id:                 1,
-		Name:               "test1",
-		AdminId:            3,
-		AdminName:          "alf",
-		MemberCount:        4,
-		UnreadMessageCount: 14,
-		CreatedAt:          time.Now(),
-	}
-	chat2 := entities.Chat{
-		Id:                 2,
-		Name:               "test2",
-		AdminId:            4,
-		AdminName:          "derek",
-		MemberCount:        3,
-		UnreadMessageCount: 2,
-		CreatedAt:          time.Now(),
-	}
-	return []entities.Chat{chat1, chat2}
-}
-
-func testMessages() []entities.Message {
-	message1 := entities.Message{
-		Id:         1,
-		UserId:     3,
-		ChatId:     1,
-		ReplyId:    0,
-		Author:     "alf",
-		Text:       "hello",
-		CreatedAt:  time.Now(),
-		LastEditAt: time.Now(),
-	}
-	message2 := entities.Message{
-		Id:         2,
-		UserId:     3,
-		ChatId:     1,
-		ReplyId:    0,
-		Author:     "alf",
-		Text:       "there",
-		CreatedAt:  time.Now(),
-		LastEditAt: time.Now(),
-	}
-	return []entities.Message{message1, message2}
 }

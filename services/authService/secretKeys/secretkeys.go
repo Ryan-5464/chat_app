@@ -39,11 +39,11 @@ type SecretKeyService struct {
 	Signal      chan int
 }
 
-func (s *SecretKeyService) GetCurrentKey() SecretKey {
+func (s *SecretKeyService) CurrentKey() SecretKey {
 	return s.currentKey
 }
 
-func (s *SecretKeyService) GetPreviousKey() SecretKey {
+func (s *SecretKeyService) PreviousKey() SecretKey {
 	return s.previousKey
 }
 

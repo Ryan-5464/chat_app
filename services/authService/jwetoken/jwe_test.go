@@ -16,7 +16,7 @@ func secretKey() skey.SecretKey {
 	s := skey.NewSecretKeyService(100000)
 	// keys generated via go routine. Sleep gives time for keys te be generated
 	time.Sleep(time.Duration(500) * time.Millisecond)
-	return s.GetCurrentKey()
+	return s.CurrentKey()
 }
 
 func TestJWEGenerationVerificationPipeline(t *testing.T) {
