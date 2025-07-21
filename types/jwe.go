@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	skey "server/services/secretKeys"
 	"time"
 
 	"gopkg.in/square/go-jose.v2"
@@ -44,7 +45,7 @@ func (j *JWE) IssuedAt() time.Time {
 	return j.claims.IssuedAt
 }
 
-func NewJWE(userId UserId, key SecretKey) (JWE, error) {
+func NewJWE(userId UserId, key skey.SecretKey) (JWE, error) {
 	tokenExpiry := time.Now().Add(time.Hour)
 	claims := Claims{
 		UserId:      userId,
@@ -58,7 +59,7 @@ func NewJWE(userId UserId, key SecretKey) (JWE, error) {
 	return jwe, nil
 }
 
-func ParseAndVerifyJWE(token string, key SecretKey) (JWE, error) {
+func ParseAndVerifyJWE(token string, key skey.SecretKey) (JWE, error) {
 	verifiedToken, err := decryptAndVerifyToken(token, key)
 	if err != nil {
 		return JWE{}, fmt.Errorf("failed to decrypt token: %w", err)
@@ -76,11 +77,11 @@ func ParseAndVerifyJWE(token string, key SecretKey) (JWE, error) {
 	return updateJWE(claims.UserId, key)
 }
 
-func updateJWE(userId UserId, key SecretKey) (JWE, error) {
+func updateJWE(userId UserId, key skey.SecretKey) (JWE, error) {
 	return NewJWE(userId, key)
 }
 
-func decryptAndVerifyToken(token string, key SecretKey) ([]byte, error) {
+func decryptAndVerifyToken(token string, key skey.SecretKey) ([]byte, error) {
 
 	jweObject, err := jose.ParseEncrypted(token)
 	if err != nil {
@@ -122,7 +123,7 @@ func validateClaims(claims Claims) error {
 	return nil
 }
 
-func generateJWE(claims Claims, key SecretKey) (JWE, error) {
+func generateJWE(claims Claims, key skey.SecretKey) (JWE, error) {
 
 	claimsJSON, err := json.Marshal(claims)
 	if err != nil {

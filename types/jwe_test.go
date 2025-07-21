@@ -1,6 +1,7 @@
 package types
 
 import (
+	skey "server/services/secretKeys"
 	"testing"
 	"time"
 
@@ -8,12 +9,11 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func secretKey() SecretKey {
-	return NewSecretKey("iiiiviiiixiiiiviiiixiiiiviiiixii")
-}
-
-func badSecretKey() SecretKey {
-	return NewSecretKey("0iiiviiiixiiiiviiiixiiiiviiiixii")
+func secretKey() skey.SecretKey {
+	s := skey.NewSecretKeyService(100000)
+	// keys generated via go routine. Sleep gives time for keys te be generated
+	time.Sleep(time.Duration(500) * time.Millisecond)
+	return s.GetCurrentKey()
 }
 
 func TestJWEGenerationVerificationPipeline(t *testing.T) {
@@ -56,13 +56,13 @@ func TestExpiredToken(t *testing.T) {
 
 func TestInvalidKey(t *testing.T) {
 	key := secretKey()
-	badKey := badSecretKey()
+	newKey := secretKey()
 	userId := UserId(1)
 
 	jwe, err := NewJWE(userId, key)
 	require.NoError(t, err)
 
-	_, err = ParseAndVerifyJWE(jwe.String(), badKey)
+	_, err = ParseAndVerifyJWE(jwe.String(), newKey)
 	assert.Error(t, err, "Expected error due to invalid decryption key")
 }
 
