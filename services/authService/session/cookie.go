@@ -6,6 +6,7 @@ import (
 	tkn "server/services/authService/jwetoken"
 	skey "server/services/authService/secretKeys"
 	typ "server/types"
+	"time"
 )
 
 func NewSession(userId typ.UserId, key skey.SecretKey) (Session, error) {
@@ -14,14 +15,7 @@ func NewSession(userId typ.UserId, key skey.SecretKey) (Session, error) {
 		return Session{}, fmt.Errorf("jwe generation failed: %w", err)
 	}
 
-	s := Session{}
-	s.SetCookie(NewCookie(jwe))
-	s.SetUserId(userId)
-	return s, nil
-}
-
-func NewCookie(jwe tkn.JWE) http.Cookie {
-	return http.Cookie{
+	c := http.Cookie{
 		Name:     "session_token",
 		Value:    jwe.String(),
 		Path:     "/",
@@ -30,19 +24,18 @@ func NewCookie(jwe tkn.JWE) http.Cookie {
 		SameSite: http.SameSiteLaxMode,
 		Expires:  jwe.TokenExpiry(),
 	}
+
+	s := Session{
+		cookie: c,
+		userId: userId,
+	}
+
+	return s, nil
 }
 
 type Session struct {
 	cookie http.Cookie
 	userId typ.UserId
-}
-
-func (s Session) SetCookie(c http.Cookie) {
-	s.cookie = c
-}
-
-func (s Session) SetUserId(u typ.UserId) {
-	s.userId = u
 }
 
 func (s Session) Cookie() http.Cookie {
@@ -51,4 +44,16 @@ func (s Session) Cookie() http.Cookie {
 
 func (s Session) UserId() typ.UserId {
 	return s.userId
+}
+
+func (s Session) TokenExpiry() time.Time {
+	return s.cookie.Expires
+}
+
+func (s Session) JWEToken() string {
+	return s.cookie.Value
+}
+
+func (s Session) Name() string {
+	return s.cookie.Name
 }
