@@ -1,14 +1,18 @@
 package renderers
 
 import (
+	"fmt"
+	"log"
 	"net/http"
+
+	ws "github.com/gorilla/websocket"
 )
 
 type ChatRenderer struct {
 }
 
 func (cr *ChatRenderer) RenderChat(w http.ResponseWriter, r *http.Request) {
-	http.ServeFile(w, r, "./static/pages/chat.html")
+	http.ServeFile(w, r, "./static/templates/chat.html")
 }
 
 func (cr *ChatRenderer) ChatWebsocket(w http.ResponseWriter, r *http.Request) {
@@ -19,7 +23,7 @@ func (cr *ChatRenderer) ChatWebsocket(w http.ResponseWriter, r *http.Request) {
 	}
 	defer conn.Close()
 
-	testData := testData()
+	testData := []byte("testdata") // testData()
 
 	err = conn.WriteMessage(ws.TextMessage, testData)
 	if err != nil {
@@ -33,7 +37,7 @@ func (cr *ChatRenderer) ChatWebsocket(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			break
 		} else {
-			testEcho := testEcho()
+			testEcho := []byte("echo") // testEcho()
 			err = conn.WriteMessage(ws.TextMessage, testEcho)
 			if err != nil {
 				log.Println(err)
@@ -59,33 +63,33 @@ func establishWebsocket(w http.ResponseWriter, r *http.Request) (*ws.Conn, error
 	return conn, nil
 }
 
-func testEcho() []byte {
+// func testEcho() []byte {
 
-	message1 := testMessage{
-		MessageId:   1,
-		MessageText: "echo",
-	}
-	messages := []testMessage{message1}
+// 	message1 := testMessage{
+// 		MessageId:   1,
+// 		MessageText: "echo",
+// 	}
+// 	messages := []testMessage{message1}
 
-	chat1 := testChat{
-		ChatId:   1,
-		ChatName: "first",
-	}
-	chat2 := testChat{
-		ChatId:   2,
-		ChatName: "second",
-	}
-	chats := []testChat{chat1, chat2}
+// 	chat1 := testChat{
+// 		ChatId:   1,
+// 		ChatName: "first",
+// 	}
+// 	chat2 := testChat{
+// 		ChatId:   2,
+// 		ChatName: "second",
+// 	}
+// 	chats := []testChat{chat1, chat2}
 
-	payload := testPayload{
-		Messages: messages,
-		Chats:    chats,
-	}
+// 	payload := testPayload{
+// 		Messages: messages,
+// 		Chats:    chats,
+// 	}
 
-	data, err := json.Marshal(payload)
-	if err != nil {
-		return nil
-	}
+// 	data, err := json.Marshal(payload)
+// 	if err != nil {
+// 		return nil
+// 	}
 
-	return data
-}
+// 	return data
+// }
