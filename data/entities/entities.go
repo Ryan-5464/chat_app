@@ -1,6 +1,8 @@
 package entities
 
 import (
+	cred "server/services/authService/credentials"
+	tkn "server/services/authService/jwetoken"
 	typ "server/types"
 	"time"
 )
@@ -19,17 +21,18 @@ type Message struct {
 type Chat struct {
 	Id                 typ.ChatId
 	Name               string
-	Admin              typ.UserId
+	AdminId            typ.UserId
 	AdminName          string
 	MemberCount        int64
 	UnreadMessageCount int64
+	CreatedAt          time.Time
 }
 
 type User struct {
 	Id      typ.UserId
 	Name    string
-	Email   typ.Email
-	PwdHash typ.PwdHash
+	Email   cred.Email
+	PwdHash cred.PwdHash
 	Joined  time.Time
-	Token   typ.JWE
+	Token   tkn.JWE
 }

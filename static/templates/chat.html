@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <link rel="stylesheet" href="/static/styles/chat.css">
+    <!-- <script src="https://unpkg.com/htmx.org@1.9.2"></script> -->
+  <title>Chat Window</title>
+</head>
+
+<body>
+
+<div id="header-container">
+    <nav></nav>
+</div>
+
+<div id="main-container">
+
+    <div id="left-sidebar">
+
+        <div id="chats-container">
+
+            <div id="chats-header">
+                <button>+</button>
+            </div>
+
+            {{ range .Chats }}
+                <div class="chat" data-chatid="{{ .Id }}" data-adminid="{{ .AdminId }}" data-createdat="{{ .CreatedAt }}">
+                    <div class="chat-name">{{ .Name }}</div>
+                    <div class="chat-admin-name">{{ .AdminName }}</div>
+                    <div class="chat-member-count">{{ .MemberCount }}</div>
+                    <div class="chat-unread-message-count">{{ .UnreadMessageCount }}</div>
+                </div>
+            {{ end }}
+
+        </div>
+
+    </div>
+    
+    <div id="content-container">
+
+        <div id="messages-container">
+
+            {{ range .Messages }}
+                <div class="message" data-userid="{{ .UserId }}" data-chatid="{{ .ChatId }}" data-messageid="{{ .Id }}" data-replyid="{{ .ReplyId }}">
+                    <div class="message-author">{{ .Author }}</div>
+                    <div class="message-text">{{ .Text }}</div>
+                    <div class="message-createdat">{{ .CreatedAt }}</div>
+                    <div class="message-lasteditat">{{ .LastEditAt }}</div>
+                </div>
+            {{ end }}
+
+        </div>
+
+        <div id="message-input-container">
+            <div id="input" type="text" palceholder="Type your message..."/>
+            <button id="send-message-button">Send</button>
+
+        </div>
+
+    </div>
+
+    <div id="right-sidebar"></div>
+
+</div>
+
+
+<div id="footer-container"></div>
+
+</body>
+
+</html>

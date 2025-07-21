@@ -1,4 +1,4 @@
-package JWE
+package jwetoken
 
 import (
 	"encoding/json"
