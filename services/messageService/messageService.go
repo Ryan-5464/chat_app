@@ -5,6 +5,10 @@ import (
 	"time"
 )
 
+func NewMessageService() *MessageService {
+	return &MessageService{}
+}
+
 type MessageService struct {
 }
 

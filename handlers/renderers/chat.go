@@ -6,10 +6,19 @@ import (
 	"net/http"
 	"server/data/entities"
 	i "server/interfaces"
+	typ "server/types"
 	"text/template"
 
 	ws "github.com/gorilla/websocket"
 )
+
+func NewChatRenderer(a i.AuthService, c i.ChatService, m i.MessageService) *ChatRenderer {
+	return &ChatRenderer{
+		authS: a,
+		chatS: c,
+		msgS:  m,
+	}
+}
 
 type ChatRenderer struct {
 	authS i.AuthService
@@ -18,14 +27,20 @@ type ChatRenderer struct {
 }
 
 func (cr *ChatRenderer) RenderChat(w http.ResponseWriter, r *http.Request) {
-	cookie, err := r.Cookie("session_token")
+	// cookie, err := r.Cookie("session_token")
+	// if err != nil {
+	// 	log.Println("no session cookie found")
+	// 	http.Error(w, "no session cookie found", http.StatusInternalServerError)
+	// 	return
+	// }
+	testToken, err := testToken(cr.authS)
 	if err != nil {
-		log.Println("no session cookie found")
-		http.Error(w, "no session cookie found", http.StatusInternalServerError)
+		log.Println("failed to create dummy session")
+		http.Error(w, "internal server error", http.StatusInternalServerError)
 		return
 	}
 
-	session, err := cr.authS.ValidateAndRefreshSession(cookie.Value)
+	session, err := cr.authS.ValidateAndRefreshSession(testToken)
 	if err != nil {
 		log.Println("failed to valdiate session token")
 		http.Error(w, "internal server error", http.StatusInternalServerError)
@@ -114,4 +129,12 @@ func establishWebsocket(w http.ResponseWriter, r *http.Request) (*ws.Conn, error
 	}
 
 	return conn, nil
+}
+
+func testToken(authS i.AuthService) (string, error) {
+	testSession, err := authS.NewSession(typ.UserId(1))
+	if err != nil {
+		return "", fmt.Errorf("failed to create test session : %w", err)
+	}
+	return testSession.JWEToken(), nil
 }

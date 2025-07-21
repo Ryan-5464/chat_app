@@ -3,6 +3,7 @@ package interfaces
 import (
 	"server/data/entities"
 	sess "server/services/authService/session"
+	typ "server/types"
 )
 
 type UserRepository interface {
@@ -39,6 +40,7 @@ type DbService interface {
 
 type AuthService interface {
 	ValidateAndRefreshSession(JWEtoken string) (sess.Session, error)
+	NewSession(userId typ.UserId) (sess.Session, error)
 }
 
 type ChatService interface {

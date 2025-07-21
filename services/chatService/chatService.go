@@ -5,6 +5,10 @@ import (
 	"time"
 )
 
+func NewChatService() *ChatService {
+	return &ChatService{}
+}
+
 type ChatService struct {
 }
 

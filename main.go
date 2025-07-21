@@ -4,8 +4,11 @@ import (
 	"log"
 	"net/http"
 	"server/handlers/renderers"
+	sauth "server/services/authService"
+	schat "server/services/chatService"
 	dbs "server/services/dbService"
 	prov "server/services/dbService/providers"
+	smsg "server/services/messageService"
 	repo "server/services/repository"
 )
 
@@ -26,7 +29,11 @@ func main() {
 	// messageRepo := repo.NewMessageRepository(dbService)
 	userRepo.GetUsers()
 
-	cr := renderers.ChatRenderer{}
+	authS := sauth.NewAuthService()
+	chatS := schat.NewChatService()
+	msgS := smsg.NewMessageService()
+
+	cr := renderers.NewChatRenderer(authS, chatS, msgS)
 
 	fs := http.FileServer(http.Dir("./static"))
 	http.Handle("/static/", http.StripPrefix("/static/", fs))
