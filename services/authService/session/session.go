@@ -15,7 +15,7 @@ func NewSession(userId typ.UserId, key skey.SecretKey) (Session, error) {
 		return Session{}, fmt.Errorf("jwe generation failed: %w", err)
 	}
 
-	c := http.Cookie{
+	c := &http.Cookie{
 		Name:     "session_token",
 		Value:    jwe.String(),
 		Path:     "/",
@@ -34,11 +34,11 @@ func NewSession(userId typ.UserId, key skey.SecretKey) (Session, error) {
 }
 
 type Session struct {
-	cookie http.Cookie
+	cookie *http.Cookie
 	userId typ.UserId
 }
 
-func (s Session) Cookie() http.Cookie {
+func (s Session) Cookie() *http.Cookie {
 	return s.cookie
 }
 
