@@ -4,6 +4,9 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"server/data/entities"
+	"text/template"
+	"time"
 
 	ws "github.com/gorilla/websocket"
 )
@@ -12,7 +15,25 @@ type ChatRenderer struct {
 }
 
 func (cr *ChatRenderer) RenderChat(w http.ResponseWriter, r *http.Request) {
-	http.ServeFile(w, r, "./static/templates/chat.html")
+	tmpl, err := template.ParseFiles("./static/templates/chat.html")
+
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	data := struct {
+		Chats    []entities.Chat
+		Messages []entities.Message
+	}{
+		Chats:    testChats(),
+		Messages: testMessages(),
+	}
+
+	err = tmpl.Execute(w, data)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
 }
 
 func (cr *ChatRenderer) ChatWebsocket(w http.ResponseWriter, r *http.Request) {
@@ -63,33 +84,48 @@ func establishWebsocket(w http.ResponseWriter, r *http.Request) (*ws.Conn, error
 	return conn, nil
 }
 
-// func testEcho() []byte {
+func testChats() []entities.Chat {
+	chat1 := entities.Chat{
+		Id:                 1,
+		Name:               "test1",
+		AdminId:            3,
+		AdminName:          "alf",
+		MemberCount:        4,
+		UnreadMessageCount: 14,
+		CreatedAt:          time.Now(),
+	}
+	chat2 := entities.Chat{
+		Id:                 2,
+		Name:               "test2",
+		AdminId:            4,
+		AdminName:          "derek",
+		MemberCount:        3,
+		UnreadMessageCount: 2,
+		CreatedAt:          time.Now(),
+	}
+	return []entities.Chat{chat1, chat2}
+}
 
-// 	message1 := testMessage{
-// 		MessageId:   1,
-// 		MessageText: "echo",
-// 	}
-// 	messages := []testMessage{message1}
-
-// 	chat1 := testChat{
-// 		ChatId:   1,
-// 		ChatName: "first",
-// 	}
-// 	chat2 := testChat{
-// 		ChatId:   2,
-// 		ChatName: "second",
-// 	}
-// 	chats := []testChat{chat1, chat2}
-
-// 	payload := testPayload{
-// 		Messages: messages,
-// 		Chats:    chats,
-// 	}
-
-// 	data, err := json.Marshal(payload)
-// 	if err != nil {
-// 		return nil
-// 	}
-
-// 	return data
-// }
+func testMessages() []entities.Message {
+	message1 := entities.Message{
+		Id:         1,
+		UserId:     3,
+		ChatId:     1,
+		ReplyId:    0,
+		Author:     "alf",
+		Text:       "hello",
+		CreatedAt:  time.Now(),
+		LastEditAt: time.Now(),
+	}
+	message2 := entities.Message{
+		Id:         2,
+		UserId:     3,
+		ChatId:     1,
+		ReplyId:    0,
+		Author:     "alf",
+		Text:       "there",
+		CreatedAt:  time.Now(),
+		LastEditAt: time.Now(),
+	}
+	return []entities.Message{message1, message2}
+}
