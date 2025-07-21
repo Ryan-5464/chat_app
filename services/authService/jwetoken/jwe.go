@@ -11,6 +11,38 @@ import (
 	"gopkg.in/square/go-jose.v2"
 )
 
+func NewJWE(userId typ.UserId, key skey.SecretKey) (JWE, error) {
+	tokenExpiry := time.Now().Add(time.Hour)
+	claims := Claims{
+		UserId:      userId,
+		TokenExpiry: tokenExpiry,
+		IssuedAt:    time.Now(),
+	}
+	jwe, err := generateJWE(claims, key)
+	if err != nil {
+		return JWE{}, fmt.Errorf("failed to generate JWE : %w", err)
+	}
+	return jwe, nil
+}
+
+func ParseAndVerifyJWE(token string, key skey.SecretKey) (JWE, error) {
+	verifiedToken, err := decryptAndVerifyToken(token, key)
+	if err != nil {
+		return JWE{}, fmt.Errorf("failed to decrypt token: %w", err)
+	}
+
+	var claims Claims
+	if err := json.Unmarshal(verifiedToken, &claims); err != nil {
+		return JWE{}, fmt.Errorf("failed to unmarshal claims; %w", err)
+	}
+
+	if err := validateClaims(claims); err != nil {
+		return JWE{}, fmt.Errorf("invalid claims: %w", err)
+	}
+
+	return updateJWE(claims.UserId, key)
+}
+
 type Claims struct {
 	UserId      typ.UserId
 	TokenExpiry time.Time
@@ -44,38 +76,6 @@ func (j *JWE) TokenExpiry() time.Time {
 
 func (j *JWE) IssuedAt() time.Time {
 	return j.claims.IssuedAt
-}
-
-func NewJWE(userId typ.UserId, key skey.SecretKey) (JWE, error) {
-	tokenExpiry := time.Now().Add(time.Hour)
-	claims := Claims{
-		UserId:      userId,
-		TokenExpiry: tokenExpiry,
-		IssuedAt:    time.Now(),
-	}
-	jwe, err := generateJWE(claims, key)
-	if err != nil {
-		return JWE{}, fmt.Errorf("failed to generate JWE : %w", err)
-	}
-	return jwe, nil
-}
-
-func ParseAndVerifyJWE(token string, key skey.SecretKey) (JWE, error) {
-	verifiedToken, err := decryptAndVerifyToken(token, key)
-	if err != nil {
-		return JWE{}, fmt.Errorf("failed to decrypt token: %w", err)
-	}
-
-	var claims Claims
-	if err := json.Unmarshal(verifiedToken, &claims); err != nil {
-		return JWE{}, fmt.Errorf("failed to unmarshal claims; %w", err)
-	}
-
-	if err := validateClaims(claims); err != nil {
-		return JWE{}, fmt.Errorf("invalid claims: %w", err)
-	}
-
-	return updateJWE(claims.UserId, key)
 }
 
 func updateJWE(userId typ.UserId, key skey.SecretKey) (JWE, error) {
