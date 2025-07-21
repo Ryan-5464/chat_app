@@ -34,6 +34,7 @@ func (s SecretKey) IsZero() bool {
 type SecretKeyService struct {
 	currentKey  SecretKey
 	previousKey SecretKey
+	signal      chan int
 }
 
 func (s *SecretKeyService) GetCurrentKey() SecretKey {
@@ -52,6 +53,7 @@ func (s *SecretKeyService) generateNewKey() error {
 	}
 	s.previousKey = s.currentKey
 	s.currentKey.Set(bytes)
+	s.signal <- 1
 	return nil
 }
 
