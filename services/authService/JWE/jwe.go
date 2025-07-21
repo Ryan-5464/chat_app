@@ -1,17 +1,18 @@
-package types
+package JWE
 
 import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	skey "server/services/secretKeys"
+	skey "server/services/authService/secretKeys"
+	typ "server/types"
 	"time"
 
 	"gopkg.in/square/go-jose.v2"
 )
 
 type Claims struct {
-	UserId      UserId
+	UserId      typ.UserId
 	TokenExpiry time.Time
 	IssuedAt    time.Time
 }
@@ -33,7 +34,7 @@ func (j *JWE) Claims() *Claims {
 	return &j.claims
 }
 
-func (j *JWE) UserId() UserId {
+func (j *JWE) UserId() typ.UserId {
 	return j.claims.UserId
 }
 
@@ -45,7 +46,7 @@ func (j *JWE) IssuedAt() time.Time {
 	return j.claims.IssuedAt
 }
 
-func NewJWE(userId UserId, key skey.SecretKey) (JWE, error) {
+func NewJWE(userId typ.UserId, key skey.SecretKey) (JWE, error) {
 	tokenExpiry := time.Now().Add(time.Hour)
 	claims := Claims{
 		UserId:      userId,
@@ -77,7 +78,7 @@ func ParseAndVerifyJWE(token string, key skey.SecretKey) (JWE, error) {
 	return updateJWE(claims.UserId, key)
 }
 
-func updateJWE(userId UserId, key skey.SecretKey) (JWE, error) {
+func updateJWE(userId typ.UserId, key skey.SecretKey) (JWE, error) {
 	return NewJWE(userId, key)
 }
 

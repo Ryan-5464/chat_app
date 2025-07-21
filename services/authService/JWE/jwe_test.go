@@ -1,9 +1,11 @@
-package types
+package JWE
 
 import (
-	skey "server/services/secretKeys"
+	skey "server/services/authService/secretKeys"
 	"testing"
 	"time"
+
+	typ "server/types"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -19,7 +21,7 @@ func secretKey() skey.SecretKey {
 
 func TestJWEGenerationVerificationPipeline(t *testing.T) {
 	key := secretKey()
-	userId := UserId(1)
+	userId := typ.UserId(1)
 	jwe, err := NewJWE(userId, key)
 	require.NoError(t, err, "Expected NewJWE to succeed")
 
@@ -39,7 +41,7 @@ func TestJWEGenerationVerificationPipeline(t *testing.T) {
 
 func TestExpiredToken(t *testing.T) {
 	key := secretKey()
-	userId := UserId(1)
+	userId := typ.UserId(1)
 
 	// Manually construct claims with past expiry
 	claims := Claims{
@@ -58,7 +60,7 @@ func TestExpiredToken(t *testing.T) {
 func TestInvalidKey(t *testing.T) {
 	key := secretKey()
 	newKey := secretKey()
-	userId := UserId(1)
+	userId := typ.UserId(1)
 
 	jwe, err := NewJWE(userId, key)
 	require.NoError(t, err)
@@ -69,7 +71,7 @@ func TestInvalidKey(t *testing.T) {
 
 func TestMalformedToken(t *testing.T) {
 	key := secretKey()
-	userId := UserId(1)
+	userId := typ.UserId(1)
 
 	jwe, err := NewJWE(userId, key)
 	token := jwe.Bytes()
