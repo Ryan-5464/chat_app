@@ -48,5 +48,5 @@ type ChatService interface {
 }
 
 type MessageService interface {
-	GetMessages() ([]entities.Message, error)
+	GetMessages(chatId typ.ChatId) ([]entities.Message, error)
 }

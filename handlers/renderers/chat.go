@@ -1,6 +1,7 @@
 package renderers
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
@@ -56,7 +57,7 @@ func (cr *ChatRenderer) RenderChat(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	messages, err := cr.msgS.GetMessages()
+	messages, err := cr.msgS.GetMessages(typ.ChatId(1))
 	if err != nil {
 		log.Println("failed to get message data for user")
 		http.Error(w, "interrnal server error", http.StatusInternalServerError)
@@ -91,29 +92,62 @@ func (cr *ChatRenderer) ChatWebsocket(w http.ResponseWriter, r *http.Request) {
 	}
 	defer conn.Close()
 
-	testData := []byte("testdata") // testData()
-
-	err = conn.WriteMessage(ws.TextMessage, testData)
-	if err != nil {
-		log.Println(err)
-		http.Error(w, "Failed to serialize data", http.StatusInternalServerError)
-		return
-	}
-
 	for {
-		msgT, _, err := conn.ReadMessage()
-		if err != nil {
+		pl := payload{}
+		if err := conn.ReadJSON(&pl); err != nil {
+			log.Println("failed to read JSON: ", err)
+			http.Error(w, "Failed to serialize data", http.StatusInternalServerError)
 			break
-		} else {
-			testEcho := []byte("echo") // testEcho()
-			err = conn.WriteMessage(ws.TextMessage, testEcho)
+		}
+
+		log.Println("pl", pl)
+
+		switch pl.Type {
+		case "SwitchChat":
+			log.Println("Switching chat")
+
+			chat := entities.Chat{}
+			if err := json.Unmarshal(pl.Data, &chat); err != nil {
+				log.Println(err)
+				http.Error(w, "Failed to serialize data", http.StatusInternalServerError)
+				break
+			}
+
+			log.Println("chat", chat)
+
+			messages, err := cr.msgS.GetMessages(typ.ChatId(chat.Id))
 			if err != nil {
 				log.Println(err)
 				http.Error(w, "Failed to serialize data", http.StatusInternalServerError)
 				break
 			}
+
+			log.Println("messages", messages)
+
+			data := struct {
+				Chats    []entities.Chat
+				Messages []entities.Message
+			}{
+				Chats:    nil,
+				Messages: messages,
+			}
+
+			msgPayload, err := json.Marshal(data)
+			if err != nil {
+				log.Println(err)
+				http.Error(w, "Failed to serialize data", http.StatusInternalServerError)
+				break
+			}
+
+			err = conn.WriteMessage(ws.TextMessage, msgPayload)
+			if err != nil {
+				log.Println(err)
+				http.Error(w, "Failed to serialize data", http.StatusInternalServerError)
+				break
+			}
+
 		}
-		log.Println(msgT)
+		log.Println("websocket closed")
 	}
 }
 
