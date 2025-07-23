@@ -3,14 +3,15 @@ package interfaces
 import (
 	"server/data/entities"
 	sess "server/services/authService/session"
+	model "server/services/dbService/SQL/models"
 	typ "server/types"
 )
 
 type UserRepository interface {
-	NewUser()
+	NewUser(usr entities.User) error
 	EditUser()
 	DeleteUser()
-	GetUsers()
+	GetUsers(chatId typ.ChatId) ([]entities.User, error)
 	GetUser()
 }
 
@@ -33,9 +34,10 @@ type MessageRepository interface {
 }
 
 type DbService interface {
-	GetUsers() []entities.User
+	GetUsers(chatId typ.ChatId) ([]model.User, error)
 	GetChats() []entities.Chat
 	GetMessages() []entities.Message
+	NewUser(usrM model.User) error
 }
 
 type AuthService interface {

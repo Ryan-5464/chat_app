@@ -24,14 +24,14 @@ func main() {
 		return
 	}
 
-	userRepo := repo.NewUserRepository(dbService)
-	// chatRepo := repo.NewChatRepository(dbService)
-	// messageRepo := repo.NewMessageRepository(dbService)
-	userRepo.GetUsers()
+	userR := repo.NewUserRepository(dbService)
+	chatR := repo.NewChatRepository(dbService)
+	msgR := repo.NewMessageRepository(dbService)
+	userR.GetUsers()
 
 	authS := sauth.NewAuthService()
-	chatS := schat.NewChatService()
-	msgS := smsg.NewMessageService()
+	chatS := schat.NewChatService(chatR)
+	msgS := smsg.NewMessageService(msgR)
 
 	cr := renderers.NewChatRenderer(authS, chatS, msgS)
 
