@@ -3,15 +3,19 @@ package messageservice
 import (
 	"log"
 	"server/data/entities"
+	i "server/interfaces"
 	typ "server/types"
 	"time"
 )
 
-func NewMessageService() *MessageService {
-	return &MessageService{}
+func NewMessageService(m i.MessageRepository) *MessageService {
+	return &MessageService{
+		msgR: m,
+	}
 }
 
 type MessageService struct {
+	msgR i.MessageRepository
 }
 
 func (m *MessageService) GetMessages(chatId typ.ChatId) ([]entities.Message, error) {
