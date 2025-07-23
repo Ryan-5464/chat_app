@@ -3,10 +3,10 @@ package DTO
 import "encoding/json"
 
 type SwitchChat struct {
-	ChatId int `json:"ChatId"`
+	ChatId string `json:"ChatId"`
 }
 
-type payload struct {
+type Payload struct {
 	Type string          `json:"Type"`
 	Data json.RawMessage `json:"Data"`
 }

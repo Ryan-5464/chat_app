@@ -1,6 +1,7 @@
 package models
 
 import (
+	cred "server/services/authService/credentials"
 	typ "server/types"
 	"time"
 )
@@ -8,8 +9,8 @@ import (
 type User struct {
 	Id      typ.UserId
 	Name    string
-	Email   typ.Email
-	PwdHash typ.PwdHash
+	Email   cred.Email
+	PwdHash cred.PwdHash
 	Joined  time.Time
 }
 

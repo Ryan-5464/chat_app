@@ -5,9 +5,11 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	dto "server/data/DTOs"
 	"server/data/entities"
 	i "server/interfaces"
 	typ "server/types"
+	"strconv"
 	"text/template"
 
 	ws "github.com/gorilla/websocket"
@@ -93,8 +95,15 @@ func (cr *ChatRenderer) ChatWebsocket(w http.ResponseWriter, r *http.Request) {
 	defer conn.Close()
 
 	for {
-		pl := payload{}
-		if err := conn.ReadJSON(&pl); err != nil {
+		_, payload, err := conn.ReadMessage()
+		if err != nil {
+			log.Println("failed to read JSON: ", err)
+			http.Error(w, "Failed to serialize data", http.StatusInternalServerError)
+			break
+		}
+
+		pl, err := parsePayload(payload)
+		if err != nil {
 			log.Println("failed to read JSON: ", err)
 			http.Error(w, "Failed to serialize data", http.StatusInternalServerError)
 			break
@@ -106,16 +115,23 @@ func (cr *ChatRenderer) ChatWebsocket(w http.ResponseWriter, r *http.Request) {
 		case "SwitchChat":
 			log.Println("Switching chat")
 
-			chat := entities.Chat{}
-			if err := json.Unmarshal(pl.Data, &chat); err != nil {
+			data, err := parseSwitchChatData(pl.Data)
+			if err != nil {
 				log.Println(err)
 				http.Error(w, "Failed to serialize data", http.StatusInternalServerError)
 				break
 			}
 
-			log.Println("chat", chat)
+			log.Println("chat", data)
 
-			messages, err := cr.msgS.GetMessages(typ.ChatId(chat.Id))
+			chatId, err := convertStringToInt64(data.ChatId)
+			if err != nil {
+				log.Println(err)
+				http.Error(w, "Failed to serialize data", http.StatusInternalServerError)
+				break
+			}
+
+			messages, err := cr.msgS.GetMessages(typ.ChatId(chatId))
 			if err != nil {
 				log.Println(err)
 				http.Error(w, "Failed to serialize data", http.StatusInternalServerError)
@@ -124,7 +140,7 @@ func (cr *ChatRenderer) ChatWebsocket(w http.ResponseWriter, r *http.Request) {
 
 			log.Println("messages", messages)
 
-			data := struct {
+			payload := struct {
 				Chats    []entities.Chat
 				Messages []entities.Message
 			}{
@@ -132,7 +148,7 @@ func (cr *ChatRenderer) ChatWebsocket(w http.ResponseWriter, r *http.Request) {
 				Messages: messages,
 			}
 
-			msgPayload, err := json.Marshal(data)
+			msgPayload, err := json.Marshal(payload)
 			if err != nil {
 				log.Println(err)
 				http.Error(w, "Failed to serialize data", http.StatusInternalServerError)
@@ -149,6 +165,7 @@ func (cr *ChatRenderer) ChatWebsocket(w http.ResponseWriter, r *http.Request) {
 		}
 		log.Println("websocket closed")
 	}
+
 }
 
 func establishWebsocket(w http.ResponseWriter, r *http.Request) (*ws.Conn, error) {
@@ -171,4 +188,24 @@ func testToken(authS i.AuthService) (string, error) {
 		return "", fmt.Errorf("failed to create test session : %w", err)
 	}
 	return testSession.JWEToken(), nil
+}
+
+func parsePayload(payload []byte) (dto.Payload, error) {
+	p := dto.Payload{}
+	if err := json.Unmarshal(payload, &p); err != nil {
+		return p, err
+	}
+	return p, nil
+}
+
+func parseSwitchChatData(data []byte) (dto.SwitchChat, error) {
+	s := dto.SwitchChat{}
+	if err := json.Unmarshal(data, &s); err != nil {
+		return s, err
+	}
+	return s, nil
+}
+
+func convertStringToInt64(s string) (int64, error) {
+	return strconv.ParseInt(s, 10, 64)
 }

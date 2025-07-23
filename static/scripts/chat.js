@@ -37,10 +37,12 @@ function renderChats(chatData, overwrite) {
     if (chatData == null) {
         return
     }
+
     const chatContainer = document.getElementById('chats-container');
     if (overwrite == true) {
         chatContainer.innerHTML = ''; 
     }
+
     chatData.forEach(chat => {
         const chatElement = document.createElement('div');
         chatElement.className = "chat"
@@ -52,27 +54,20 @@ function renderChats(chatData, overwrite) {
             requestChatMessages(chat.ChatId)
         })
         
-        chatContainer.appendChild(chat);
-        
-        const chatName = document.createElement.div('div')
-        chatName.className = "chat-name"
-        chatName.textContent = `${chat.ChatName}`
-        chatElement.appendChild(chatName)
-        
-        const adminName = document.createElement.div('div')
-        adminName.className = "chat-admin-name"
-        adminName.textContent = `${chat.AdminName}`
-        chatElement.appendChild(adminName)
-        
-        const memberCount = document.createElement.div('div')
-        memberCount.className = "chat-member-count"
-        memberCount.textContent = `${chat.MemberCount}`
-        chatElement.appendChild(memberCount)
-        
-        const UnreadMsgCount = document.createElement.div('div')
-        UnreadMsgCount.className = "chat-unread-message-count"
-        UnreadMsgCount.textContent = `${chat.UnreadMsgCount}`
-        chatElement.appendChild(UnreadMsgCount)
+        chatContainer.appendChild(chatElement);
+
+        const data = {
+            "chat-name": `${chat.ChatName}`,
+            "chat-admin-name": `${chat.AdminName}`,
+            "chat-member-count": `${chat.MemberCount}`,
+            "chat-unread-message-count": `${chat.UnreadMsgCount}`,
+        }
+        for (const [key, value] of Object.entries(data)) {
+            const element = document.createElement('div')
+            element.className = key
+            element.textContent = `${value}`
+            chatElement.appendChild(element);
+        }
     });
 }
 
@@ -81,30 +76,34 @@ function renderMessages(messageData, overwrite) {
     if (overwrite == true) {
         messageContainer.innerHTML = ''
     }
+
     messageData.forEach(message => {
         const messageElement = document.createElement('div');
         messageElement.className = "message";
-        messageElement.setAttribute("data-userid", message.UserId);
-        messageElement.setAttribute("data-chatid", message.ChatId);
-        messageElement.setAttribute("data-messageid", message.MessageId);
-        messageElement.setAttribute("data-replyid", message.ReplyId);
+
+        const attributes = {
+            "data-userid": message.UserId,
+            "data-chatid": message.ChatId,
+            "data-messageid": message.MessageId,
+            "data-replyid": message.ReplyId,
+        };
+        for (const [key, value] of Object.entries(attributes)) {
+            messageElement.setAttribute(key, value);
+        }
         messageContainer.appendChild(messageElement);
 
-        const author = document.createElement('div')
-        author.className = "message-author"
-        author.textContent = `${message.Author}`
-
-        const createdAt = document.createElement('div')
-        createdAt.className = "message-createdat"
-        createdAt.textContent = `${message.CreatedAt}`
-
-        const lastEditAt = document.createElement('div')
-        lastEditAt.className = "message-lasteditat"
-        lastEditAt.textContent = `${message.lastEditAt}`
-
-        const messageText = document.createElement('div')
-        messageText.className = "message-text"
-        messageText.textContent = `${message.Text}`
+        const data = {
+            "message-author": `${message.Author}`,
+            "message-createdat": `${message.CreatedAt}`,
+            "message-lasteditat": `${message.lastEditAt}`,
+            "message-text": `${message.Text}`,
+        }
+        for (const [key, value] of Object.entries(data)) {
+            const element = document.createElement('div')
+            element.className = key
+            element.textContent = `${value}`
+            messageElement.appendChild(element);
+        }
 
         messageContainer.scrollTop = messageContainer.scrollHeight;
     });
