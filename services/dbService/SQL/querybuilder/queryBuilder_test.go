@@ -125,7 +125,7 @@ func TestSimpleSELECTQuery(t *testing.T) {
 		Build()
 	expected := "SELECT f1, f2, f3 FROM test WHERE f1 = ?"
 
-	if result.String() != expected {
+	if result != expected {
 		t.Errorf("result = %s; want %s", result, expected)
 	}
 }
@@ -147,7 +147,7 @@ func TestINSERT_INTOQuery(t *testing.T) {
 
 	expected := "INSERT INTO test (f1, f2, f3) VALUES (?, ?, ?)"
 
-	if result.String() != expected {
+	if result != expected {
 		t.Errorf("result = %s; want %s", result, expected)
 	}
 }
@@ -175,7 +175,7 @@ func TestComplexJOINQuery(t *testing.T) {
 
 	expected := `SELECT * FROM test1 AS a JOIN test2 AS b ON a.f1 = b.f3 WHERE a.f2 IN (?, ?) AND a.f2 = ? GROUP BY a.f2`
 
-	if result.String() != expected {
+	if result != expected {
 		t.Errorf("result = %s; want \n %s", result, expected)
 	}
 

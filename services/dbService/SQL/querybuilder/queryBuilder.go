@@ -22,12 +22,6 @@ type on string
 type placeholders string
 type values string
 
-type SQLQuery string
-
-func (s SQLQuery) String() string {
-	return string(s)
-}
-
 type field string
 
 func (f field) String() string {
@@ -40,9 +34,9 @@ func (t table) String() string {
 	return string(t)
 }
 
-func (q *queryBuilder) Build() SQLQuery {
+func (q *queryBuilder) Build() string {
 	s := strings.TrimSpace(q.String())
-	return SQLQuery(s)
+	return s
 }
 
 // =============================================================================
@@ -185,16 +179,6 @@ func (q *queryBuilder) IN(v ...any) placeholders {
 	b.WriteString(")")
 	return placeholders(b.String())
 }
-
-// func (q *queryBuilder) AS(tableName TableName, alias string) QTable {
-// 	var b strings.Builder
-// 	b.WriteString(string(tableName))
-// 	b.WriteString(" AS ")
-// 	b.WriteString(alias)
-// 	return QTable(b.String())
-// }
-
-// func (q *queryBuilder) WITH()
 
 // =============================================================================
 // Helpers

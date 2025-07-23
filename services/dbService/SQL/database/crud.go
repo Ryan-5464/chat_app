@@ -1,4 +1,4 @@
-package SQL
+package database
 
 import (
 	"database/sql"
@@ -6,24 +6,24 @@ import (
 	typ "server/types"
 )
 
-func newDb(conn *sql.DB) *database {
-	return &database{conn: conn}
+func NewDb(conn *sql.DB) *DB {
+	return &DB{conn: conn}
 }
 
-type database struct {
+type DB struct {
 	conn *sql.DB
 }
 
-func (db *database) create(query SQLQuery, values ...any) (sql.Result, error) {
-	res, err := db.conn.Exec(query.String(), values...)
+func (db *DB) Create(query string, values ...any) (sql.Result, error) {
+	res, err := db.conn.Exec(query, values...)
 	if err != nil {
 		return nil, fmt.Errorf("db create failed: %w", err)
 	}
 	return res, nil
 }
 
-func (db *database) read(query SQLQuery, values ...any) (typ.Rows, error) {
-	rows, err := db.conn.Query(query.String(), values...)
+func (db *DB) Read(query string, values ...any) (typ.Rows, error) {
+	rows, err := db.conn.Query(query, values...)
 	if err != nil {
 		return nil, fmt.Errorf("db read failed: %w", err)
 	}
@@ -61,16 +61,16 @@ func (db *database) read(query SQLQuery, values ...any) (typ.Rows, error) {
 	return results, nil
 }
 
-func (db *database) update(query SQLQuery, values ...any) error {
-	_, err := db.conn.Exec(query.String(), values...)
+func (db *DB) Update(query string, values ...any) error {
+	_, err := db.conn.Exec(query, values...)
 	if err != nil {
 		return fmt.Errorf("update failed: %w", err)
 	}
 	return nil
 }
 
-func (db *database) delete(query SQLQuery, conditions ...any) error {
-	_, err := db.conn.Exec(query.String(), conditions...)
+func (db *DB) Delete(query string, conditions ...any) error {
+	_, err := db.conn.Exec(query, conditions...)
 	if err != nil {
 		return fmt.Errorf("delete failed: %w", err)
 	}
