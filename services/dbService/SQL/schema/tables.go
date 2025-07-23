@@ -1,10 +1,8 @@
 package schema
 
-type Table string
-
 const (
-	MessageTable Table = "Message"
-	ChatTable    Table = "Chat"
-	UserTable    Table = "User"
-	MemberTable  Table = "Member"
+	MessageTable string = "Message"
+	ChatTable    string = "Chat"
+	UserTable    string = "User"
+	MemberTable  string = "Member"
 )

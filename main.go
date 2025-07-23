@@ -37,8 +37,10 @@ func main() {
 
 	fs := http.FileServer(http.Dir("./static"))
 	http.Handle("/static/", http.StripPrefix("/static/", fs))
+
 	http.HandleFunc("/", cr.RenderChat)
 	http.HandleFunc("/ws", cr.ChatWebsocket)
+
 	if err := http.ListenAndServe(":8081", nil); err != nil {
 		log.Fatalf("Server failed to start: %v", err)
 	}

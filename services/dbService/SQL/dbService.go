@@ -26,14 +26,18 @@ type DbService struct {
 	db *d.DB
 }
 
-func (db *DbService) GetUsers() []entities.User {
+func (dbs *DbService) Close() {
+	dbs.db.Close()
+}
+
+func (dbs *DbService) GetUsers() []entities.User {
 	return []entities.User{}
 }
 
-func (db *DbService) GetChats() []entities.Chat {
+func (dbs *DbService) GetChats() []entities.Chat {
 	return []entities.Chat{}
 }
 
-func (db *DbService) GetMessages() []entities.Message {
+func (dbs *DbService) GetMessages() []entities.Message {
 	return []entities.Message{}
 }

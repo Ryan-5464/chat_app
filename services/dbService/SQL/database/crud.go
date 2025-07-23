@@ -7,15 +7,19 @@ import (
 )
 
 func NewDb(conn *sql.DB) *DB {
-	return &DB{conn: conn}
+	return &DB{Conn: conn}
 }
 
 type DB struct {
-	conn *sql.DB
+	Conn *sql.DB
+}
+
+func (db *DB) Close() {
+	db.Conn.Close()
 }
 
 func (db *DB) Create(query string, values ...any) (sql.Result, error) {
-	res, err := db.conn.Exec(query, values...)
+	res, err := db.Conn.Exec(query, values...)
 	if err != nil {
 		return nil, fmt.Errorf("db create failed: %w", err)
 	}
@@ -23,7 +27,7 @@ func (db *DB) Create(query string, values ...any) (sql.Result, error) {
 }
 
 func (db *DB) Read(query string, values ...any) (typ.Rows, error) {
-	rows, err := db.conn.Query(query, values...)
+	rows, err := db.Conn.Query(query, values...)
 	if err != nil {
 		return nil, fmt.Errorf("db read failed: %w", err)
 	}
@@ -62,7 +66,7 @@ func (db *DB) Read(query string, values ...any) (typ.Rows, error) {
 }
 
 func (db *DB) Update(query string, values ...any) error {
-	_, err := db.conn.Exec(query, values...)
+	_, err := db.Conn.Exec(query, values...)
 	if err != nil {
 		return fmt.Errorf("update failed: %w", err)
 	}
@@ -70,7 +74,7 @@ func (db *DB) Update(query string, values ...any) error {
 }
 
 func (db *DB) Delete(query string, conditions ...any) error {
-	_, err := db.conn.Exec(query, conditions...)
+	_, err := db.Conn.Exec(query, conditions...)
 	if err != nil {
 		return fmt.Errorf("delete failed: %w", err)
 	}
