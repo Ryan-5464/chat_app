@@ -5,6 +5,7 @@ import (
 	"server/data/entities"
 	i "server/interfaces"
 	model "server/services/dbService/SQL/models"
+	typ "server/types"
 )
 
 func NewMessageRepository(dbS i.DbService) *MessageRepository {
@@ -28,8 +29,8 @@ func (u *MessageRepository) NewMessage(msgE entities.Message) (entities.Message,
 	return newMsgE, nil
 }
 
-func (u *MessageRepository) GetMessages() {
-	u.dbS.GetMessages()
+func (u *MessageRepository) GetMessages(msgIds []typ.MessageId) {
+	u.dbS.GetMessages(msgIds)
 }
 
 func messageEntitiesFromModels(msgMs []model.Message) []entities.Message {

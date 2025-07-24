@@ -2,14 +2,18 @@ package chatservice
 
 import (
 	"server/data/entities"
+	i "server/interfaces"
 	"time"
 )
 
-func NewChatService() *ChatService {
-	return &ChatService{}
+func NewChatService(c i.ChatRepository) *ChatService {
+	return &ChatService{
+		chatR: c,
+	}
 }
 
 type ChatService struct {
+	chatR i.ChatRepository
 }
 
 func (m *ChatService) GetChats() ([]entities.Chat, error) {

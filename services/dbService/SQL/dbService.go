@@ -35,15 +35,28 @@ func (dbs *DbService) Close() {
 	dbs.db.Close()
 }
 
-func (dbs *DbService) GetUsers(chatId typ.ChatId) ([]model.User, error) {
+func (dbs *DbService) GetUser(usrId typ.UserId) (model.User, error) {
+	usrIds := []typ.UserId{usrId}
+
+	usrs, err := dbs.GetUsers(usrIds)
+	if err != nil {
+		return model.User{}, fmt.Errorf("failed to get user from database: %w", err)
+	}
+
+	return usrs[0], nil
+}
+
+func (dbs *DbService) GetUsers(usrIds []typ.UserId) ([]model.User, error) {
 	qb := qbuilder.NewQueryBuilder()
 
 	usrTbl := qb.Table(schema.UserTable)
-	chatIdF := qb.Field(schema.ChatId)
+	usrIdF := qb.Field(schema.UserId)
 
-	query := qb.SELECT(qb.All()).FROM(usrTbl).WHERE(chatIdF, qb.EqualTo())
+	ids := ToAnySlice(usrIds)
 
-	rows, err := dbs.db.Read(query.String(), chatId)
+	query := qb.SELECT(qb.All()).FROM(usrTbl).WHERE(usrIdF, qb.IN(ids))
+
+	rows, err := dbs.db.Read(query.String(), ids)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read users from database: %w", err)
 	}
@@ -84,6 +97,56 @@ func (dbs *DbService) GetMessages(msgIds []typ.MessageId) ([]model.Message, erro
 	}
 
 	return populateMessageModels(rows), nil
+}
+
+func (dbs *DbService) NewUser(u model.User) (model.User, error) {
+	qb := qbuilder.NewQueryBuilder()
+
+	usrTbl := qb.Table(schema.UserTable)
+	usrIdF := qb.Field(schema.UserId)
+	usrNameF := qb.Field(schema.Name)
+	emailF := qb.Field(schema.Email)
+	pwdHashF := qb.Field(schema.PwdHash)
+	joinedF := qb.Field(schema.Joined)
+
+	query := qb.INSERT_INTO(
+		usrTbl,
+		usrIdF,
+		usrNameF,
+		emailF,
+		pwdHashF,
+		joinedF,
+	).VALUES(
+		u.Id,
+		u.Name,
+		u.Email,
+		u.PwdHash,
+		u.Joined,
+	)
+
+	res, err := dbs.db.Create(
+		query.String(),
+		u.Id,
+		u.Name,
+		u.Email,
+		u.PwdHash,
+		u.Joined,
+	)
+	if err != nil {
+		return model.User{}, fmt.Errorf("failed to create user in database: %w", err)
+	}
+
+	newUsrId, err := res.LastInsertId()
+	if err != nil {
+		return model.User{}, err
+	}
+
+	usr, err := dbs.GetUser(typ.UserId(newUsrId))
+	if err != nil {
+		return model.User{}, fmt.Errorf("failed to get message from database: %w", err)
+	}
+
+	return usr, nil
 }
 
 func (dbs *DbService) NewMessage(m model.Message) (model.Message, error) {

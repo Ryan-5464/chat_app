@@ -17,5 +17,6 @@ type UserService struct {
 }
 
 func (u *UserService) GetUsers(chatId typ.ChatId) ([]entities.User, error) {
-	return testUsers(chatId), nil
+	return []entities.User{}, nil
+	// return testUsers(chatId), nil
 }

@@ -16,8 +16,8 @@ type UserRepository struct {
 	dbS i.DbService
 }
 
-func (u *UserRepository) GetUsers(chatId typ.ChatId) ([]entities.User, error) {
-	usrMs, err := u.dbS.GetUsers(chatId)
+func (u *UserRepository) GetUsers(usrIds []typ.UserId) ([]entities.User, error) {
+	usrMs, err := u.dbS.GetUsers(usrIds)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get user models from database service: %w", err)
 	}
@@ -25,14 +25,15 @@ func (u *UserRepository) GetUsers(chatId typ.ChatId) ([]entities.User, error) {
 	return userEntitiesFromModels(usrMs), nil
 }
 
-func (u *UserRepository) NewUser(usrE entities.User) error {
+func (u *UserRepository) NewUser(usrE entities.User) (entities.User, error) {
 
 	usrM := userModelFromEntity(usrE)
-	if err := u.dbS.NewUser(usrM); err != nil {
-		return fmt.Errorf("failed to create new user: %w", err)
+	newUsrM, err := u.dbS.NewUser(usrM)
+	if err != nil {
+		return entities.User{}, fmt.Errorf("failed to create new user: %w", err)
 	}
 
-	return nil
+	return userEntityFromModel(newUsrM), nil
 }
 
 func userEntitiesFromModels(usrMs []model.User) []entities.User {

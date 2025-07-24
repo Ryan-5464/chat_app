@@ -9,36 +9,39 @@ import (
 
 type UserRepository interface {
 	NewUser(usr entities.User) error
-	EditUser()
-	DeleteUser()
+	// EditUser()
+	// DeleteUser()
 	GetUsers(chatId typ.ChatId) ([]entities.User, error)
-	GetUser()
+	// GetUser()
 }
 
 type ChatRepository interface {
-	NewChat()
-	EditChat()
-	DeleteChat()
+	// NewChat()
+	// EditChat()
+	// DeleteChat()
 	GetChats()
-	GetChat()
-	CountMembers()
+	// GetChat()
+	// CountMembers()
 }
 
 type MessageRepository interface {
 	NewMessage(msg entities.Message) (entities.Message, error)
-	EditMessage()
-	DeleteMessage()
-	GetMessages()
-	GetMessage()
-	CountUnreadMessages()
+	// EditMessage()
+	// DeleteMessage()
+	// GetMessages()
+	// GetMessage()
+	// CountUnreadMessages()
 }
 
 type DbService interface {
-	GetUsers(chatId typ.ChatId) ([]model.User, error)
+	GetUser(usrId typ.UserId) (model.User, error)
+	GetUsers(usrIds []typ.UserId) ([]model.User, error)
 	GetChats() []entities.Chat
+	GetMessage(msgId typ.MessageId) (model.Message, error)
 	GetMessages(msgIds []typ.MessageId) ([]model.Message, error)
 	NewMessage(msgM model.Message) (model.Message, error)
-	NewUser(usrM model.User) error
+	NewUser(usrM model.User) (model.User, error)
+	Close()
 }
 
 type AuthService interface {

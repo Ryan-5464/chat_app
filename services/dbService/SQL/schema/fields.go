@@ -6,6 +6,7 @@ const (
 	Email         string = "Email"
 	PwdHash       string = "PwdHash"
 	CreatedAt     string = "CreatedAt"
+	Joined        string = "Joined"
 	LastReadMsgId string = "LastReadMsgId"
 	ChatId        string = "ChatId"
 	AdminId       string = "AdminId"

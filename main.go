@@ -10,6 +10,7 @@ import (
 	prov "server/services/dbService/providers"
 	smsg "server/services/messageService"
 	repo "server/services/repository"
+	typ "server/types"
 )
 
 func main() {
@@ -27,7 +28,7 @@ func main() {
 	userR := repo.NewUserRepository(dbService)
 	chatR := repo.NewChatRepository(dbService)
 	msgR := repo.NewMessageRepository(dbService)
-	userR.GetUsers()
+	userR.GetUsers([]typ.UserId{1})
 
 	authS := sauth.NewAuthService()
 	chatS := schat.NewChatService(chatR)
