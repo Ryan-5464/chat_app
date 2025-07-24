@@ -25,7 +25,7 @@ type ChatRepository interface {
 }
 
 type MessageRepository interface {
-	NewMessage()
+	NewMessage(msg entities.Message) (entities.Message, error)
 	EditMessage()
 	DeleteMessage()
 	GetMessages()
@@ -36,7 +36,8 @@ type MessageRepository interface {
 type DbService interface {
 	GetUsers(chatId typ.ChatId) ([]model.User, error)
 	GetChats() []entities.Chat
-	GetMessages() []entities.Message
+	GetMessages(msgIds []typ.MessageId) ([]model.Message, error)
+	NewMessage(msgM model.Message) (model.Message, error)
 	NewUser(usrM model.User) error
 }
 
