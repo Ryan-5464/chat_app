@@ -1,6 +1,8 @@
 package messageservice
 
 import (
+	"encoding/json"
+	"fmt"
 	"log"
 	"server/data/entities"
 	i "server/interfaces"
@@ -8,17 +10,91 @@ import (
 	"time"
 )
 
-func NewMessageService(m i.MessageRepository) *MessageService {
+func NewMessageService(lgr i.Logger, m i.MessageRepository, u i.UserService, c i.ConnectionService) *MessageService {
 	return &MessageService{
-		msgR: m,
+		lgr:   lgr,
+		msgR:  m,
+		usrS:  u,
+		connS: c,
 	}
 }
 
 type MessageService struct {
-	msgR i.MessageRepository
+	lgr   i.Logger
+	msgR  i.MessageRepository
+	usrS  i.UserService
+	connS i.ConnectionService
+}
+
+func (m *MessageService) HandleNewMessage(msg entities.Message) error {
+	m.lgr.LogFunctionInfo()
+	log.Println(1)
+
+	msg, err := m.msgR.NewMessage(msg)
+	if err != nil {
+		return fmt.Errorf("failed to create new message: %w", err)
+	}
+	log.Println(2)
+
+	usr, err := m.usrS.GetUser(msg.UserId)
+	if err != nil {
+		return fmt.Errorf("failed to get user: %w", err)
+	}
+	log.Println(3)
+
+	msg.Author = usr.Name
+	log.Println(4)
+
+	usrs, err := m.usrS.GetUsers(msg.ChatId)
+	if err != nil {
+		return fmt.Errorf("failed to get users: %w", err)
+	}
+	log.Println(5)
+
+	usrConns := make(map[typ.UserId]i.Socket)
+	for _, usr := range usrs {
+		conn := m.connS.GetConnection(usr.Id)
+		usrConns[usr.Id] = conn
+	}
+	log.Println(6)
+
+	for userId, conn := range usrConns {
+		if err := m.BroadcastMessage(userId, conn, msg); err != nil {
+			return fmt.Errorf("failed to braodcast message: %w", err)
+		}
+	}
+	log.Println(7)
+
+	return nil
+}
+
+func (m *MessageService) BroadcastMessage(userId typ.UserId, conn i.Socket, msg entities.Message) error {
+	m.lgr.LogFunctionInfo()
+	messages := []entities.Message{msg}
+
+	payload := struct {
+		Chats    []entities.Chat
+		Messages []entities.Message
+	}{
+		Chats:    nil,
+		Messages: messages,
+	}
+
+	msgPayload, err := json.Marshal(payload)
+	if err != nil {
+		return fmt.Errorf("Failed to serialize data: %w", err)
+	}
+
+	err = conn.WriteJSON(msgPayload)
+	if err != nil {
+		return fmt.Errorf("failed to write to websockt connection: %w", err)
+	}
+
+	return nil
 }
 
 func (m *MessageService) GetMessages(chatId typ.ChatId) ([]entities.Message, error) {
+	m.lgr.LogFunctionInfo()
 	return testMessages(chatId), nil
 }
 

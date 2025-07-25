@@ -15,18 +15,24 @@ import (
 	ws "github.com/gorilla/websocket"
 )
 
-func NewChatRenderer(a i.AuthService, c i.ChatService, m i.MessageService) *ChatRenderer {
+func NewChatRenderer(lgr i.Logger, a i.AuthService, c i.ChatService, m i.MessageService, cnx i.ConnectionService, u i.UserService) *ChatRenderer {
 	return &ChatRenderer{
+		lgr:   lgr,
 		authS: a,
 		chatS: c,
 		msgS:  m,
+		connS: cnx,
+		userS: u,
 	}
 }
 
 type ChatRenderer struct {
+	lgr   i.Logger
 	authS i.AuthService
 	chatS i.ChatService
 	msgS  i.MessageService
+	connS i.ConnectionService
+	userS i.UserService
 }
 
 func (cr *ChatRenderer) RenderChat(w http.ResponseWriter, r *http.Request) {
@@ -162,6 +168,27 @@ func (cr *ChatRenderer) ChatWebsocket(w http.ResponseWriter, r *http.Request) {
 				break
 			}
 
+		case "NewMessage":
+
+			newMsg, err := parseNewMessageData(pl.Data)
+			if err != nil {
+				log.Println(err)
+				http.Error(w, "Failed to serialize data", http.StatusInternalServerError)
+				break
+			}
+
+			log.Println("newMsg", newMsg)
+
+			if cr.msgS == nil {
+				log.Fatal("missing messaging service")
+			}
+
+			if err := cr.msgS.HandleNewMessage(newMsg); err != nil {
+				log.Println(err)
+				http.Error(w, "Internal server error", http.StatusInternalServerError)
+				break
+			}
+
 		}
 		log.Println("websocket closed")
 	}
@@ -204,6 +231,40 @@ func parseSwitchChatData(data []byte) (dto.SwitchChat, error) {
 		return s, err
 	}
 	return s, nil
+}
+
+func parseNewMessageData(data []byte) (entities.Message, error) {
+	n := dto.NewMessage{}
+	if err := json.Unmarshal(data, &n); err != nil {
+		return entities.Message{}, err
+	}
+
+	userId, err := convertStringToInt64(n.UserId)
+	if err != nil {
+		return entities.Message{}, fmt.Errorf("faield to convert userId from string to int: %w", err)
+	}
+
+	chatId, err := convertStringToInt64(n.ChatId)
+	if err != nil {
+		return entities.Message{}, fmt.Errorf("faield to convert chatId from string to int: %w", err)
+	}
+
+	var replyId int64
+	if n.ReplyId != "" {
+		replyId, err = convertStringToInt64(n.ReplyId)
+		if err != nil {
+			return entities.Message{}, fmt.Errorf("failed to convert replyId from string to int: %w", err)
+		}
+	}
+
+	msgE := entities.Message{
+		UserId:  typ.UserId(userId),
+		ChatId:  typ.ChatId(chatId),
+		ReplyId: typ.MessageId(replyId),
+		Text:    n.MsgText,
+	}
+
+	return msgE, nil
 }
 
 func convertStringToInt64(s string) (int64, error) {

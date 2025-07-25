@@ -13,7 +13,7 @@ func TestDBInitialization(t *testing.T) {
 	config.Add("driver", "sqlite3")
 	config.Add("path", ":memory:")
 	c := prov.NewCredentials(prov.SQLite3, config)
-	dbs, err := NewDbService(c)
+	dbs, err := NewDbService(nil, c)
 	if err != nil {
 		t.Fatalf("failed to initialize database: %v", err)
 	}

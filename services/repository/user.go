@@ -8,15 +8,31 @@ import (
 	typ "server/types"
 )
 
-func NewUserRepository(dbS i.DbService) *UserRepository {
-	return &UserRepository{dbS: dbS}
+func NewUserRepository(lgr i.Logger, dbS i.DbService) *UserRepository {
+	return &UserRepository{
+		lgr: lgr,
+		dbS: dbS,
+	}
 }
 
 type UserRepository struct {
+	lgr i.Logger
 	dbS i.DbService
 }
 
+func (u *UserRepository) GetUser(userId typ.UserId) (entities.User, error) {
+	u.lgr.LogFunctionInfo()
+	ids := []typ.UserId{userId}
+	users, err := u.GetUsers(ids)
+	if err != nil {
+		return entities.User{}, fmt.Errorf("failed to get user from database service: %w", err)
+	}
+
+	return users[0], nil
+}
+
 func (u *UserRepository) GetUsers(usrIds []typ.UserId) ([]entities.User, error) {
+	u.lgr.LogFunctionInfo()
 	usrMs, err := u.dbS.GetUsers(usrIds)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get user models from database service: %w", err)
@@ -26,6 +42,7 @@ func (u *UserRepository) GetUsers(usrIds []typ.UserId) ([]entities.User, error) 
 }
 
 func (u *UserRepository) NewUser(usrE entities.User) (entities.User, error) {
+	u.lgr.LogFunctionInfo()
 
 	usrM := userModelFromEntity(usrE)
 	newUsrM, err := u.dbS.NewUser(usrM)

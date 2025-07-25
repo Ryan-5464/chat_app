@@ -6,8 +6,8 @@ import (
 	prov "server/services/dbService/providers"
 )
 
-func NewDbService(c prov.Credentials) (i.DbService, error) {
-	dbS, err := dbServiceFactory(c)
+func NewDbService(lgr i.Logger, c prov.Credentials) (i.DbService, error) {
+	dbS, err := dbServiceFactory(lgr, c)
 	if err != nil {
 		return nil, fmt.Errorf("failed to initialize dbService: %w", err)
 	}

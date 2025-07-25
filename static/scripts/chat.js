@@ -1,3 +1,10 @@
+/* IMPORTANT 
+
+    INFORMATION IS EXTRACTED FROM ELEMENTS FROM THE FRONTEND FOR DEV. THIS IS A VULNERABILITY. 
+    NEEDS TO BE REWRITTEN USING SECURE TOKENS.
+
+*/
+
 const socket = new WebSocket('ws://localhost:8081/ws');
 
 socket.onopen = function () {
@@ -10,25 +17,87 @@ socket.onmessage = function (event) {
     console.log(payload)
     renderChats(payload.Chats, false);
     renderMessages(payload.Messages, true);
-};
+}
 
-document.addEventListener("DOMContentLoaded", function () {
-  document.querySelectorAll('.chat').forEach(function (el) {
-    el.addEventListener('click', function () {
-      const chatId = el.getAttribute('data-chatid');
-        requestChatMessages(chatId)
-    });
-  });
-});
+document.addEventListener("DOMContentLoaded", function() {
+    addSwitchChatListenerToChats()
+    addNewMsgListenerToMsgInput()
+    addNewMsgListenerToSendMsgButton()
+})
+
+function addSwitchChatListenerToChats() {
+    document.querySelectorAll('.chat').forEach(function (elem) {
+        elem.addEventListener('click', function () {
+            const chatId = elem.getAttribute('data-chatid')
+            requestChatMessages(chatId)
+        })
+    })
+}
+
+function addNewMsgListenerToMsgInput() {
+    const input = document.getElementById("input")
+    input.addEventListener('keydown', function (event) {
+        if (event.key === "Enter") {
+            const chatId = getChatIdFromExistingMessage()
+            const userId = getUserIdFromExistingChat()
+            const replyId = null
+            const msgText = input.value.trim()
+            sendMessage(userId, msgText, chatId, replyId)
+        }
+    })
+}
+
+function addNewMsgListenerToSendMsgButton() {
+    const button = document.getElementById("send-message-button")
+    button.addEventListener('click', function () {
+        const input = document.getElementById("input")
+        const userId = getUserIdFromExistingMessage()
+        const chatId = getChatIdFromExistingMessage()
+        const replyId = null
+        const msgText = input.value.trim()
+        sendMessage(userId, msgText, chatId, replyId)
+    })
+}
+
+function getChatIdFromExistingMessage() {
+    const message = document.getElementsByClassName("message")
+    chatId = message[0].getAttribute("data-chatid")
+    console.log(chatId)
+    return chatId
+}
+
+function getUserIdFromExistingMessage() {
+    const chat = document.getElementsByClassName("message")
+    userId = chat[0].getAttribute("data-userid")
+    console.log(userId)
+    return userId
+}
+
+function sendMessage(userId, msgText, chatId, replyId) {
+    console.log("userId: ", userId, "chatId: ", chatId, "replyId: ", replyId, "msgText: ", msgText)
+    if (msgText) {
+        payload = {
+            Type: "NewMessage",
+            Data: {
+                UserId: userId,
+                ChatId: chatId,
+                MsgText: msgText,
+                ReplyId: replyId
+            }
+        }
+        socket.send(JSON.stringify(payload));
+        messageInput.value = '';
+    }
+}
 
 function requestChatMessages(chatId) {
+    console.log("chatId: ", chatId)
     payload = {
         Type: "SwitchChat",
         Data: {
             ChatId: chatId,
         }
     }
-    console.log("sending payload: ", payload)
     socket.send(JSON.stringify(payload))
 }
 
@@ -109,13 +178,4 @@ function renderMessages(messageData, overwrite) {
     });
 }
 
-function sendMessage() {
-    const messageInput = document.getElementById("input");
-    const message = messageInput.value.trim();
 
-    if (message) {
-        socket.send(message);
-        messageInput.value = '';
-        console.log("Message sent")
-    }
-}

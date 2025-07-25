@@ -3,7 +3,8 @@ package SQL
 import (
 	"database/sql"
 	"fmt"
-	"server/data/entities"
+	"log"
+	i "server/interfaces"
 	cred "server/services/authService/credentials"
 	d "server/services/dbService/SQL/database"
 	model "server/services/dbService/SQL/models"
@@ -16,26 +17,66 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 )
 
-func NewDbService(c prov.Credentials) (*DbService, error) {
+func NewDbService(lgr i.Logger, c prov.Credentials) (*DbService, error) {
 	conn, err := sql.Open(c.Value("driver"), c.Value("path"))
 	if err != nil {
 		return nil, fmt.Errorf("failed to connect to database: %w", err)
 	}
 	db := d.NewDb(conn)
 	initDb(db, schema.Get())
-	dbS := &DbService{db: db}
+	dbS := &DbService{
+		lgr: lgr,
+		db:  db,
+	}
 	return dbS, nil
 }
 
 type DbService struct {
-	db *d.DB
+	lgr i.Logger
+	db  *d.DB
 }
 
 func (dbs *DbService) Close() {
 	dbs.db.Close()
 }
 
+func (dbs *DbService) GetChat(chatId typ.ChatId) (model.Chat, error) {
+	dbs.lgr.LogFunctionInfo()
+	chatIds := []typ.ChatId{chatId}
+
+	chats, err := dbs.GetChats(chatIds)
+	if err != nil {
+		return model.Chat{}, fmt.Errorf("failed to get user from database: %w", err)
+	}
+
+	return chats[0], nil
+
+}
+
+func (dbs *DbService) GetChats(chatIds []typ.ChatId) ([]model.Chat, error) {
+	dbs.lgr.LogFunctionInfo()
+
+	qb := qbuilder.NewQueryBuilder()
+
+	chatTbl := qb.Table(schema.ChatTable)
+	chatIdF := qb.Field(schema.ChatId)
+
+	ids := ToAnySlice(chatIds)
+
+	query := qb.SELECT(qb.All()).FROM(chatTbl).WHERE(chatIdF, qb.IN(ids...))
+
+	rows, err := dbs.db.Read(query.String(), ids...)
+	if err != nil {
+		return []model.Chat{}, fmt.Errorf("failed to read chatas from database")
+	}
+	log.Println("ROWS : ", rows)
+	chatMs := populateChatModels(rows)
+
+	return chatMs, nil
+}
+
 func (dbs *DbService) GetUser(usrId typ.UserId) (model.User, error) {
+	dbs.lgr.LogFunctionInfo()
 	usrIds := []typ.UserId{usrId}
 
 	usrs, err := dbs.GetUsers(usrIds)
@@ -47,6 +88,7 @@ func (dbs *DbService) GetUser(usrId typ.UserId) (model.User, error) {
 }
 
 func (dbs *DbService) GetUsers(usrIds []typ.UserId) ([]model.User, error) {
+	dbs.lgr.LogFunctionInfo()
 	qb := qbuilder.NewQueryBuilder()
 
 	usrTbl := qb.Table(schema.UserTable)
@@ -56,7 +98,7 @@ func (dbs *DbService) GetUsers(usrIds []typ.UserId) ([]model.User, error) {
 
 	query := qb.SELECT(qb.All()).FROM(usrTbl).WHERE(usrIdF, qb.IN(ids))
 
-	rows, err := dbs.db.Read(query.String(), ids)
+	rows, err := dbs.db.Read(query.String(), ids...)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read users from database: %w", err)
 	}
@@ -66,11 +108,8 @@ func (dbs *DbService) GetUsers(usrIds []typ.UserId) ([]model.User, error) {
 	return usrMs, err
 }
 
-func (dbs *DbService) GetChats() []entities.Chat {
-	return []entities.Chat{}
-}
-
 func (dbs *DbService) GetMessage(msgId typ.MessageId) (model.Message, error) {
+	dbs.lgr.LogFunctionInfo()
 	msgIds := []typ.MessageId{msgId}
 
 	msgs, err := dbs.GetMessages(msgIds)
@@ -82,6 +121,7 @@ func (dbs *DbService) GetMessage(msgId typ.MessageId) (model.Message, error) {
 }
 
 func (dbs *DbService) GetMessages(msgIds []typ.MessageId) ([]model.Message, error) {
+	dbs.lgr.LogFunctionInfo()
 	qb := qbuilder.NewQueryBuilder()
 
 	msgTbl := qb.Table(schema.MessageTable)
@@ -99,39 +139,52 @@ func (dbs *DbService) GetMessages(msgIds []typ.MessageId) ([]model.Message, erro
 	return populateMessageModels(rows), nil
 }
 
+func (dbs *DbService) NewChat(c model.Chat) (model.Chat, error) {
+	dbs.lgr.LogFunctionInfo()
+	qb := qbuilder.NewQueryBuilder()
+
+	chatTbl := qb.Table(schema.ChatTable)
+	chatName := qb.Field(schema.Name)
+	adminId := qb.Field(schema.AdminId)
+
+	log.Println("TEST TEST : ", chatName)
+
+	query := qb.INSERT_INTO(chatTbl, chatName, adminId).
+		VALUES(chatName, adminId)
+
+	res, err := dbs.db.Create(query.String(), c.Name, c.AdminId)
+	if err != nil {
+		return model.Chat{}, fmt.Errorf("failed to create chat in database: %w", err)
+	}
+
+	newChatId, err := res.LastInsertId()
+	if err != nil {
+		return model.Chat{}, err
+	}
+
+	chat, err := dbs.GetChat(typ.ChatId(newChatId))
+	if err != nil {
+		return model.Chat{}, fmt.Errorf("faield to get chat")
+	}
+
+	return chat, nil
+}
+
 func (dbs *DbService) NewUser(u model.User) (model.User, error) {
+	dbs.lgr.LogFunctionInfo()
 	qb := qbuilder.NewQueryBuilder()
 
 	usrTbl := qb.Table(schema.UserTable)
-	usrIdF := qb.Field(schema.UserId)
 	usrNameF := qb.Field(schema.Name)
 	emailF := qb.Field(schema.Email)
 	pwdHashF := qb.Field(schema.PwdHash)
-	joinedF := qb.Field(schema.Joined)
 
-	query := qb.INSERT_INTO(
-		usrTbl,
-		usrIdF,
-		usrNameF,
-		emailF,
-		pwdHashF,
-		joinedF,
-	).VALUES(
-		u.Id,
-		u.Name,
-		u.Email,
-		u.PwdHash,
-		u.Joined,
-	)
+	query := qb.INSERT_INTO(usrTbl, usrNameF, emailF, pwdHashF).
+		VALUES(u.Name, u.Email, u.PwdHash)
+	log.Println(query)
+	log.Println(u.Name, u.Email, u.PwdHash)
 
-	res, err := dbs.db.Create(
-		query.String(),
-		u.Id,
-		u.Name,
-		u.Email,
-		u.PwdHash,
-		u.Joined,
-	)
+	res, err := dbs.db.Create(query.String(), u.Name, u.Email, u.PwdHash)
 	if err != nil {
 		return model.User{}, fmt.Errorf("failed to create user in database: %w", err)
 	}
@@ -143,13 +196,14 @@ func (dbs *DbService) NewUser(u model.User) (model.User, error) {
 
 	usr, err := dbs.GetUser(typ.UserId(newUsrId))
 	if err != nil {
-		return model.User{}, fmt.Errorf("failed to get message from database: %w", err)
+		return model.User{}, fmt.Errorf("failed to get user from database: %w", err)
 	}
 
 	return usr, nil
 }
 
 func (dbs *DbService) NewMessage(m model.Message) (model.Message, error) {
+	dbs.lgr.LogFunctionInfo()
 	qb := qbuilder.NewQueryBuilder()
 
 	msgTbl := qb.Table(schema.MessageTable)
@@ -207,18 +261,33 @@ func (dbs *DbService) NewMessage(m model.Message) (model.Message, error) {
 	return msg, nil
 }
 
+func populateChatModels(rows typ.Rows) []model.Chat {
+	log.Println("test")
+	var chatMs []model.Chat
+	for _, row := range rows {
+		chatM := model.Chat{
+			Id:        parseChatId(row[schema.ChatId]),
+			Name:      parseString(row[schema.Name]),
+			AdminId:   parseUserId(row[schema.AdminId]),
+			CreatedAt: parseTime(row[schema.CreatedAt]),
+		}
+		chatMs = append(chatMs, chatM)
+	}
+	return chatMs
+}
+
 func populateMessageModels(rows typ.Rows) []model.Message {
 
 	var msgMs []model.Message
 	for _, row := range rows {
 		msgM := model.Message{
-			Id:         typ.MessageId(row[schema.MessageId].(int64)),
-			UserId:     typ.UserId(row[schema.UserId].(int64)),
-			ChatId:     typ.ChatId(row[schema.ChatId].(int64)),
-			ReplyId:    typ.MessageId(row[schema.ReplyId].(int64)),
-			Text:       row[schema.MsgText].(string),
-			CreatedAt:  row[schema.CreatedAt].(time.Time),
-			LastEditAt: row[schema.LastEditAt].(time.Time),
+			Id:         parseMessageId(row[schema.MessageId]),
+			UserId:     parseUserId(row[schema.UserId]),
+			ChatId:     parseChatId(row[schema.ChatId]),
+			ReplyId:    parseMessageId(row[schema.ReplyId]),
+			Text:       parseString(row[schema.MsgText]),
+			CreatedAt:  parseTime(row[schema.CreatedAt]),
+			LastEditAt: parseTime(row[schema.LastEditAt]),
 		}
 		msgMs = append(msgMs, msgM)
 	}
@@ -227,19 +296,76 @@ func populateMessageModels(rows typ.Rows) []model.Message {
 }
 
 func populateUserModels(rows typ.Rows) []model.User {
+
 	var usrMs []model.User
 	for _, row := range rows {
 		usrM := model.User{
-			Id:      typ.UserId(row[schema.UserId].(int64)),
-			Name:    row[schema.Name].(string),
-			Email:   cred.Email(row[schema.Email].(string)),
-			PwdHash: cred.PwdHash(row[schema.PwdHash].(string)),
-			Joined:  row[schema.CreatedAt].(time.Time),
+			Id:      parseUserId(row[schema.UserId]),
+			Name:    parseString(row[schema.Name]),
+			Email:   parseEmail(row[schema.Email]),
+			PwdHash: parsePwdHash(row[schema.PwdHash]),
+			Joined:  parseTime(row[schema.CreatedAt]),
 		}
 		usrMs = append(usrMs, usrM)
 	}
 
 	return usrMs
+}
+
+func parseTime(v any) time.Time {
+	joined, ok := v.(time.Time)
+	if !ok {
+		log.Fatalf("parseTime: v does not hold a MyType (it is %T)", v)
+	}
+	return joined
+}
+
+func parseEmail(v any) cred.Email {
+	email, ok := v.(string)
+	if !ok {
+		log.Fatalf("parseEmail: v does not hold a MyType (it is %T)", v)
+	}
+	return cred.Email(email)
+}
+
+func parsePwdHash(v any) cred.PwdHash {
+	hash, ok := v.([]uint8)
+	if !ok {
+		log.Fatalf("parsePwdHash: v does not hold a MyType (it is %T)", v)
+	}
+	return cred.PwdHash(hash)
+}
+
+func parseString(v any) string {
+	name, ok := v.(string)
+	if !ok {
+		log.Fatalf("parseName: v does not hold a MyType (it is %T)", v)
+	}
+	return name
+}
+
+func parseMessageId(v any) typ.MessageId {
+	mid, ok := v.(int64)
+	if !ok {
+		log.Fatalf("parseUserId: v does not hold a MyType (it is %T)", v)
+	}
+	return typ.MessageId(mid)
+}
+
+func parseChatId(v any) typ.ChatId {
+	cid, ok := v.(int64)
+	if !ok {
+		log.Fatalf("parseUserId: v does not hold a MyType (it is %T)", v)
+	}
+	return typ.ChatId(cid)
+}
+
+func parseUserId(v any) typ.UserId {
+	uid, ok := v.(int64)
+	if !ok {
+		log.Fatalf("parseUserId: v does not hold a MyType (it is %T)", v)
+	}
+	return typ.UserId(uid)
 }
 
 func ConvertSlice[T any](input []any) ([]T, error) {

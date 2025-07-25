@@ -1,22 +1,22 @@
 package interfaces
 
 import (
-	"server/data/entities"
+	ent "server/data/entities"
 	sess "server/services/authService/session"
 	model "server/services/dbService/SQL/models"
 	typ "server/types"
 )
 
 type UserRepository interface {
-	NewUser(usr entities.User) error
+	NewUser(usr ent.User) (ent.User, error)
 	// EditUser()
 	// DeleteUser()
-	GetUsers(chatId typ.ChatId) ([]entities.User, error)
-	// GetUser()
+	GetUsers(userIds []typ.UserId) ([]ent.User, error)
+	GetUser(userId typ.UserId) (ent.User, error)
 }
 
 type ChatRepository interface {
-	// NewChat()
+	NewChat(chat ent.Chat) (ent.Chat, error)
 	// EditChat()
 	// DeleteChat()
 	GetChats()
@@ -25,7 +25,7 @@ type ChatRepository interface {
 }
 
 type MessageRepository interface {
-	NewMessage(msg entities.Message) (entities.Message, error)
+	NewMessage(msg ent.Message) (ent.Message, error)
 	// EditMessage()
 	// DeleteMessage()
 	// GetMessages()
@@ -36,7 +36,8 @@ type MessageRepository interface {
 type DbService interface {
 	GetUser(usrId typ.UserId) (model.User, error)
 	GetUsers(usrIds []typ.UserId) ([]model.User, error)
-	GetChats() []entities.Chat
+	NewChat(chat model.Chat) (model.Chat, error)
+	GetChats(chatIds []typ.ChatId) ([]model.Chat, error)
 	GetMessage(msgId typ.MessageId) (model.Message, error)
 	GetMessages(msgIds []typ.MessageId) ([]model.Message, error)
 	NewMessage(msgM model.Message) (model.Message, error)
@@ -50,9 +51,34 @@ type AuthService interface {
 }
 
 type ChatService interface {
-	GetChats() ([]entities.Chat, error)
+	GetChats() ([]ent.Chat, error)
+	NewChat(chat ent.Chat) (ent.Chat, error)
 }
 
 type MessageService interface {
-	GetMessages(chatId typ.ChatId) ([]entities.Message, error)
+	GetMessages(chatId typ.ChatId) ([]ent.Message, error)
+	HandleNewMessage(msg ent.Message) error
+}
+
+type UserService interface {
+	GetUsers(chatId typ.ChatId) ([]ent.User, error)
+	GetUser(userId typ.UserId) (ent.User, error)
+	NewUser(user ent.User) (ent.User, error)
+}
+
+type ConnectionService interface {
+	StoreConnection(conn Socket, userId typ.UserId)
+	GetConnection(userId typ.UserId) Socket
+}
+
+type Socket interface {
+	ReadJSON(v any) error
+	WriteJSON(v any) error
+	Close() error
+}
+
+type Logger interface {
+	Log(message string)
+	LogError(err error)
+	LogFunctionInfo()
 }

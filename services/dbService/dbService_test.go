@@ -25,7 +25,7 @@ func TestNewCredentials(t *testing.T) {
 
 func TestDbServiceFactory(t *testing.T) {
 	c := prov.NewCredentials(prov.SQLite3, testConfig())
-	dbS, err := dbServiceFactory(c)
+	dbS, err := dbServiceFactory(nil, c)
 	if err != nil {
 		t.Errorf("failed to initialize dbService %v", err)
 	}

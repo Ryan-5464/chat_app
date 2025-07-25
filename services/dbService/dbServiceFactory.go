@@ -7,10 +7,10 @@ import (
 	xerr "server/xerrors"
 )
 
-func dbServiceFactory(c prov.Credentials) (i.DbService, error) {
+func dbServiceFactory(lgr i.Logger, c prov.Credentials) (i.DbService, error) {
 	switch c.Provider() {
 	case "sqlite3":
-		return SQL.NewDbService(c)
+		return SQL.NewDbService(lgr, c)
 	}
 	return nil, xerr.InitDbServiceFail
 }

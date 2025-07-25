@@ -17,7 +17,7 @@ type User struct {
 type Chat struct {
 	Id        typ.ChatId
 	Name      string
-	Admin     typ.UserId
+	AdminId   typ.UserId
 	CreatedAt time.Time
 }
 
