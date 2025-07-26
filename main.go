@@ -3,8 +3,7 @@ package main
 import (
 	"log"
 	"net/http"
-	"server/handlers"
-	"server/handlers/renderers"
+	"server/handler"
 	lgr "server/logging"
 	sauth "server/services/authService"
 	schat "server/services/chatService"
@@ -39,16 +38,18 @@ func main() {
 	userS := suser.NewUserService(logger, userR)
 	msgS := smsg.NewMessageService(logger, msgR, userS, connS)
 
-	cr := renderers.NewChatRenderer(logger, authS, chatS, msgS, connS, userS)
-	testRegistrationHandler := handlers.NewTestRegistrationHandler(logger, userS)
-	testChatHandler := handlers.NewTestChatHandler(logger, chatS)
+	cr := handler.NewChatRenderer(logger, authS, chatS, msgS, connS, userS)
+	indexHandler := handler.NewIndexHandler()
+	testRegistrationHandler := handler.NewTestRegistrationHandler(logger, userS)
+	testChatHandler := handler.NewTestChatHandler(logger, chatS)
 
 	fs := http.FileServer(http.Dir("./static"))
 	http.Handle("/static/", http.StripPrefix("/static/", fs))
 
-	http.HandleFunc("/r", testRegistrationHandler.RegisterUser)
+	http.HandleFunc("/", indexHandler.RenderIndexPage)
+	http.HandleFunc("/register/test", testRegistrationHandler.RegisterUser)
 	http.HandleFunc("/chat", cr.RenderChat)
-	http.HandleFunc("/x", testChatHandler.NewChat)
+	http.HandleFunc("/api/chat/new/test", testChatHandler.NewChat)
 	http.HandleFunc("/ws", cr.ChatWebsocket)
 
 	if err := http.ListenAndServe(":8081", nil); err != nil {
