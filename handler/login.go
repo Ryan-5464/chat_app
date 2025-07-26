@@ -6,20 +6,20 @@ import (
 	"text/template"
 )
 
-func NewIndexHandler(l i.Logger) *IndexHandler {
-	return &IndexHandler{
+func NewLoginHandler(l i.Logger) *LoginHandler {
+	return &LoginHandler{
 		lgr: l,
 	}
 }
 
-type IndexHandler struct {
+type LoginHandler struct {
 	lgr i.Logger
 }
 
-func (i *IndexHandler) RenderIndexPage(w http.ResponseWriter, r *http.Request) {
-	i.lgr.LogFunctionInfo()
+func (l *LoginHandler) RenderLoginPage(w http.ResponseWriter, r *http.Request) {
+	l.lgr.LogFunctionInfo()
 
-	tmpl, err := template.ParseFiles("./static/pages/index.html")
+	tmpl, err := template.ParseFiles("./static/pages/login.html")
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -28,5 +28,4 @@ func (i *IndexHandler) RenderIndexPage(w http.ResponseWriter, r *http.Request) {
 	if err := tmpl.Execute(w, nil); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
-
 }

@@ -39,7 +39,9 @@ func main() {
 	msgS := smsg.NewMessageService(logger, msgR, userS, connS)
 
 	cr := handler.NewChatRenderer(logger, authS, chatS, msgS, connS, userS)
-	indexHandler := handler.NewIndexHandler()
+	indexHandler := handler.NewIndexHandler(logger)
+	registerHandler := handler.NewRegisterHandler(logger)
+	loginHandler := handler.NewLoginHandler(logger)
 	testRegistrationHandler := handler.NewTestRegistrationHandler(logger, userS)
 	testChatHandler := handler.NewTestChatHandler(logger, chatS)
 
@@ -47,7 +49,9 @@ func main() {
 	http.Handle("/static/", http.StripPrefix("/static/", fs))
 
 	http.HandleFunc("/", indexHandler.RenderIndexPage)
+	http.HandleFunc("/register", registerHandler.RenderRegisterPage)
 	http.HandleFunc("/register/test", testRegistrationHandler.RegisterUser)
+	http.HandleFunc("/login", loginHandler.RenderLoginPage)
 	http.HandleFunc("/chat", cr.RenderChat)
 	http.HandleFunc("/api/chat/new/test", testChatHandler.NewChat)
 	http.HandleFunc("/ws", cr.ChatWebsocket)
