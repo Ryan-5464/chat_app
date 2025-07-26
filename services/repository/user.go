@@ -2,7 +2,7 @@ package repository
 
 import (
 	"fmt"
-	"server/data/entities"
+	ent "server/data/entities"
 	i "server/interfaces"
 	model "server/services/dbService/SQL/models"
 	typ "server/types"
@@ -20,18 +20,27 @@ type UserRepository struct {
 	dbS i.DbService
 }
 
-func (u *UserRepository) GetUser(userId typ.UserId) (entities.User, error) {
+func (u *UserRepository) FindUser(usr ent.User) (ent.User, error) {
+	u.lgr.LogFunctionInfo()
+	usrM, err := u.dbS.FindUser(usr.Email)
+	if err != nil {
+		return ent.User{}, fmt.Errorf("failed to find user in database service: %w", err)
+	}
+	return userEntityFromModel(usrM), nil
+}
+
+func (u *UserRepository) GetUser(userId typ.UserId) (ent.User, error) {
 	u.lgr.LogFunctionInfo()
 	ids := []typ.UserId{userId}
 	users, err := u.GetUsers(ids)
 	if err != nil {
-		return entities.User{}, fmt.Errorf("failed to get user from database service: %w", err)
+		return ent.User{}, fmt.Errorf("failed to get user from database service: %w", err)
 	}
 
 	return users[0], nil
 }
 
-func (u *UserRepository) GetUsers(usrIds []typ.UserId) ([]entities.User, error) {
+func (u *UserRepository) GetUsers(usrIds []typ.UserId) ([]ent.User, error) {
 	u.lgr.LogFunctionInfo()
 	usrMs, err := u.dbS.GetUsers(usrIds)
 	if err != nil {
@@ -41,20 +50,20 @@ func (u *UserRepository) GetUsers(usrIds []typ.UserId) ([]entities.User, error) 
 	return userEntitiesFromModels(usrMs), nil
 }
 
-func (u *UserRepository) NewUser(usrE entities.User) (entities.User, error) {
+func (u *UserRepository) NewUser(usrE ent.User) (ent.User, error) {
 	u.lgr.LogFunctionInfo()
 
 	usrM := userModelFromEntity(usrE)
 	newUsrM, err := u.dbS.NewUser(usrM)
 	if err != nil {
-		return entities.User{}, fmt.Errorf("failed to create new user: %w", err)
+		return ent.User{}, fmt.Errorf("failed to create new user: %w", err)
 	}
 
 	return userEntityFromModel(newUsrM), nil
 }
 
-func userEntitiesFromModels(usrMs []model.User) []entities.User {
-	var usrEs []entities.User
+func userEntitiesFromModels(usrMs []model.User) []ent.User {
+	var usrEs []ent.User
 	for _, usrM := range usrMs {
 		usrE := userEntityFromModel(usrM)
 		usrEs = append(usrEs, usrE)
@@ -62,8 +71,8 @@ func userEntitiesFromModels(usrMs []model.User) []entities.User {
 	return usrEs
 }
 
-func userEntityFromModel(m model.User) entities.User {
-	return entities.User{
+func userEntityFromModel(m model.User) ent.User {
+	return ent.User{
 		Id:      m.Id,
 		Name:    m.Name,
 		Email:   m.Email,
@@ -72,7 +81,7 @@ func userEntityFromModel(m model.User) entities.User {
 	}
 }
 
-func userModelFromEntity(u entities.User) model.User {
+func userModelFromEntity(u ent.User) model.User {
 	return model.User{
 		Id:      u.Id,
 		Name:    u.Name,

@@ -75,6 +75,26 @@ func (dbs *DbService) GetChats(chatIds []typ.ChatId) ([]model.Chat, error) {
 	return chatMs, nil
 }
 
+func (dbs *DbService) FindUser(email cred.Email) (model.User, error) {
+	dbs.lgr.LogFunctionInfo()
+
+	qb := qbuilder.NewQueryBuilder()
+
+	usrTbl := qb.Table(schema.UserTable)
+	emailF := qb.Field(schema.Email)
+
+	query := qb.SELECT(qb.All()).FROM(usrTbl).WHERE(emailF, qb.EqualTo())
+
+	rows, err := dbs.db.Read(query.String(), email)
+	if err != nil {
+		return model.User{}, fmt.Errorf("failed to find user email from database: %w", err)
+	}
+
+	usrs := populateUserModels(rows)
+
+	return usrs[0], err
+}
+
 func (dbs *DbService) GetUser(usrId typ.UserId) (model.User, error) {
 	dbs.lgr.LogFunctionInfo()
 	usrIds := []typ.UserId{usrId}

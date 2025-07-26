@@ -49,3 +49,12 @@ func (u *UserService) NewUser(usr ent.User) (ent.User, error) {
 	}
 	return usr, nil
 }
+
+func (u *UserService) FindUser(usr ent.User) (ent.User, error) {
+	u.lgr.LogFunctionInfo()
+	usr, err := u.usrR.FindUser(usr)
+	if err != nil {
+		return ent.User{}, fmt.Errorf("failed to crate new user: %w", err)
+	}
+	return usr, nil
+}

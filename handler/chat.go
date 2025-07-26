@@ -15,8 +15,8 @@ import (
 	ws "github.com/gorilla/websocket"
 )
 
-func NewChatRenderer(lgr i.Logger, a i.AuthService, c i.ChatService, m i.MessageService, cnx i.ConnectionService, u i.UserService) *ChatRenderer {
-	return &ChatRenderer{
+func NewChatHandler(lgr i.Logger, a i.AuthService, c i.ChatService, m i.MessageService, cnx i.ConnectionService, u i.UserService) *ChatHandler {
+	return &ChatHandler{
 		lgr:   lgr,
 		authS: a,
 		chatS: c,
@@ -26,7 +26,7 @@ func NewChatRenderer(lgr i.Logger, a i.AuthService, c i.ChatService, m i.Message
 	}
 }
 
-type ChatRenderer struct {
+type ChatHandler struct {
 	lgr   i.Logger
 	authS i.AuthService
 	chatS i.ChatService
@@ -35,7 +35,7 @@ type ChatRenderer struct {
 	userS i.UserService
 }
 
-func (cr *ChatRenderer) RenderChat(w http.ResponseWriter, r *http.Request) {
+func (cr *ChatHandler) RenderChatPage(w http.ResponseWriter, r *http.Request) {
 	// cookie, err := r.Cookie("session_token")
 	// if err != nil {
 	// 	log.Println("no session cookie found")
@@ -92,7 +92,7 @@ func (cr *ChatRenderer) RenderChat(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (cr *ChatRenderer) ChatWebsocket(w http.ResponseWriter, r *http.Request) {
+func (cr *ChatHandler) ChatWebsocket(w http.ResponseWriter, r *http.Request) {
 	conn, err := establishWebsocket(w, r)
 	if err != nil {
 		log.Println(err)

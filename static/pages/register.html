@@ -10,19 +10,21 @@
   <div class="container">
     <h1>Create an Account</h1>
 
-    <form id="registerForm">
-      <input type="email" id="email" name="email" placeholder="Email" required>
-      <input type="password" id="password" name="password" placeholder="Password" required>
+    <form id="registerForm" method="POST" action="/api/register">
+      <input type="email" id="email" name="Email" placeholder="Email" required>
+      <input type="password" id="password" name="Password" placeholder="Password" required>
 
-      <div id="error" class="error-message"></div>
+      {{ if .Error }}
+        <div id="error" class="error-message">{{ .Error }}</div>
+      {{ else }}
+        <div id="error" class="error-message"></div>
+      {{ end }}
 
       <div class="buttons">
         <button type="submit" class="btn btn-register">Register</button>
-        <button type="button" class="btn btn-login" onclick="location.href='login.html'">Login</button>
+        <button type="button" class="btn btn-login" onclick="location.href='/login'">Login</button>
       </div>
     </form>
   </div>
-
-  <script src="/static/scripts/register.js"></script>
 </body>
 </html>

@@ -2,6 +2,7 @@ package interfaces
 
 import (
 	ent "server/data/entities"
+	cred "server/services/authService/credentials"
 	sess "server/services/authService/session"
 	model "server/services/dbService/SQL/models"
 	typ "server/types"
@@ -9,6 +10,7 @@ import (
 
 type UserRepository interface {
 	NewUser(usr ent.User) (ent.User, error)
+	FindUser(usr ent.User) (ent.User, error)
 	// EditUser()
 	// DeleteUser()
 	GetUsers(userIds []typ.UserId) ([]ent.User, error)
@@ -34,6 +36,7 @@ type MessageRepository interface {
 }
 
 type DbService interface {
+	FindUser(email cred.Email) (model.User, error)
 	GetUser(usrId typ.UserId) (model.User, error)
 	GetUsers(usrIds []typ.UserId) ([]model.User, error)
 	NewChat(chat model.Chat) (model.Chat, error)
@@ -61,6 +64,7 @@ type MessageService interface {
 }
 
 type UserService interface {
+	FindUser(usr ent.User) (ent.User, error)
 	GetUsers(chatId typ.ChatId) ([]ent.User, error)
 	GetUser(userId typ.UserId) (ent.User, error)
 	NewUser(user ent.User) (ent.User, error)

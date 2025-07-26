@@ -38,23 +38,21 @@ func main() {
 	userS := suser.NewUserService(logger, userR)
 	msgS := smsg.NewMessageService(logger, msgR, userS, connS)
 
-	cr := handler.NewChatRenderer(logger, authS, chatS, msgS, connS, userS)
+	chatHandler := handler.NewChatHandler(logger, authS, chatS, msgS, connS, userS)
 	indexHandler := handler.NewIndexHandler(logger)
-	registerHandler := handler.NewRegisterHandler(logger)
-	loginHandler := handler.NewLoginHandler(logger)
-	testRegistrationHandler := handler.NewTestRegistrationHandler(logger, userS)
-	testChatHandler := handler.NewTestChatHandler(logger, chatS)
+	registerHandler := handler.NewRegisterHandler(logger, authS, userS)
+	loginHandler := handler.NewLoginHandler(logger, authS, userS)
 
 	fs := http.FileServer(http.Dir("./static"))
 	http.Handle("/static/", http.StripPrefix("/static/", fs))
 
-	http.HandleFunc("/", indexHandler.RenderIndexPage)
 	http.HandleFunc("/register", registerHandler.RenderRegisterPage)
-	http.HandleFunc("/register/test", testRegistrationHandler.RegisterUser)
+	http.HandleFunc("/api/register", registerHandler.RegisterUser)
 	http.HandleFunc("/login", loginHandler.RenderLoginPage)
-	http.HandleFunc("/chat", cr.RenderChat)
-	http.HandleFunc("/api/chat/new/test", testChatHandler.NewChat)
-	http.HandleFunc("/ws", cr.ChatWebsocket)
+	http.HandleFunc("/api/login", loginHandler.LoginUser)
+	http.HandleFunc("/chat", chatHandler.RenderChatPage)
+	http.HandleFunc("/ws", chatHandler.ChatWebsocket)
+	http.HandleFunc("/", indexHandler.RenderIndexPage)
 
 	if err := http.ListenAndServe(":8081", nil); err != nil {
 		log.Fatalf("Server failed to start: %v", err)
