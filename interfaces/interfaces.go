@@ -21,7 +21,7 @@ type ChatRepository interface {
 	NewChat(chat ent.Chat) (ent.Chat, error)
 	// EditChat()
 	// DeleteChat()
-	GetChats()
+	GetChats(userId typ.UserId) ([]ent.Chat, error)
 	// GetChat()
 	// CountMembers()
 }
@@ -30,7 +30,7 @@ type MessageRepository interface {
 	NewMessage(msg ent.Message) (ent.Message, error)
 	// EditMessage()
 	// DeleteMessage()
-	// GetMessages()
+	GetChatMessages(chatId typ.ChatId) ([]ent.Message, error)
 	// GetMessage()
 	// CountUnreadMessages()
 }
@@ -40,9 +40,11 @@ type DbService interface {
 	GetUser(usrId typ.UserId) (model.User, error)
 	GetUsers(usrIds []typ.UserId) ([]model.User, error)
 	NewChat(chat model.Chat) (model.Chat, error)
-	GetChats(chatIds []typ.ChatId) ([]model.Chat, error)
+	GetChat(chatId typ.ChatId) (model.Chat, error)
+	GetChats(userId typ.UserId) ([]model.Chat, error)
 	GetMessage(msgId typ.MessageId) (model.Message, error)
 	GetMessages(msgIds []typ.MessageId) ([]model.Message, error)
+	GetChatMessages(chatId typ.ChatId) ([]model.Message, error)
 	NewMessage(msgM model.Message) (model.Message, error)
 	NewUser(usrM model.User) (model.User, error)
 	Close()
@@ -54,13 +56,14 @@ type AuthService interface {
 }
 
 type ChatService interface {
-	GetChats() ([]ent.Chat, error)
+	GetChats(userId typ.UserId) ([]ent.Chat, error)
 	NewChat(chat ent.Chat) (ent.Chat, error)
 }
 
 type MessageService interface {
-	GetMessages(chatId typ.ChatId) ([]ent.Message, error)
+	GetChatMessages(chatId typ.ChatId) ([]ent.Message, error)
 	HandleNewMessage(msg ent.Message) error
+	NewMessage(msg ent.Message) (ent.Message, error)
 }
 
 type UserService interface {

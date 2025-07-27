@@ -58,14 +58,14 @@ func (cr *ChatHandler) RenderChatPage(w http.ResponseWriter, r *http.Request) {
 
 	http.SetCookie(w, session.Cookie())
 
-	chats, err := cr.chatS.GetChats()
+	chats, err := cr.chatS.GetChats(session.UserId())
 	if err != nil {
 		log.Println("failed to get chat data for user")
 		http.Error(w, "interrnal server error", http.StatusInternalServerError)
 		return
 	}
 
-	messages, err := cr.msgS.GetMessages(typ.ChatId(1))
+	messages, err := cr.msgS.GetChatMessages(typ.ChatId(1))
 	if err != nil {
 		log.Println("failed to get message data for user")
 		http.Error(w, "interrnal server error", http.StatusInternalServerError)
@@ -137,7 +137,7 @@ func (cr *ChatHandler) ChatWebsocket(w http.ResponseWriter, r *http.Request) {
 				break
 			}
 
-			messages, err := cr.msgS.GetMessages(typ.ChatId(chatId))
+			messages, err := cr.msgS.GetChatMessages(typ.ChatId(chatId))
 			if err != nil {
 				log.Println(err)
 				http.Error(w, "Failed to serialize data", http.StatusInternalServerError)
@@ -147,9 +147,11 @@ func (cr *ChatHandler) ChatWebsocket(w http.ResponseWriter, r *http.Request) {
 			log.Println("messages", messages)
 
 			payload := struct {
+				Type     string
 				Chats    []entities.Chat
 				Messages []entities.Message
 			}{
+				Type:     "SwitchChat",
 				Chats:    nil,
 				Messages: messages,
 			}
@@ -186,6 +188,59 @@ func (cr *ChatHandler) ChatWebsocket(w http.ResponseWriter, r *http.Request) {
 			if err := cr.msgS.HandleNewMessage(newMsg); err != nil {
 				log.Println(err)
 				http.Error(w, "Internal server error", http.StatusInternalServerError)
+				break
+			}
+
+		case "NewChat":
+
+			newChat, err := parseNewChatData(pl.Data)
+			if err != nil {
+				log.Println(err)
+				http.Error(w, "Failed to serialize data", http.StatusInternalServerError)
+				break
+			}
+
+			chat, err := cr.chatS.NewChat(newChat)
+			if err != nil {
+				log.Println(err)
+				http.Error(w, "Failed to create new chat", http.StatusInternalServerError)
+				break
+			}
+
+			newMsg := entities.Message{
+				ChatId: chat.Id,
+				UserId: chat.AdminId,
+				Text:   "Hello",
+			}
+
+			msg, err := cr.msgS.NewMessage(newMsg)
+			if err != nil {
+				log.Println(err)
+				http.Error(w, "Failed to create new message", http.StatusInternalServerError)
+				break
+			}
+
+			payload := struct {
+				Type     string
+				Chats    []entities.Chat
+				Messages []entities.Message
+			}{
+				Type:     "NewChat",
+				Chats:    []entities.Chat{chat},
+				Messages: []entities.Message{msg},
+			}
+
+			msgPayload, err := json.Marshal(payload)
+			if err != nil {
+				log.Println(err)
+				http.Error(w, "Failed to serialize data", http.StatusInternalServerError)
+				break
+			}
+
+			err = conn.WriteMessage(ws.TextMessage, msgPayload)
+			if err != nil {
+				log.Println(err)
+				http.Error(w, "Failed to serialize data", http.StatusInternalServerError)
 				break
 			}
 
@@ -233,6 +288,25 @@ func parseSwitchChatData(data []byte) (dto.SwitchChat, error) {
 	return s, nil
 }
 
+func parseNewChatData(data []byte) (entities.Chat, error) {
+	n := dto.NewChat{}
+	if err := json.Unmarshal(data, &n); err != nil {
+		return entities.Chat{}, err
+	}
+
+	userId, err := convertStringToInt64(n.UserId)
+	if err != nil {
+		return entities.Chat{}, fmt.Errorf("failed to convert userId from string to int: %w", err)
+	}
+
+	chat := entities.Chat{
+		AdminId: typ.UserId(userId),
+		Name:    n.Name,
+	}
+
+	return chat, nil
+}
+
 func parseNewMessageData(data []byte) (entities.Message, error) {
 	n := dto.NewMessage{}
 	if err := json.Unmarshal(data, &n); err != nil {
@@ -241,12 +315,12 @@ func parseNewMessageData(data []byte) (entities.Message, error) {
 
 	userId, err := convertStringToInt64(n.UserId)
 	if err != nil {
-		return entities.Message{}, fmt.Errorf("faield to convert userId from string to int: %w", err)
+		return entities.Message{}, fmt.Errorf("failed to convert userId from string to int: %w", err)
 	}
 
 	chatId, err := convertStringToInt64(n.ChatId)
 	if err != nil {
-		return entities.Message{}, fmt.Errorf("faield to convert chatId from string to int: %w", err)
+		return entities.Message{}, fmt.Errorf("failed to convert chatId from string to int: %w", err)
 	}
 
 	var replyId int64

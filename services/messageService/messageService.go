@@ -26,6 +26,17 @@ type MessageService struct {
 	connS i.ConnectionService
 }
 
+func (m *MessageService) NewMessage(msg entities.Message) (entities.Message, error) {
+	m.lgr.LogFunctionInfo()
+
+	msg, err := m.msgR.NewMessage(msg)
+	if err != nil {
+		return entities.Message{}, fmt.Errorf("failed to create new message: %w", err)
+	}
+
+	return msg, nil
+}
+
 func (m *MessageService) HandleNewMessage(msg entities.Message) error {
 	m.lgr.LogFunctionInfo()
 	log.Println(1)
@@ -73,9 +84,11 @@ func (m *MessageService) BroadcastMessage(userId typ.UserId, conn i.Socket, msg 
 	messages := []entities.Message{msg}
 
 	payload := struct {
+		Type     string
 		Chats    []entities.Chat
 		Messages []entities.Message
 	}{
+		Type:     "NewMessage",
 		Chats:    nil,
 		Messages: messages,
 	}
@@ -93,9 +106,15 @@ func (m *MessageService) BroadcastMessage(userId typ.UserId, conn i.Socket, msg 
 	return nil
 }
 
-func (m *MessageService) GetMessages(chatId typ.ChatId) ([]entities.Message, error) {
+func (m *MessageService) GetChatMessages(chatId typ.ChatId) ([]entities.Message, error) {
 	m.lgr.LogFunctionInfo()
-	return testMessages(chatId), nil
+
+	messages, err := m.msgR.GetChatMessages(chatId)
+	if err != nil {
+		return []entities.Message{}, fmt.Errorf("failed to get messsages: %w", err)
+	}
+
+	return messages, nil
 }
 
 func testMessages(chatId typ.ChatId) []entities.Message {
@@ -106,7 +125,7 @@ func testMessages(chatId typ.ChatId) []entities.Message {
 		message1 := entities.Message{
 			Id:         1,
 			UserId:     3,
-			ChatId:     1,
+			ChatId:     11,
 			ReplyId:    0,
 			Author:     "alf",
 			Text:       "hello",
@@ -116,7 +135,7 @@ func testMessages(chatId typ.ChatId) []entities.Message {
 		message2 := entities.Message{
 			Id:         2,
 			UserId:     3,
-			ChatId:     1,
+			ChatId:     11,
 			ReplyId:    0,
 			Author:     "alf",
 			Text:       "there",
@@ -129,7 +148,7 @@ func testMessages(chatId typ.ChatId) []entities.Message {
 		message1 := entities.Message{
 			Id:         1,
 			UserId:     3,
-			ChatId:     2,
+			ChatId:     12,
 			ReplyId:    0,
 			Author:     "alf",
 			Text:       "chat",
@@ -139,7 +158,7 @@ func testMessages(chatId typ.ChatId) []entities.Message {
 		message2 := entities.Message{
 			Id:         2,
 			UserId:     3,
-			ChatId:     2,
+			ChatId:     12,
 			ReplyId:    0,
 			Author:     "alf",
 			Text:       "changed",

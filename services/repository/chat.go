@@ -5,6 +5,7 @@ import (
 	ent "server/data/entities"
 	i "server/interfaces"
 	model "server/services/dbService/SQL/models"
+	typ "server/types"
 )
 
 func NewChatRepository(lgr i.Logger, dbS i.DbService) *ChatRepository {
@@ -29,9 +30,13 @@ func (c *ChatRepository) NewChat(chat ent.Chat) (ent.Chat, error) {
 	return chatE, nil
 }
 
-func (c *ChatRepository) GetChats() {
+func (c *ChatRepository) GetChats(userId typ.UserId) ([]ent.Chat, error) {
 	c.lgr.LogFunctionInfo()
-	// c.dbS.GetChats()
+	chats, err := c.dbS.GetChats(userId)
+	if err != nil {
+		return []ent.Chat{}, fmt.Errorf("faied to get chats: %w", err)
+	}
+	return chatModelsToEntities(chats), nil
 }
 
 func chatentitiesToModels(chats []ent.Chat) []model.Chat {

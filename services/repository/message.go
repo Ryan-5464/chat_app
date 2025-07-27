@@ -44,6 +44,18 @@ func (m *MessageRepository) GetMessages(msgIds []typ.MessageId) {
 	m.dbS.GetMessages(msgIds)
 }
 
+func (m *MessageRepository) GetChatMessages(chatId typ.ChatId) ([]entities.Message, error) {
+	m.lgr.LogFunctionInfo()
+
+	msgMs, err := m.dbS.GetChatMessages(chatId)
+	if err != nil {
+		return []entities.Message{}, fmt.Errorf("failed to get messages: %w", err)
+	}
+
+	msgEs := messageEntitiesFromModels(msgMs)
+	return msgEs, nil
+}
+
 func messageEntitiesFromModels(msgMs []model.Message) []entities.Message {
 	var msgEs []entities.Message
 	for _, msg := range msgMs {

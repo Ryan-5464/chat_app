@@ -42,30 +42,36 @@ func (dbs *DbService) Close() {
 
 func (dbs *DbService) GetChat(chatId typ.ChatId) (model.Chat, error) {
 	dbs.lgr.LogFunctionInfo()
-	chatIds := []typ.ChatId{chatId}
-
-	chats, err := dbs.GetChats(chatIds)
-	if err != nil {
-		return model.Chat{}, fmt.Errorf("failed to get user from database: %w", err)
-	}
-
-	return chats[0], nil
-
-}
-
-func (dbs *DbService) GetChats(chatIds []typ.ChatId) ([]model.Chat, error) {
-	dbs.lgr.LogFunctionInfo()
 
 	qb := qbuilder.NewQueryBuilder()
 
 	chatTbl := qb.Table(schema.ChatTable)
 	chatIdF := qb.Field(schema.ChatId)
 
-	ids := ToAnySlice(chatIds)
+	query := qb.SELECT(qb.All()).FROM(chatTbl).WHERE(chatIdF, qb.EqualTo())
 
-	query := qb.SELECT(qb.All()).FROM(chatTbl).WHERE(chatIdF, qb.IN(ids...))
+	rows, err := dbs.db.Read(query.String(), chatId)
+	if err != nil {
+		return model.Chat{}, fmt.Errorf("failed to read chatas from database")
+	}
+	log.Println("ROWS : ", rows)
+	chatMs := populateChatModels(rows)
 
-	rows, err := dbs.db.Read(query.String(), ids...)
+	return chatMs[0], nil
+
+}
+
+func (dbs *DbService) GetChats(userId typ.UserId) ([]model.Chat, error) {
+	dbs.lgr.LogFunctionInfo()
+
+	qb := qbuilder.NewQueryBuilder()
+
+	chatTbl := qb.Table(schema.ChatTable)
+	userIdF := qb.Field(schema.UserId)
+
+	query := qb.SELECT(qb.All()).FROM(chatTbl).WHERE(userIdF, qb.EqualTo())
+
+	rows, err := dbs.db.Read(query.String(), userId)
 	if err != nil {
 		return []model.Chat{}, fmt.Errorf("failed to read chatas from database")
 	}
@@ -138,6 +144,23 @@ func (dbs *DbService) GetMessage(msgId typ.MessageId) (model.Message, error) {
 	}
 
 	return msgs[0], nil
+}
+
+func (dbs *DbService) GetChatMessages(chatId typ.ChatId) ([]model.Message, error) {
+	dbs.lgr.LogFunctionInfo()
+	qb := qbuilder.NewQueryBuilder()
+
+	msgTbl := qb.Table(schema.MessageTable)
+	chatIdF := qb.Field(schema.ChatId)
+
+	query := qb.SELECT(qb.All()).FROM(msgTbl).WHERE(chatIdF, qb.EqualTo())
+
+	rows, err := dbs.db.Read(query.String(), chatId)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read messages from database: %w", err)
+	}
+
+	return populateMessageModels(rows), nil
 }
 
 func (dbs *DbService) GetMessages(msgIds []typ.MessageId) ([]model.Message, error) {
@@ -227,42 +250,30 @@ func (dbs *DbService) NewMessage(m model.Message) (model.Message, error) {
 	qb := qbuilder.NewQueryBuilder()
 
 	msgTbl := qb.Table(schema.MessageTable)
-	msgIdF := qb.Field(schema.MessageId)
 	usrIdF := qb.Field(schema.UserId)
 	chatIdF := qb.Field(schema.ChatId)
 	replyIdF := qb.Field(schema.ReplyId)
 	msgTextF := qb.Field(schema.MsgText)
-	createdAtF := qb.Field(schema.CreatedAt)
-	lastEditAtF := qb.Field(schema.LastEditAt)
 
 	query := qb.INSERT_INTO(
 		msgTbl,
-		msgIdF,
 		usrIdF,
 		chatIdF,
 		replyIdF,
 		msgTextF,
-		createdAtF,
-		lastEditAtF,
 	).VALUES(
-		m.Id,
 		m.UserId,
 		m.ChatId,
 		m.ReplyId,
 		m.Text,
-		m.CreatedAt,
-		m.LastEditAt,
 	)
 
 	res, err := dbs.db.Create(
 		query.String(),
-		m.Id,
 		m.UserId,
 		m.ChatId,
 		m.ReplyId,
 		m.Text,
-		m.CreatedAt,
-		m.LastEditAt,
 	)
 	if err != nil {
 		return model.Message{}, fmt.Errorf("failed to create message in database: %w", err)

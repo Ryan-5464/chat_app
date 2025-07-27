@@ -4,6 +4,7 @@ import (
 	"fmt"
 	ent "server/data/entities"
 	i "server/interfaces"
+	typ "server/types"
 	"time"
 )
 
@@ -28,14 +29,20 @@ func (c *ChatService) NewChat(chat ent.Chat) (ent.Chat, error) {
 	return chat, nil
 }
 
-func (c *ChatService) GetChats() ([]ent.Chat, error) {
+func (c *ChatService) GetChats(userId typ.UserId) ([]ent.Chat, error) {
 	c.lgr.LogFunctionInfo()
-	return testChats(), nil
+
+	chats, err := c.chatR.GetChats(userId)
+	if err != nil {
+		return []ent.Chat{}, fmt.Errorf("failed to get chats: %w", err)
+	}
+
+	return chats, nil
 }
 
 func testChats() []ent.Chat {
 	chat1 := ent.Chat{
-		Id:                 1,
+		Id:                 11,
 		Name:               "test1",
 		AdminId:            3,
 		AdminName:          "alf",
@@ -44,7 +51,7 @@ func testChats() []ent.Chat {
 		CreatedAt:          time.Now(),
 	}
 	chat2 := ent.Chat{
-		Id:                 2,
+		Id:                 12,
 		Name:               "test2",
 		AdminId:            4,
 		AdminName:          "derek",

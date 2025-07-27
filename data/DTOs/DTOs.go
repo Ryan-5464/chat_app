@@ -6,6 +6,11 @@ type SwitchChat struct {
 	ChatId string `json:"ChatId"`
 }
 
+type NewChat struct {
+	UserId string `json:"UserId"`
+	Name   string `json:"Name"`
+}
+
 type NewMessage struct {
 	UserId  string `json:"UserId"`
 	ChatId  string `json:"ChatId"`

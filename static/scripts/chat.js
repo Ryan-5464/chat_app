@@ -23,7 +23,20 @@ document.addEventListener("DOMContentLoaded", function() {
     addSwitchChatListenerToChats()
     addNewMsgListenerToMsgInput()
     addNewMsgListenerToSendMsgButton()
+    addNewChatEventListener()
 })
+
+function addNewChatEventListener() {
+    elem = document.getElementById("new-chat-button")
+    elem.addEventListener('click', function () {
+        const chatNameInput = document.getElementById("chat-name-input")
+        const chatName = chatNameInput.value.trim()
+        const messages = document.getElementsByClassName("message")
+        userId = messages[0].getAttribute("data-userid")
+        sendNewChatInfo(userId, chatName)
+        chatNameInput.value = '';
+    })
+}
 
 function addSwitchChatListenerToChats() {
     document.querySelectorAll('.chat').forEach(function (elem) {
@@ -43,6 +56,7 @@ function addNewMsgListenerToMsgInput() {
             const replyId = null
             const msgText = input.value.trim()
             sendMessage(userId, msgText, chatId, replyId)
+            input.value = '';
         }
     })
 }
@@ -73,6 +87,20 @@ function getUserIdFromExistingMessage() {
     return userId
 }
 
+function sendNewChatInfo(userId, chatName) {
+    console.log("userId: ", userId, "chatName: ", chatName)
+    if (chatName) {
+        payload = {
+            Type: "NewChat",
+            Data: {
+                UserId: userId,
+                ChatName: chatName,
+            }
+        }
+        socket.send(JSON.stringify(payload));
+    }
+}
+
 function sendMessage(userId, msgText, chatId, replyId) {
     console.log("userId: ", userId, "chatId: ", chatId, "replyId: ", replyId, "msgText: ", msgText)
     if (msgText) {
@@ -86,7 +114,6 @@ function sendMessage(userId, msgText, chatId, replyId) {
             }
         }
         socket.send(JSON.stringify(payload));
-        messageInput.value = '';
     }
 }
 
@@ -113,14 +140,15 @@ function renderChats(chatData, overwrite) {
     }
 
     chatData.forEach(chat => {
+        console.log("CHAT: ", chat)
         const chatElement = document.createElement('div');
         chatElement.className = "chat"
-        chatElement.setAttribute("data-chatid", chat.ChatId);
+        chatElement.setAttribute("data-chatid", chat.Id);
         chatElement.setAttribute("data-adminid", chat.AdminId);
         chatElement.setAttribute("data-createdat", chat.CreatedAt);
         
         chatElement.addEventListener("click", function() {
-            requestChatMessages(chat.ChatId)
+            requestChatMessages(chat.Id)
         })
         
         chatContainer.appendChild(chatElement);
@@ -153,7 +181,7 @@ function renderMessages(messageData, overwrite) {
         const attributes = {
             "data-userid": message.UserId,
             "data-chatid": message.ChatId,
-            "data-messageid": message.MessageId,
+            "data-messageid": message.Id,
             "data-replyid": message.ReplyId,
         };
         for (const [key, value] of Object.entries(attributes)) {
