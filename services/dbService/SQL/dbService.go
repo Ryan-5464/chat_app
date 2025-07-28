@@ -1,29 +1,25 @@
 package SQL
 
 import (
-	"database/sql"
 	"fmt"
 	"log"
 	i "server/interfaces"
 	cred "server/services/authService/credentials"
-	d "server/services/dbService/SQL/database"
+	"server/services/dbService/SQL/database"
 	model "server/services/dbService/SQL/models"
 	qbuilder "server/services/dbService/SQL/querybuilder"
 	schema "server/services/dbService/SQL/schema"
 	prov "server/services/dbService/providers"
 	typ "server/types"
 	"time"
-
-	_ "github.com/mattn/go-sqlite3"
 )
 
 func NewDbService(lgr i.Logger, c prov.Credentials) (*DbService, error) {
-	conn, err := sql.Open(c.Value("driver"), c.Value("path"))
+	db, err := database.NewDatabase(lgr, c)
 	if err != nil {
-		return nil, fmt.Errorf("failed to connect to database: %w", err)
+		return nil, err
 	}
-	db := d.NewDb(conn)
-	initDb(db, schema.Get())
+
 	dbS := &DbService{
 		lgr: lgr,
 		db:  db,
@@ -33,7 +29,7 @@ func NewDbService(lgr i.Logger, c prov.Credentials) (*DbService, error) {
 
 type DbService struct {
 	lgr i.Logger
-	db  *d.DB
+	db  *database.DB
 }
 
 func (dbs *DbService) Close() {
@@ -52,9 +48,13 @@ func (dbs *DbService) GetChat(chatId typ.ChatId) (model.Chat, error) {
 
 	rows, err := dbs.db.Read(query.String(), chatId)
 	if err != nil {
-		return model.Chat{}, fmt.Errorf("failed to read chatas from database")
+		return model.Chat{}, err
 	}
-	log.Println("ROWS : ", rows)
+
+	if len(rows) == 0 {
+		return model.Chat{}, nil
+	}
+
 	chatMs := populateChatModels(rows)
 
 	return chatMs[0], nil

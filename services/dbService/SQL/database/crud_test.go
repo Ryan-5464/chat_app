@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"server/logging"
 	"server/services/dbService/SQL/schema"
 	"server/services/dbService/providers"
 	typ "server/types"
@@ -178,8 +179,8 @@ func openDB(t *testing.T) *DB {
 	config.Add("driver", providers.SQLite3.String())
 	config.Add("path", providers.InMemoryDb.String())
 	dbCredentials := providers.NewDbCredentials(providers.SQLite3, config)
-
-	db, err := NewDatabase(nil, dbCredentials)
+	logger := logging.NewLogger(false)
+	db, err := NewDatabase(logger, dbCredentials)
 	if err != nil {
 		t.Fatalf("Database creation failed: %v", err)
 	}

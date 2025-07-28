@@ -1,4 +1,4 @@
-package SQL
+package qbuilder
 
 import (
 	"testing"

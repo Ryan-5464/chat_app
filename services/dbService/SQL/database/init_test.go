@@ -3,6 +3,7 @@ package database
 import (
 	"database/sql"
 	"fmt"
+	"server/logging"
 	"server/services/dbService/SQL/schema"
 	"server/services/dbService/providers"
 	"testing"
@@ -14,8 +15,9 @@ func TestDBInitialization_Success(t *testing.T) {
 	config.Add("driver", providers.SQLite3.String())
 	config.Add("path", providers.InMemoryDb.String())
 	dbCredentials := providers.NewDbCredentials(providers.SQLite3, config)
+	logger := logging.NewLogger(false)
 
-	db, err := NewDatabase(nil, dbCredentials)
+	db, err := NewDatabase(logger, dbCredentials)
 	if err != nil {
 		t.Fatalf("Database creation failed: %v", err)
 	}

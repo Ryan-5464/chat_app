@@ -21,7 +21,7 @@ func main() {
 	config := prov.DbConfig{}
 	config.Add("driver", "sqlite3")
 	config.Add("path", ":memory:")
-	c := prov.NewCredentials(prov.SQLite3, config)
+	c := prov.NewDbCredentials(prov.SQLite3, config)
 
 	dbService, err := dbs.NewDbService(logger, c)
 	if err != nil {

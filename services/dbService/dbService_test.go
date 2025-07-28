@@ -17,14 +17,14 @@ func testConfig() prov.DbConfig {
 }
 
 func TestNewCredentials(t *testing.T) {
-	c := prov.NewCredentials(prov.SQLite3, testConfig())
+	c := prov.NewDbCredentials(prov.SQLite3, testConfig())
 	assert.Equal(t, c.Provider(), prov.SQLite3.String())
 	assert.Equal(t, c.Value("driver"), "sqlite3")
 	assert.Equal(t, c.Value("path"), ":memory:")
 }
 
 func TestDbServiceFactory(t *testing.T) {
-	c := prov.NewCredentials(prov.SQLite3, testConfig())
+	c := prov.NewDbCredentials(prov.SQLite3, testConfig())
 	dbS, err := dbServiceFactory(nil, c)
 	if err != nil {
 		t.Errorf("failed to initialize dbService %v", err)

@@ -24,6 +24,7 @@ document.addEventListener("DOMContentLoaded", function() {
     addNewMsgListenerToMsgInput()
     addNewMsgListenerToSendMsgButton()
     addNewChatEventListener()
+    addChatToggleEventListenerToContainer()
 })
 
 function addNewChatEventListener() {
@@ -31,9 +32,8 @@ function addNewChatEventListener() {
     elem.addEventListener('click', function () {
         const chatNameInput = document.getElementById("chat-name-input")
         const chatName = chatNameInput.value.trim()
-        const messages = document.getElementsByClassName("message")
-        userId = messages[0].getAttribute("data-userid")
-        sendNewChatInfo(userId, chatName)
+        console.log("newChatName: ", chatName)
+        sendNewChatInfo(chatName)
         chatNameInput.value = '';
     })
 }
@@ -87,14 +87,12 @@ function getUserIdFromExistingMessage() {
     return userId
 }
 
-function sendNewChatInfo(userId, chatName) {
-    console.log("userId: ", userId, "chatName: ", chatName)
+function sendNewChatInfo(chatName) {
     if (chatName) {
         payload = {
             Type: "NewChat",
             Data: {
-                UserId: userId,
-                ChatName: chatName,
+                Name: chatName,
             }
         }
         socket.send(JSON.stringify(payload));
@@ -154,7 +152,7 @@ function renderChats(chatData, overwrite) {
         chatContainer.appendChild(chatElement);
 
         const data = {
-            "chat-name": `${chat.ChatName}`,
+            "chat-name": `${chat.Name}`,
             "chat-admin-name": `${chat.AdminName}`,
             "chat-member-count": `${chat.MemberCount}`,
             "chat-unread-message-count": `${chat.UnreadMsgCount}`,
@@ -206,4 +204,20 @@ function renderMessages(messageData, overwrite) {
     });
 }
 
+function addChatToggleEventListenerToContainer() {
+  const container = document.querySelector('#chats-container');
+  if (!container) return;
 
+  container.addEventListener('click', function (e) {
+    const clickedChat = e.target.closest('.chat');
+    if (!clickedChat || !container.contains(clickedChat)) return;
+
+    // Remove 'active' from all chats
+    container.querySelectorAll('.chat').forEach(chat => {
+      chat.classList.remove('active');
+    });
+
+    // Add 'active' to the clicked chat
+    clickedChat.classList.add('active');
+  });
+}

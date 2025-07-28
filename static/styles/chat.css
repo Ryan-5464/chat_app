@@ -169,3 +169,7 @@ body {
 #right-sidebar {
   width: 0px; /* Placeholder for now */
 }
+
+.active {
+    background-color:#2c3e91;
+}

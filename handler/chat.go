@@ -100,6 +100,20 @@ func (cr *ChatHandler) ChatWebsocket(w http.ResponseWriter, r *http.Request) {
 	}
 	defer conn.Close()
 
+	testToken, err := testToken(cr.authS)
+	if err != nil {
+		log.Println("failed to create dummy session")
+		http.Error(w, "internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	session, err := cr.authS.ValidateAndRefreshSession(testToken)
+	if err != nil {
+		log.Println("failed to valdiate session token")
+		http.Error(w, "internal server error", http.StatusInternalServerError)
+		return
+	}
+
 	for {
 		_, payload, err := conn.ReadMessage()
 		if err != nil {
@@ -172,7 +186,7 @@ func (cr *ChatHandler) ChatWebsocket(w http.ResponseWriter, r *http.Request) {
 
 		case "NewMessage":
 
-			newMsg, err := parseNewMessageData(pl.Data)
+			newMsg, err := cr.parseNewMessageData(pl.Data)
 			if err != nil {
 				log.Println(err)
 				http.Error(w, "Failed to serialize data", http.StatusInternalServerError)
@@ -199,6 +213,10 @@ func (cr *ChatHandler) ChatWebsocket(w http.ResponseWriter, r *http.Request) {
 				http.Error(w, "Failed to serialize data", http.StatusInternalServerError)
 				break
 			}
+
+			newChat.AdminId = session.UserId()
+
+			cr.lgr.Log(fmt.Sprintf("%v", newChat))
 
 			chat, err := cr.chatS.NewChat(newChat)
 			if err != nil {
@@ -245,8 +263,8 @@ func (cr *ChatHandler) ChatWebsocket(w http.ResponseWriter, r *http.Request) {
 			}
 
 		}
-		log.Println("websocket closed")
 	}
+	log.Println("websocket closed")
 
 }
 
@@ -294,40 +312,44 @@ func parseNewChatData(data []byte) (entities.Chat, error) {
 		return entities.Chat{}, err
 	}
 
-	userId, err := convertStringToInt64(n.UserId)
-	if err != nil {
-		return entities.Chat{}, fmt.Errorf("failed to convert userId from string to int: %w", err)
-	}
-
 	chat := entities.Chat{
-		AdminId: typ.UserId(userId),
-		Name:    n.Name,
+		Name: n.Name,
 	}
 
 	return chat, nil
 }
 
-func parseNewMessageData(data []byte) (entities.Message, error) {
+func (cr *ChatHandler) parseNewMessageData(data []byte) (entities.Message, error) {
+	cr.lgr.LogFunctionInfo()
+
 	n := dto.NewMessage{}
 	if err := json.Unmarshal(data, &n); err != nil {
+		errUnmarshal := fmt.Errorf("failed to unmarshal data: %w", err)
+		cr.lgr.LogError(errUnmarshal)
 		return entities.Message{}, err
 	}
 
 	userId, err := convertStringToInt64(n.UserId)
 	if err != nil {
-		return entities.Message{}, fmt.Errorf("failed to convert userId from string to int: %w", err)
+		errTypeConversion := fmt.Errorf("failed to convert userId from string to int: %w", err)
+		cr.lgr.LogError(errTypeConversion)
+		return entities.Message{}, err
 	}
 
 	chatId, err := convertStringToInt64(n.ChatId)
 	if err != nil {
-		return entities.Message{}, fmt.Errorf("failed to convert chatId from string to int: %w", err)
+		errTypeConversion := fmt.Errorf("failed to convert chatId from string to int: %w", err)
+		cr.lgr.LogError(errTypeConversion)
+		return entities.Message{}, err
 	}
 
 	var replyId int64
 	if n.ReplyId != "" {
 		replyId, err = convertStringToInt64(n.ReplyId)
 		if err != nil {
-			return entities.Message{}, fmt.Errorf("failed to convert replyId from string to int: %w", err)
+			errTypeConversion := fmt.Errorf("failed to convert replyId from string to int: %w", err)
+			cr.lgr.LogError(errTypeConversion)
+			return entities.Message{}, err
 		}
 	}
 
