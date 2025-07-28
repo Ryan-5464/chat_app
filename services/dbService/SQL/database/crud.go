@@ -55,6 +55,7 @@ func (db *DB) Create(query string, values ...any) (sql.Result, error) {
 
 func (db *DB) Read(query string, values ...any) (typ.Rows, error) {
 	db.lgr.LogFunctionInfo()
+
 	rows, err := db.Conn.Query(query, values...)
 	if err != nil {
 		errRowsNotFound := fmt.Errorf("Read failed::%w \n args::%s; %v", err, query, values)

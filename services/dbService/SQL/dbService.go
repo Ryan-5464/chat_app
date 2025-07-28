@@ -73,7 +73,7 @@ func (dbs *DbService) GetChats(userId typ.UserId) ([]model.Chat, error) {
 
 	rows, err := dbs.db.Read(query.String(), userId)
 	if err != nil {
-		return []model.Chat{}, fmt.Errorf("failed to read chatas from database")
+		return []model.Chat{}, fmt.Errorf("failed to read chats from database")
 	}
 	log.Println("ROWS : ", rows)
 	chatMs := populateChatModels(rows)
@@ -134,6 +134,46 @@ func (dbs *DbService) GetUsers(usrIds []typ.UserId) ([]model.User, error) {
 	return usrMs, err
 }
 
+func (dbs *DbService) GetMembers(chatId typ.ChatId) ([]model.Member, error) {
+	dbs.lgr.LogFunctionInfo()
+	qb := qbuilder.NewQueryBuilder()
+
+	mbrTbl := qb.Table(schema.MemberTable)
+	chatIdF := qb.Field(schema.ChatId)
+
+	query := qb.SELECT(qb.All()).FROM(mbrTbl).WHERE(chatIdF, qb.EqualTo())
+	rows, err := dbs.db.Read(query.String(), chatId)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read members from database: %w", err)
+	}
+
+	mbrMs := populateMemberModels(rows)
+
+	return mbrMs, err
+}
+
+func (dbs *DbService) GetUsersForChat(chatId typ.ChatId) ([]model.User, error) {
+	dbs.lgr.LogFunctionInfo()
+
+	mbrMs, err := dbs.GetMembers(chatId)
+	if err != nil {
+		return nil, err
+	}
+
+	var usrIds []typ.UserId
+	for _, mdl := range mbrMs {
+		usrIds = append(usrIds, mdl.UserId)
+	}
+
+	usrMs, err := dbs.GetUsers(usrIds)
+	if err != nil {
+		return nil, err
+	}
+
+	return usrMs, nil
+
+}
+
 func (dbs *DbService) GetMessage(msgId typ.MessageId) (model.Message, error) {
 	dbs.lgr.LogFunctionInfo()
 	msgIds := []typ.MessageId{msgId}
@@ -190,8 +230,6 @@ func (dbs *DbService) NewChat(c model.Chat) (model.Chat, error) {
 	chatName := qb.Field(schema.Name)
 	adminId := qb.Field(schema.AdminId)
 
-	log.Println("TEST TEST : ", chatName)
-
 	query := qb.INSERT_INTO(chatTbl, chatName, adminId).
 		VALUES(chatName, adminId)
 
@@ -211,6 +249,26 @@ func (dbs *DbService) NewChat(c model.Chat) (model.Chat, error) {
 	}
 
 	return chat, nil
+}
+
+func (dbs *DbService) NewMember(chatId typ.ChatId, userId typ.UserId) error {
+	dbs.lgr.LogFunctionInfo()
+	qb := qbuilder.NewQueryBuilder()
+
+	mbrTbl := qb.Table(schema.MemberTable)
+	userIdF := qb.Field(schema.UserId)
+	chatIdF := qb.Field(schema.ChatId)
+
+	query := qb.INSERT_INTO(mbrTbl, chatIdF, userIdF).
+		VALUES(chatId, userId)
+	log.Println(query)
+
+	_, err := dbs.db.Create(query.String(), chatId, userId)
+	if err != nil {
+		return fmt.Errorf("failed to create member in database: %w", err)
+	}
+
+	return nil
 }
 
 func (dbs *DbService) NewUser(u model.User) (model.User, error) {
@@ -341,6 +399,20 @@ func populateUserModels(rows typ.Rows) []model.User {
 	}
 
 	return usrMs
+}
+
+func populateMemberModels(rows typ.Rows) []model.Member {
+
+	var mbrMs []model.Member
+	for _, row := range rows {
+		mbrM := model.Member{
+			ChatId: parseChatId(row[schema.ChatId]),
+			UserId: parseUserId(row[schema.UserId]),
+		}
+		mbrMs = append(mbrMs, mbrM)
+	}
+
+	return mbrMs
 }
 
 func parseTime(v any) time.Time {

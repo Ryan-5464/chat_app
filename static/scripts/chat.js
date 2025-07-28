@@ -15,6 +15,11 @@ socket.onmessage = function (event) {
     console.log("New message received.");
     const payload = JSON.parse(event.data);
     console.log(payload)
+    if (payload.Type == "NewMessage") {
+        renderChats(payload.Chats, false);
+        renderMessages(payload.Messages, false);
+        return
+    }
     renderChats(payload.Chats, false);
     renderMessages(payload.Messages, true);
 }
@@ -88,6 +93,7 @@ function getUserIdFromExistingMessage() {
 }
 
 function sendNewChatInfo(chatName) {
+    console.log("NEWCHAT::chatName: ", chatName)
     if (chatName) {
         payload = {
             Type: "NewChat",
@@ -100,7 +106,7 @@ function sendNewChatInfo(chatName) {
 }
 
 function sendMessage(userId, msgText, chatId, replyId) {
-    console.log("userId: ", userId, "chatId: ", chatId, "replyId: ", replyId, "msgText: ", msgText)
+    console.log("MESSAGE::userId: ", userId, "chatId: ", chatId, "replyId: ", replyId, "msgText: ", msgText)
     if (msgText) {
         payload = {
             Type: "NewMessage",
@@ -120,7 +126,7 @@ function requestChatMessages(chatId) {
     payload = {
         Type: "SwitchChat",
         Data: {
-            ChatId: chatId,
+            ChatId: String(chatId),
         }
     }
     socket.send(JSON.stringify(payload))

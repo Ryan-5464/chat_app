@@ -13,6 +13,7 @@ type UserRepository interface {
 	FindUser(usr ent.User) (ent.User, error)
 	// EditUser()
 	// DeleteUser()
+	GetUsersForChat(chatId typ.ChatId) ([]ent.User, error)
 	GetUsers(userIds []typ.UserId) ([]ent.User, error)
 	GetUser(userId typ.UserId) (ent.User, error)
 }
@@ -39,6 +40,8 @@ type DbService interface {
 	FindUser(email cred.Email) (model.User, error)
 	GetUser(usrId typ.UserId) (model.User, error)
 	GetUsers(usrIds []typ.UserId) ([]model.User, error)
+	GetUsersForChat(chatId typ.ChatId) ([]model.User, error)
+	NewMember(chatId typ.ChatId, userId typ.UserId) error
 	NewChat(chat model.Chat) (model.Chat, error)
 	GetChat(chatId typ.ChatId) (model.Chat, error)
 	GetChats(userId typ.UserId) ([]model.Chat, error)
@@ -69,6 +72,7 @@ type MessageService interface {
 type UserService interface {
 	FindUser(usr ent.User) (ent.User, error)
 	GetUsers(chatId typ.ChatId) ([]ent.User, error)
+	GetUsersForChat(chatId typ.ChatId) ([]ent.User, error)
 	GetUser(userId typ.UserId) (ent.User, error)
 	NewUser(user ent.User) (ent.User, error)
 }

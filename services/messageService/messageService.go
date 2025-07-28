@@ -1,7 +1,6 @@
 package messageservice
 
 import (
-	"encoding/json"
 	"fmt"
 	"log"
 	"server/data/entities"
@@ -39,13 +38,12 @@ func (m *MessageService) NewMessage(msg entities.Message) (entities.Message, err
 
 func (m *MessageService) HandleNewMessage(msg entities.Message) error {
 	m.lgr.LogFunctionInfo()
-	log.Println(1)
 
 	msg, err := m.msgR.NewMessage(msg)
 	if err != nil {
 		return fmt.Errorf("failed to create new message: %w", err)
 	}
-	log.Println(2)
+	log.Println("MESSAGE USERID: ", msg.UserId)
 
 	usr, err := m.usrS.GetUser(msg.UserId)
 	if err != nil {
@@ -54,20 +52,20 @@ func (m *MessageService) HandleNewMessage(msg entities.Message) error {
 	log.Println(3)
 
 	msg.Author = usr.Name
-	log.Println(4)
+	log.Println("MESSAGECHATID: ", 4, msg.ChatId)
 
-	usrs, err := m.usrS.GetUsers(msg.ChatId)
+	usrs, err := m.usrS.GetUsersForChat(msg.ChatId)
 	if err != nil {
 		return fmt.Errorf("failed to get users: %w", err)
 	}
-	log.Println(5)
+	log.Println("USERS :", 5, usrs)
 
 	usrConns := make(map[typ.UserId]i.Socket)
 	for _, usr := range usrs {
 		conn := m.connS.GetConnection(usr.Id)
 		usrConns[usr.Id] = conn
 	}
-	log.Println(6)
+	log.Println("USRCONNS:", 6, usrConns)
 
 	for userId, conn := range usrConns {
 		if err := m.BroadcastMessage(userId, conn, msg); err != nil {
@@ -83,6 +81,8 @@ func (m *MessageService) BroadcastMessage(userId typ.UserId, conn i.Socket, msg 
 	m.lgr.LogFunctionInfo()
 	messages := []entities.Message{msg}
 
+	log.Println("BROADCASTMSG ", messages)
+
 	payload := struct {
 		Type     string
 		Chats    []entities.Chat
@@ -93,12 +93,7 @@ func (m *MessageService) BroadcastMessage(userId typ.UserId, conn i.Socket, msg 
 		Messages: messages,
 	}
 
-	msgPayload, err := json.Marshal(payload)
-	if err != nil {
-		return fmt.Errorf("Failed to serialize data: %w", err)
-	}
-
-	err = conn.WriteJSON(msgPayload)
+	err := conn.WriteJSON(payload)
 	if err != nil {
 		return fmt.Errorf("failed to write to websockt connection: %w", err)
 	}

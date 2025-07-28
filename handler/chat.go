@@ -114,6 +114,8 @@ func (cr *ChatHandler) ChatWebsocket(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	cr.connS.StoreConnection(conn, session.UserId())
+
 	for {
 		_, payload, err := conn.ReadMessage()
 		if err != nil {
@@ -185,6 +187,7 @@ func (cr *ChatHandler) ChatWebsocket(w http.ResponseWriter, r *http.Request) {
 			}
 
 		case "NewMessage":
+			log.Println("NewMessage")
 
 			newMsg, err := cr.parseNewMessageData(pl.Data)
 			if err != nil {

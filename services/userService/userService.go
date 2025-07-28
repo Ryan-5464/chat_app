@@ -2,7 +2,6 @@ package userservice
 
 import (
 	"fmt"
-	"log"
 	ent "server/data/entities"
 	i "server/interfaces"
 	typ "server/types"
@@ -21,24 +20,28 @@ type UserService struct {
 }
 
 func (u *UserService) GetUser(uid typ.UserId) (ent.User, error) {
-	log.Println(1)
-
 	u.lgr.LogFunctionInfo()
-	log.Println(2)
 
 	user, err := u.usrR.GetUser(uid)
 	if err != nil {
 		return ent.User{}, fmt.Errorf("faield to get user: %w", err)
 	}
-	log.Println(3)
 
 	return user, nil
 }
 
 func (u *UserService) GetUsers(chatId typ.ChatId) ([]ent.User, error) {
+	return nil, nil
+}
+
+func (u *UserService) GetUsersForChat(chatId typ.ChatId) ([]ent.User, error) {
 	u.lgr.LogFunctionInfo()
-	return []ent.User{}, nil
-	// return testUsers(chatId), nil
+	usrEs, err := u.usrR.GetUsersForChat(chatId)
+	if err != nil {
+		return nil, err
+	}
+
+	return usrEs, nil
 }
 
 func (u *UserService) NewUser(usr ent.User) (ent.User, error) {

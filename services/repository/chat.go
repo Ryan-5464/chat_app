@@ -26,6 +26,11 @@ func (c *ChatRepository) NewChat(chat ent.Chat) (ent.Chat, error) {
 	if err != nil {
 		return ent.Chat{}, fmt.Errorf("failed to create new chat: %w", err)
 	}
+
+	if err := c.dbS.NewMember(newChatM.Id, newChatM.AdminId); err != nil {
+		return ent.Chat{}, err
+	}
+
 	chatE := chatModelToEntity(newChatM)
 	return chatE, nil
 }

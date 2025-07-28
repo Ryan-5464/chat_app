@@ -50,6 +50,16 @@ func (u *UserRepository) GetUsers(usrIds []typ.UserId) ([]ent.User, error) {
 	return userEntitiesFromModels(usrMs), nil
 }
 
+func (u *UserRepository) GetUsersForChat(chatId typ.ChatId) ([]ent.User, error) {
+	u.lgr.LogFunctionInfo()
+	userMs, err := u.dbS.GetUsersForChat(chatId)
+	if err != nil {
+		return nil, err
+	}
+
+	return userEntitiesFromModels(userMs), nil
+}
+
 func (u *UserRepository) NewUser(usrE ent.User) (ent.User, error) {
 	u.lgr.LogFunctionInfo()
 
