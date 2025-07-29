@@ -28,11 +28,12 @@ document.addEventListener("DOMContentLoaded", function() {
     addSwitchChatListenerToChats()
     addNewMsgListenerToMsgInput()
     addNewMsgListenerToSendMsgButton()
-    addNewChatEventListener()
+    addNewChatEventListenerToButton()
+    addNewChatEventListenerToInput()
     addChatToggleEventListenerToContainer()
 })
 
-function addNewChatEventListener() {
+function addNewChatEventListenerToButton() {
     elem = document.getElementById("new-chat-button")
     elem.addEventListener('click', function () {
         const chatNameInput = document.getElementById("chat-name-input")
@@ -40,6 +41,19 @@ function addNewChatEventListener() {
         console.log("newChatName: ", chatName)
         sendNewChatInfo(chatName)
         chatNameInput.value = '';
+    })
+}
+
+function addNewChatEventListenerToInput() {
+    elem = document.getElementById("chat-name-input")
+    elem.addEventListener('keydown', function (event) {
+        if (event.key == "Enter") {
+            const chatNameInput = document.getElementById("chat-name-input")
+            const chatName = chatNameInput.value.trim()
+            console.log("newChatName: ", chatName)
+            sendNewChatInfo(chatName)
+            chatNameInput.value = '';
+        }
     })
 }
 
@@ -57,7 +71,7 @@ function addNewMsgListenerToMsgInput() {
     input.addEventListener('keydown', function (event) {
         if (event.key === "Enter") {
             const chatId = getChatIdFromExistingMessage()
-            const userId = getUserIdFromExistingChat()
+            const userId = getUserIdFromExistingMessage()
             const replyId = null
             const msgText = input.value.trim()
             sendMessage(userId, msgText, chatId, replyId)
@@ -75,6 +89,7 @@ function addNewMsgListenerToSendMsgButton() {
         const replyId = null
         const msgText = input.value.trim()
         sendMessage(userId, msgText, chatId, replyId)
+        input.value = '';
     })
 }
 
