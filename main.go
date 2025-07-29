@@ -39,7 +39,7 @@ func main() {
 	msgS := smsg.NewMessageService(logger, msgR, userS, connS)
 
 	chatHandler := handler.NewChatHandler(logger, authS, chatS, msgS, connS, userS)
-	indexHandler := handler.NewIndexHandler(logger)
+	indexHandler := handler.NewIndexHandler(logger, authS)
 	registerHandler := handler.NewRegisterHandler(logger, authS, userS)
 	loginHandler := handler.NewLoginHandler(logger, authS, userS)
 

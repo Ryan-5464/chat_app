@@ -46,7 +46,7 @@ func (rh *RegisterHandler) RenderRegisterPage(w http.ResponseWriter, r *http.Req
 
 	if cookieFound {
 		token := cookie.Value
-		session, err := l.authS.ValidateAndRefreshSession(token)
+		session, err := rh.authS.ValidateAndRefreshSession(token)
 		if err != nil {
 			log.Println("error validating or refreshing session", err)
 			http.Error(w, "Internal server error", http.StatusInternalServerError)

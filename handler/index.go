@@ -8,14 +8,16 @@ import (
 	"text/template"
 )
 
-func NewIndexHandler(l i.Logger) *IndexHandler {
+func NewIndexHandler(l i.Logger, a i.AuthService) *IndexHandler {
 	return &IndexHandler{
-		lgr: l,
+		lgr:   l,
+		authS: a,
 	}
 }
 
 type IndexHandler struct {
-	lgr i.Logger
+	authS i.AuthService
+	lgr   i.Logger
 }
 
 func (i *IndexHandler) RenderIndexPage(w http.ResponseWriter, r *http.Request) {
@@ -40,7 +42,7 @@ func (i *IndexHandler) RenderIndexPage(w http.ResponseWriter, r *http.Request) {
 
 	if cookieFound {
 		token := cookie.Value
-		session, err := l.authS.ValidateAndRefreshSession(token)
+		session, err := i.authS.ValidateAndRefreshSession(token)
 		if err != nil {
 			log.Println("error validating or refreshing session", err)
 			http.Error(w, "Internal server error", http.StatusInternalServerError)
