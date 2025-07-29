@@ -1,6 +1,9 @@
 package database
 
-import "fmt"
+import (
+	"fmt"
+	"log"
+)
 
 const (
 	errDatabaseInitFail string = "database initialization failed:"
@@ -9,6 +12,7 @@ const (
 func InitDb(db *DB, schema []string) error {
 
 	for _, query := range schema {
+		log.Println(query)
 		_, err := db.Create(query)
 		if err != nil {
 			return fmt.Errorf("%s %v", errDatabaseInitFail, err)
