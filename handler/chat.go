@@ -113,14 +113,16 @@ func (cr *ChatHandler) ChatWebsocket(w http.ResponseWriter, r *http.Request) {
 	}
 	defer conn.Close()
 
-	testToken, err := testToken(cr.authS)
+	cookie, err := r.Cookie("session_token")
 	if err != nil {
-		log.Println("failed to create dummy session")
-		http.Error(w, "internal server error", http.StatusInternalServerError)
-		return
+		if errors.Is(err, http.ErrNoCookie) {
+		} else {
+			http.Error(w, "Internal server error", http.StatusInternalServerError)
+			return
+		}
 	}
 
-	session, err := cr.authS.ValidateAndRefreshSession(testToken)
+	session, err := cr.authS.ValidateAndRefreshSession(cookie.Value)
 	if err != nil {
 		log.Println("failed to valdiate session token")
 		http.Error(w, "internal server error", http.StatusInternalServerError)
