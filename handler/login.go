@@ -32,19 +32,16 @@ func (l *LoginHandler) RenderLoginPage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var cookieFound bool
 	cookie, err := r.Cookie("session_token")
 	if err != nil {
 		if errors.Is(err, http.ErrNoCookie) {
-			cookieFound = true
 		} else {
-			cookieFound = false
 			http.Error(w, "Internal server error", http.StatusInternalServerError)
 			return
 		}
 	}
 
-	if cookieFound {
+	if cookie != nil {
 		token := cookie.Value
 		session, err := l.authS.ValidateAndRefreshSession(token)
 		if err != nil {

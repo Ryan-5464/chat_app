@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"net/http"
+	"os"
 	"server/handler"
 	lgr "server/logging"
 	sauth "server/services/authService"
@@ -18,9 +19,17 @@ import (
 func main() {
 	logger := lgr.NewLogger(true)
 
+	cwd, err := os.Getwd()
+	if err != nil {
+		return
+	}
+
+	dbPath := cwd + "/data/database/sqldb.db"
+	log.Println(dbPath)
+
 	config := prov.DbConfig{}
 	config.Add("driver", "sqlite3")
-	config.Add("path", ":memory:")
+	config.Add("path", dbPath)
 	c := prov.NewDbCredentials(prov.SQLite3, config)
 
 	dbService, err := dbs.NewDbService(logger, c)
