@@ -67,9 +67,9 @@ func (dbs *DbService) GetChats(userId typ.UserId) ([]model.Chat, error) {
 	qb := qbuilder.NewQueryBuilder()
 
 	chatTbl := qb.Table(schema.ChatTable)
-	userIdF := qb.Field(schema.UserId)
+	adminIdF := qb.Field(schema.AdminId)
 
-	query := qb.SELECT(qb.All()).FROM(chatTbl).WHERE(userIdF, qb.EqualTo())
+	query := qb.SELECT(qb.All()).FROM(chatTbl).WHERE(adminIdF, qb.EqualTo())
 
 	rows, err := dbs.db.Read(query.String(), userId)
 	if err != nil {

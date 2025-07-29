@@ -2,6 +2,7 @@ package handler
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
@@ -36,23 +37,33 @@ type ChatHandler struct {
 }
 
 func (cr *ChatHandler) RenderChatPage(w http.ResponseWriter, r *http.Request) {
-	// cookie, err := r.Cookie("session_token")
-	// if err != nil {
-	// 	log.Println("no session cookie found")
-	// 	http.Error(w, "no session cookie found", http.StatusInternalServerError)
-	// 	return
-	// }
-	testToken, err := testToken(cr.authS)
-	if err != nil {
-		log.Println("failed to create dummy session")
-		http.Error(w, "internal server error", http.StatusInternalServerError)
+	cr.lgr.LogFunctionInfo()
+
+	if r.Method != http.MethodGet {
+		http.Error(w, "request method not allowed", http.StatusMethodNotAllowed)
 		return
 	}
 
-	session, err := cr.authS.ValidateAndRefreshSession(testToken)
+	cookie, err := r.Cookie("session_token")
 	if err != nil {
-		log.Println("failed to valdiate session token")
-		http.Error(w, "internal server error", http.StatusInternalServerError)
+		if errors.Is(err, http.ErrNoCookie) {
+		} else {
+			http.Error(w, "Internal server error", http.StatusInternalServerError)
+			return
+		}
+	}
+
+	if cookie == nil {
+		log.Println("No cookie found, redirecting to index page...")
+		http.Redirect(w, r, "/", http.StatusSeeOther)
+		return
+	}
+
+	token := cookie.Value
+	session, err := cr.authS.ValidateAndRefreshSession(token)
+	if err != nil {
+		log.Println("error validating or refreshing session", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
 		return
 	}
 
@@ -85,6 +96,8 @@ func (cr *ChatHandler) RenderChatPage(w http.ResponseWriter, r *http.Request) {
 		Chats:    chats,
 		Messages: messages,
 	}
+
+	log.Println("ONLOADCHAT:", data)
 
 	err = tmpl.Execute(w, data)
 	if err != nil {
