@@ -117,65 +117,43 @@ func (cr *ChatHandler) ChatWebsocket(w http.ResponseWriter, r *http.Request) {
 
 	for {
 
-		payload, err := cr.readIncomingMessage(conn)
+		requestPayload, err := cr.readIncomingMessage(conn)
 		if err != nil {
 			http.Error(w, msgMalformedJSON, http.StatusBadRequest)
 			break
 		}
 
-		switch payload.Type {
+		switch requestPayload.Type {
 		case "SwitchChat":
-			log.Println("Switching chat")
+			cr.lgr.DLog("Switching chat...")
 
-			msgPayload, err := cr.HandleChatSwitch(payload.Data)
-			if err != nil {
-				log.Println(err)
-				http.Error(w, msgInternalServerError, http.StatusInternalServerError)
+			responsePayload, err := cr.handleChatSwitchRequest(requestPayload.Data)
+			if internalServerError(w, err) {
 				break
 			}
 
-			err = conn.WriteMessage(ws.TextMessage, msgPayload)
-			if err != nil {
-				log.Println(err)
-				http.Error(w, "Failed to serialize data", http.StatusInternalServerError)
+			err = conn.WriteJSON(responsePayload)
+			if internalServerError(w, err) {
 				break
 			}
 
 		case "NewMessage":
-			log.Println("NewMessage")
+			cr.lgr.DLog("Handling new message...")
 
-			newMsg, err := cr.parseNewMessageData(payload.Data)
-			if err != nil {
-				log.Println(err)
-				http.Error(w, "Failed to serialize data", http.StatusInternalServerError)
-				break
-			}
-
-			log.Println("newMsg", newMsg)
-
-			if cr.msgS == nil {
-				log.Fatal("missing messaging service")
-			}
-
-			if err := cr.msgS.HandleNewMessage(newMsg); err != nil {
-				log.Println(err)
-				http.Error(w, "Internal server error", http.StatusInternalServerError)
+			err = cr.handleNewMessageRequest(requestPayload.Data)
+			if internalServerError(w, err) {
 				break
 			}
 
 		case "NewChat":
 
-			msgPayload, err := cr.newChat(session.UserId(), payload.Data)
-			if err != nil {
-				log.Println(err)
-				http.Error(w, "Failed to serialize data", http.StatusInternalServerError)
+			responsePayload, err := cr.handleNewChatRequest(session.UserId(), requestPayload.Data)
+			if internalServerError(w, err) {
 				break
 			}
 
-			err = conn.WriteMessage(ws.TextMessage, msgPayload)
-			if err != nil {
-				log.Println(err)
-				http.Error(w, "Failed to serialize data", http.StatusInternalServerError)
+			err = conn.WriteMessage(ws.TextMessage, responsePayload)
+			if internalServerError(w, err) {
 				break
 			}
 
@@ -201,6 +179,20 @@ func (cr *ChatHandler) readIncomingMessage(conn i.Socket) (dto.Payload, error) {
 	return payload, nil
 }
 
+func (cr *ChatHandler) handleNewMessageRequest(newMessageRequest []byte) error {
+	newMsg, err := cr.parseNewMessageRequest(newMessageRequest)
+	if err != nil {
+		return err
+	}
+
+	err = cr.msgS.HandleNewMessage(newMsg)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func parseChatSwitchRequest(data []byte) (dto.SwitchChat, error) {
 	s := dto.SwitchChat{}
 	if err := json.Unmarshal(data, &s); err != nil {
@@ -222,7 +214,7 @@ func parseNewChatData(data []byte) (entities.Chat, error) {
 	return chat, nil
 }
 
-func (cr *ChatHandler) parseNewMessageData(data []byte) (entities.Message, error) {
+func (cr *ChatHandler) parseNewMessageRequest(data []byte) (entities.Message, error) {
 	cr.lgr.LogFunctionInfo()
 
 	n := dto.NewMessage{}
@@ -270,7 +262,7 @@ func convertStringToInt64(s string) (int64, error) {
 	return strconv.ParseInt(s, 10, 64)
 }
 
-func (cr *ChatHandler) HandleChatSwitch(switchChatrequest []byte) ([]byte, error) {
+func (cr *ChatHandler) handleChatSwitchRequest(switchChatrequest []byte) ([]byte, error) {
 	cr.lgr.LogFunctionInfo()
 
 	data, err := parseChatSwitchRequest(switchChatrequest)
@@ -298,15 +290,10 @@ func (cr *ChatHandler) HandleChatSwitch(switchChatrequest []byte) ([]byte, error
 		Messages: messages,
 	}
 
-	msgPayload, err := json.Marshal(payload)
-	if err != nil {
-		return []byte{}, err
-	}
-
-	return msgPayload, nil
+	return payload, nil
 }
 
-func (cr *ChatHandler) newChat(userId typ.UserId, newChatData []byte) ([]byte, error) {
+func (cr *ChatHandler) handleNewChatRequest(userId typ.UserId, newChatData []byte) ([]byte, error) {
 	cr.lgr.LogFunctionInfo()
 
 	newChat, err := parseNewChatData(newChatData)
@@ -348,4 +335,12 @@ func (cr *ChatHandler) newChat(userId typ.UserId, newChatData []byte) ([]byte, e
 	}
 
 	return msgPayload, nil
+}
+
+func internalServerError(w http.ResponseWriter, err error) bool {
+	if err != nil {
+		http.Error(w, msgInternalServerError, http.StatusInternalServerError)
+		return true
+	}
+	return false
 }

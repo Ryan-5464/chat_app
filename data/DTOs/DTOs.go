@@ -2,6 +2,7 @@ package DTO
 
 import (
 	"encoding/json"
+	"server/data/entities"
 	"server/lib"
 	typ "server/types"
 )
@@ -33,4 +34,10 @@ type NewMessage struct {
 type Payload struct {
 	Type string          `json:"Type"`
 	Data json.RawMessage `json:"Data"`
+}
+
+type ResponsePayload struct {
+	Type     string             `json:"Type"`
+	Chats    []entities.Chat    `json:"Chats"`
+	Messages []entities.Message `json:"Messages"`
 }
