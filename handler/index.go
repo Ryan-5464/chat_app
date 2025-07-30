@@ -1,10 +1,9 @@
 package handler
 
 import (
-	"errors"
-	"log"
 	"net/http"
 	i "server/interfaces"
+	ss "server/services/authService/session"
 	"text/template"
 )
 
@@ -28,26 +27,9 @@ func (i *IndexHandler) RenderIndexPage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	cookie, err := r.Cookie("session_token")
-	if err != nil {
-		if errors.Is(err, http.ErrNoCookie) {
-		} else {
-			http.Error(w, "Internal server error", http.StatusInternalServerError)
-			return
-		}
-	}
-
-	if cookie != nil {
-		token := cookie.Value
-		session, err := i.authS.ValidateAndRefreshSession(token)
-		if err != nil {
-			log.Println("error validating or refreshing session", err)
-			http.Error(w, "Internal server error", http.StatusInternalServerError)
-			return
-		}
-
-		http.SetCookie(w, session.Cookie())
-
+	session := r.Context().Value("session").(ss.Session)
+	emptySession := ss.Session{}
+	if session != emptySession {
 		http.Redirect(w, r, "/chat", http.StatusSeeOther)
 		return
 	}

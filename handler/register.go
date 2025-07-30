@@ -1,12 +1,12 @@
 package handler
 
 import (
-	"errors"
 	"log"
 	"net/http"
 	ent "server/data/entities"
 	i "server/interfaces"
 	cred "server/services/authService/credentials"
+	ss "server/services/authService/session"
 	"text/template"
 )
 
@@ -32,26 +32,9 @@ func (rh *RegisterHandler) RenderRegisterPage(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	cookie, err := r.Cookie("session_token")
-	if err != nil {
-		if errors.Is(err, http.ErrNoCookie) {
-		} else {
-			http.Error(w, "Internal server error", http.StatusInternalServerError)
-			return
-		}
-	}
-
-	if cookie != nil {
-		token := cookie.Value
-		session, err := rh.authS.ValidateAndRefreshSession(token)
-		if err != nil {
-			log.Println("error validating or refreshing session", err)
-			http.Error(w, "Internal server error", http.StatusInternalServerError)
-			return
-		}
-
-		http.SetCookie(w, session.Cookie())
-
+	session := r.Context().Value("session").(ss.Session)
+	emptySession := ss.Session{}
+	if session != emptySession {
 		http.Redirect(w, r, "/chat", http.StatusSeeOther)
 		return
 	}

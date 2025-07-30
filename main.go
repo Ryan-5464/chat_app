@@ -6,6 +6,7 @@ import (
 	"os"
 	"server/handler"
 	lgr "server/logging"
+	mw "server/middleware"
 	sauth "server/services/authService"
 	schat "server/services/chatService"
 	sconn "server/services/connService"
@@ -55,13 +56,15 @@ func main() {
 	fs := http.FileServer(http.Dir("./static"))
 	http.Handle("/static/", http.StripPrefix("/static/", fs))
 
-	http.HandleFunc("/register", registerHandler.RenderRegisterPage)
-	http.HandleFunc("/api/register", registerHandler.RegisterUser)
-	http.HandleFunc("/login", loginHandler.RenderLoginPage)
-	http.HandleFunc("/api/login", loginHandler.LoginUser)
-	http.HandleFunc("/chat", chatHandler.RenderChatPage)
-	http.HandleFunc("/ws", chatHandler.ChatWebsocket)
-	http.HandleFunc("/", indexHandler.RenderIndexPage)
+	authMW := mw.NewAuthMiddleware(logger, authS)
+
+	http.Handle("/register", authMW.AttachTo(http.HandlerFunc(registerHandler.RenderRegisterPage)))
+	http.Handle("/api/register", authMW.AttachTo(http.HandlerFunc(registerHandler.RegisterUser)))
+	http.Handle("/login", authMW.AttachTo(http.HandlerFunc(loginHandler.RenderLoginPage)))
+	http.Handle("/api/login", authMW.AttachTo(http.HandlerFunc(loginHandler.LoginUser)))
+	http.Handle("/chat", authMW.AttachTo(http.HandlerFunc(chatHandler.RenderChatPage)))
+	http.Handle("/ws", authMW.AttachTo(http.HandlerFunc(chatHandler.ChatWebsocket)))
+	http.Handle("/", authMW.AttachTo(http.HandlerFunc(indexHandler.RenderIndexPage)))
 
 	if err := http.ListenAndServe(":8081", nil); err != nil {
 		log.Fatalf("Server failed to start: %v", err)

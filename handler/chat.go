@@ -2,13 +2,13 @@ package handler
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"log"
 	"net/http"
 	dto "server/data/DTOs"
 	"server/data/entities"
 	i "server/interfaces"
+	ss "server/services/authService/session"
 	typ "server/types"
 	"strconv"
 	"text/template"
@@ -44,30 +44,12 @@ func (cr *ChatHandler) RenderChatPage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	cookie, err := r.Cookie("session_token")
-	if err != nil {
-		if errors.Is(err, http.ErrNoCookie) {
-		} else {
-			http.Error(w, "Internal server error", http.StatusInternalServerError)
-			return
-		}
-	}
-
-	if cookie == nil {
-		log.Println("No cookie found, redirecting to index page...")
+	session := r.Context().Value("session").(ss.Session)
+	emptySession := ss.Session{}
+	if session == emptySession {
 		http.Redirect(w, r, "/", http.StatusSeeOther)
 		return
 	}
-
-	token := cookie.Value
-	session, err := cr.authS.ValidateAndRefreshSession(token)
-	if err != nil {
-		log.Println("error validating or refreshing session", err)
-		http.Error(w, "Internal server error", http.StatusInternalServerError)
-		return
-	}
-
-	http.SetCookie(w, session.Cookie())
 
 	chats, err := cr.chatS.GetChats(session.UserId())
 	if err != nil {
@@ -113,19 +95,10 @@ func (cr *ChatHandler) ChatWebsocket(w http.ResponseWriter, r *http.Request) {
 	}
 	defer conn.Close()
 
-	cookie, err := r.Cookie("session_token")
-	if err != nil {
-		if errors.Is(err, http.ErrNoCookie) {
-		} else {
-			http.Error(w, "Internal server error", http.StatusInternalServerError)
-			return
-		}
-	}
-
-	session, err := cr.authS.ValidateAndRefreshSession(cookie.Value)
-	if err != nil {
-		log.Println("failed to valdiate session token")
-		http.Error(w, "internal server error", http.StatusInternalServerError)
+	session := r.Context().Value("session").(ss.Session)
+	emptySession := ss.Session{}
+	if session == emptySession {
+		http.Redirect(w, r, "/", http.StatusSeeOther)
 		return
 	}
 
