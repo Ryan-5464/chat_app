@@ -19,10 +19,12 @@ type ConnectionService struct {
 
 func (c *ConnectionService) StoreConnection(conn i.Socket, userId typ.UserId) {
 	c.lgr.LogFunctionInfo()
+	c.lgr.Log("User connected; UserId -- " + string(userId))
 	c.pool[userId] = conn
 }
 
 func (c *ConnectionService) GetConnection(userId typ.UserId) i.Socket {
 	c.lgr.LogFunctionInfo()
+	c.lgr.Log("User disconnected; UserId -- " + string(userId))
 	return c.pool[userId]
 }

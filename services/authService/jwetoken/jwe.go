@@ -25,22 +25,22 @@ func NewJWE(userId typ.UserId, key skey.SecretKey) (JWE, error) {
 	return jwe, nil
 }
 
-func ParseAndVerifyJWE(token string, key skey.SecretKey) (JWE, error) {
+func ParseAndVerifyJWE(token string, key skey.SecretKey) (typ.UserId, error) {
 	verifiedToken, err := decryptAndVerifyToken(token, key)
 	if err != nil {
-		return JWE{}, fmt.Errorf("failed to decrypt token: %w", err)
+		return typ.UserId(0), fmt.Errorf("failed to decrypt token: %w", err)
 	}
 
 	var claims Claims
 	if err := json.Unmarshal(verifiedToken, &claims); err != nil {
-		return JWE{}, fmt.Errorf("failed to unmarshal claims; %w", err)
+		return typ.UserId(0), fmt.Errorf("failed to unmarshal claims; %w", err)
 	}
 
 	if err := validateClaims(claims); err != nil {
-		return JWE{}, fmt.Errorf("invalid claims: %w", err)
+		return typ.UserId(0), fmt.Errorf("invalid claims: %w", err)
 	}
 
-	return updateJWE(claims.UserId, key)
+	return claims.UserId, err
 }
 
 type Claims struct {
@@ -78,7 +78,7 @@ func (j *JWE) IssuedAt() time.Time {
 	return j.claims.IssuedAt
 }
 
-func updateJWE(userId typ.UserId, key skey.SecretKey) (JWE, error) {
+func UpdateJWE(userId typ.UserId, key skey.SecretKey) (JWE, error) {
 	return NewJWE(userId, key)
 }
 

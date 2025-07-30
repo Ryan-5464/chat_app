@@ -58,11 +58,16 @@ func (cr *ChatHandler) RenderChatPage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	messages, err := cr.msgS.GetChatMessages(typ.ChatId(1))
-	if err != nil {
-		log.Println("failed to get message data for user")
-		http.Error(w, "interrnal server error", http.StatusInternalServerError)
-		return
+	var messages []entities.Message
+	if len(chats) == 0 {
+		messages = []entities.Message{}
+	} else {
+		messages, err = cr.msgS.GetChatMessages(chats[0].Id)
+		if err != nil {
+			log.Println("failed to get message data for user")
+			http.Error(w, "interrnal server error", http.StatusInternalServerError)
+			return
+		}
 	}
 
 	tmpl, err := template.ParseFiles("./static/templates/chat.html")
@@ -101,6 +106,8 @@ func (cr *ChatHandler) ChatWebsocket(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "/", http.StatusSeeOther)
 		return
 	}
+
+	log.Println("USERID:::", session.UserId())
 
 	cr.connS.StoreConnection(conn, session.UserId())
 
