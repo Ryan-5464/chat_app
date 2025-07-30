@@ -127,7 +127,7 @@ func (cr *ChatHandler) ChatWebsocket(w http.ResponseWriter, r *http.Request) {
 		case "SwitchChat":
 			log.Println("Switching chat")
 
-			msgPayload, err := cr.switchActiveChat(payload.Data)
+			msgPayload, err := cr.HandleChatSwitch(payload.Data)
 			if err != nil {
 				log.Println(err)
 				http.Error(w, msgInternalServerError, http.StatusInternalServerError)
@@ -201,7 +201,7 @@ func (cr *ChatHandler) readIncomingMessage(conn i.Socket) (dto.Payload, error) {
 	return payload, nil
 }
 
-func parseSwitchChatData(data []byte) (dto.SwitchChat, error) {
+func parseChatSwitchRequest(data []byte) (dto.SwitchChat, error) {
 	s := dto.SwitchChat{}
 	if err := json.Unmarshal(data, &s); err != nil {
 		return s, err
@@ -270,22 +270,20 @@ func convertStringToInt64(s string) (int64, error) {
 	return strconv.ParseInt(s, 10, 64)
 }
 
-func (cr *ChatHandler) switchActiveChat(newChatData []byte) ([]byte, error) {
+func (cr *ChatHandler) HandleChatSwitch(switchChatrequest []byte) ([]byte, error) {
 	cr.lgr.LogFunctionInfo()
 
-	data, err := parseSwitchChatData(newChatData)
+	data, err := parseChatSwitchRequest(switchChatrequest)
 	if err != nil {
 		return []byte{}, err
 	}
 
-	log.Println("chat", data)
-
-	chatId, err := convertStringToInt64(data.ChatId)
+	chatId, err := data.GetChatId()
 	if err != nil {
 		return []byte{}, err
 	}
 
-	messages, err := cr.msgS.GetChatMessages(typ.ChatId(chatId))
+	messages, err := cr.msgS.GetChatMessages(chatId)
 	if err != nil {
 		return []byte{}, err
 	}

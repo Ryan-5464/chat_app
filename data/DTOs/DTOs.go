@@ -1,9 +1,21 @@
 package DTO
 
-import "encoding/json"
+import (
+	"encoding/json"
+	"server/lib"
+	typ "server/types"
+)
 
 type SwitchChat struct {
 	ChatId string `json:"ChatId"`
+}
+
+func (s *SwitchChat) GetChatId() (typ.ChatId, error) {
+	cid, err := lib.ConvertStringToInt64(s.ChatId)
+	if err != nil {
+		return typ.ChatId(0), err
+	}
+	return typ.ChatId(cid), nil
 }
 
 type NewChat struct {
