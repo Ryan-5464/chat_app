@@ -89,6 +89,7 @@ type Socket interface {
 }
 
 type Logger interface {
+	DLog(message string)
 	Log(message string)
 	LogError(err error)
 	LogFunctionInfo()

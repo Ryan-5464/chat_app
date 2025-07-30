@@ -7,6 +7,7 @@ import (
 	"net/http"
 	dto "server/data/DTOs"
 	"server/data/entities"
+	"server/handler/socket"
 	i "server/interfaces"
 	ss "server/services/authService/session"
 	typ "server/types"
@@ -14,6 +15,12 @@ import (
 	"text/template"
 
 	ws "github.com/gorilla/websocket"
+)
+
+const (
+	msgInternalServerError string = "Internal Server Error"
+	msgConnectUserFail     string = "Unable to connect user"
+	msgMalformedJSON       string = "Invalid JSON received"
 )
 
 func NewChatHandler(lgr i.Logger, a i.AuthService, c i.ChatService, m i.MessageService, cnx i.ConnectionService, u i.UserService) *ChatHandler {
@@ -93,84 +100,37 @@ func (cr *ChatHandler) RenderChatPage(w http.ResponseWriter, r *http.Request) {
 }
 
 func (cr *ChatHandler) ChatWebsocket(w http.ResponseWriter, r *http.Request) {
-	conn, err := establishWebsocket(w, r)
-	if err != nil {
-		log.Println(err)
-		http.Error(w, "Internal server error", http.StatusInternalServerError)
+	conn := socket.New(w, r)
+	if conn == nil {
+		http.Error(w, msgConnectUserFail, http.StatusInternalServerError)
+		return
 	}
 	defer conn.Close()
 
-	session := r.Context().Value("session").(ss.Session)
-	emptySession := ss.Session{}
-	if session == emptySession {
+	session, userAuthenticated := checkAuthenticationStatus(r)
+	if !userAuthenticated {
 		http.Redirect(w, r, "/", http.StatusSeeOther)
 		return
 	}
 
-	log.Println("USERID:::", session.UserId())
-
 	cr.connS.StoreConnection(conn, session.UserId())
 
 	for {
-		_, payload, err := conn.ReadMessage()
+
+		payload, err := cr.readIncomingMessage(conn)
 		if err != nil {
-			log.Println("failed to read JSON: ", err)
-			http.Error(w, "Failed to serialize data", http.StatusInternalServerError)
+			http.Error(w, msgMalformedJSON, http.StatusBadRequest)
 			break
 		}
 
-		pl, err := parsePayload(payload)
-		if err != nil {
-			log.Println("failed to read JSON: ", err)
-			http.Error(w, "Failed to serialize data", http.StatusInternalServerError)
-			break
-		}
-
-		log.Println("pl", pl)
-
-		switch pl.Type {
+		switch payload.Type {
 		case "SwitchChat":
 			log.Println("Switching chat")
 
-			data, err := parseSwitchChatData(pl.Data)
+			msgPayload, err := cr.switchActiveChat(payload.Data)
 			if err != nil {
 				log.Println(err)
-				http.Error(w, "Failed to serialize data", http.StatusInternalServerError)
-				break
-			}
-
-			log.Println("chat", data)
-
-			chatId, err := convertStringToInt64(data.ChatId)
-			if err != nil {
-				log.Println(err)
-				http.Error(w, "Failed to serialize data", http.StatusInternalServerError)
-				break
-			}
-
-			messages, err := cr.msgS.GetChatMessages(typ.ChatId(chatId))
-			if err != nil {
-				log.Println(err)
-				http.Error(w, "Failed to serialize data", http.StatusInternalServerError)
-				break
-			}
-
-			log.Println("messages", messages)
-
-			payload := struct {
-				Type     string
-				Chats    []entities.Chat
-				Messages []entities.Message
-			}{
-				Type:     "SwitchChat",
-				Chats:    nil,
-				Messages: messages,
-			}
-
-			msgPayload, err := json.Marshal(payload)
-			if err != nil {
-				log.Println(err)
-				http.Error(w, "Failed to serialize data", http.StatusInternalServerError)
+				http.Error(w, msgInternalServerError, http.StatusInternalServerError)
 				break
 			}
 
@@ -184,7 +144,7 @@ func (cr *ChatHandler) ChatWebsocket(w http.ResponseWriter, r *http.Request) {
 		case "NewMessage":
 			log.Println("NewMessage")
 
-			newMsg, err := cr.parseNewMessageData(pl.Data)
+			newMsg, err := cr.parseNewMessageData(payload.Data)
 			if err != nil {
 				log.Println(err)
 				http.Error(w, "Failed to serialize data", http.StatusInternalServerError)
@@ -205,48 +165,7 @@ func (cr *ChatHandler) ChatWebsocket(w http.ResponseWriter, r *http.Request) {
 
 		case "NewChat":
 
-			newChat, err := parseNewChatData(pl.Data)
-			if err != nil {
-				log.Println(err)
-				http.Error(w, "Failed to serialize data", http.StatusInternalServerError)
-				break
-			}
-
-			newChat.AdminId = session.UserId()
-
-			cr.lgr.Log(fmt.Sprintf("%v", newChat))
-
-			chat, err := cr.chatS.NewChat(newChat)
-			if err != nil {
-				log.Println(err)
-				http.Error(w, "Failed to create new chat", http.StatusInternalServerError)
-				break
-			}
-
-			newMsg := entities.Message{
-				ChatId: chat.Id,
-				UserId: chat.AdminId,
-				Text:   "Hello",
-			}
-
-			msg, err := cr.msgS.NewMessage(newMsg)
-			if err != nil {
-				log.Println(err)
-				http.Error(w, "Failed to create new message", http.StatusInternalServerError)
-				break
-			}
-
-			payload := struct {
-				Type     string
-				Chats    []entities.Chat
-				Messages []entities.Message
-			}{
-				Type:     "NewChat",
-				Chats:    []entities.Chat{chat},
-				Messages: []entities.Message{msg},
-			}
-
-			msgPayload, err := json.Marshal(payload)
+			msgPayload, err := cr.newChat(session.UserId(), payload.Data)
 			if err != nil {
 				log.Println(err)
 				http.Error(w, "Failed to serialize data", http.StatusInternalServerError)
@@ -266,34 +185,20 @@ func (cr *ChatHandler) ChatWebsocket(w http.ResponseWriter, r *http.Request) {
 
 }
 
-func establishWebsocket(w http.ResponseWriter, r *http.Request) (*ws.Conn, error) {
-	var upgrader = ws.Upgrader{
-		ReadBufferSize:  1024,
-		WriteBufferSize: 1024,
-	}
+func (cr *ChatHandler) readIncomingMessage(conn i.Socket) (dto.Payload, error) {
+	cr.lgr.DLog("Reading incoming message...")
+	payload := dto.Payload{}
 
-	conn, err := upgrader.Upgrade(w, r, nil)
+	err := conn.ReadJSON(&payload)
 	if err != nil {
-		return nil, fmt.Errorf("unable to establish websocket connection %w", err)
+		errReadJSONFail := fmt.Errorf("Failed to read JSON: %v", err)
+		cr.lgr.LogError(errReadJSONFail)
+		return payload, err
 	}
 
-	return conn, nil
-}
-
-func testToken(authS i.AuthService) (string, error) {
-	testSession, err := authS.NewSession(typ.UserId(1))
-	if err != nil {
-		return "", fmt.Errorf("failed to create test session : %w", err)
-	}
-	return testSession.JWEToken(), nil
-}
-
-func parsePayload(payload []byte) (dto.Payload, error) {
-	p := dto.Payload{}
-	if err := json.Unmarshal(payload, &p); err != nil {
-		return p, err
-	}
-	return p, nil
+	msgType := fmt.Sprintf("Message type: %v", payload.Type)
+	cr.lgr.DLog(msgType)
+	return payload, nil
 }
 
 func parseSwitchChatData(data []byte) (dto.SwitchChat, error) {
@@ -363,4 +268,86 @@ func (cr *ChatHandler) parseNewMessageData(data []byte) (entities.Message, error
 
 func convertStringToInt64(s string) (int64, error) {
 	return strconv.ParseInt(s, 10, 64)
+}
+
+func (cr *ChatHandler) switchActiveChat(newChatData []byte) ([]byte, error) {
+	cr.lgr.LogFunctionInfo()
+
+	data, err := parseSwitchChatData(newChatData)
+	if err != nil {
+		return []byte{}, err
+	}
+
+	log.Println("chat", data)
+
+	chatId, err := convertStringToInt64(data.ChatId)
+	if err != nil {
+		return []byte{}, err
+	}
+
+	messages, err := cr.msgS.GetChatMessages(typ.ChatId(chatId))
+	if err != nil {
+		return []byte{}, err
+	}
+
+	payload := struct {
+		Type     string
+		Chats    []entities.Chat
+		Messages []entities.Message
+	}{
+		Type:     "SwitchChat",
+		Chats:    nil,
+		Messages: messages,
+	}
+
+	msgPayload, err := json.Marshal(payload)
+	if err != nil {
+		return []byte{}, err
+	}
+
+	return msgPayload, nil
+}
+
+func (cr *ChatHandler) newChat(userId typ.UserId, newChatData []byte) ([]byte, error) {
+	cr.lgr.LogFunctionInfo()
+
+	newChat, err := parseNewChatData(newChatData)
+	if err != nil {
+		return []byte{}, err
+	}
+
+	newChat.AdminId = userId
+
+	chat, err := cr.chatS.NewChat(newChat)
+	if err != nil {
+		return []byte{}, err
+	}
+
+	newMsg := entities.Message{
+		ChatId: chat.Id,
+		UserId: chat.AdminId,
+		Text:   "Chat Created",
+	}
+
+	msg, err := cr.msgS.NewMessage(newMsg)
+	if err != nil {
+		return []byte{}, err
+	}
+
+	payload := struct {
+		Type     string
+		Chats    []entities.Chat
+		Messages []entities.Message
+	}{
+		Type:     "NewChat",
+		Chats:    []entities.Chat{chat},
+		Messages: []entities.Message{msg},
+	}
+
+	msgPayload, err := json.Marshal(payload)
+	if err != nil {
+		return []byte{}, err
+	}
+
+	return msgPayload, nil
 }

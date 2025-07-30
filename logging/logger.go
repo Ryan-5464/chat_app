@@ -6,6 +6,8 @@ import (
 	"time"
 )
 
+var Lgr *Logger = NewLogger(true)
+
 func NewLogger(debug bool) *Logger {
 	logger := &Logger{Debug: debug}
 	return logger
@@ -13,6 +15,16 @@ func NewLogger(debug bool) *Logger {
 
 type Logger struct {
 	Debug bool
+}
+
+func (l *Logger) DLog(message string) {
+	if !l.Debug {
+		return
+	}
+
+	timestamp := time.Now().UTC().Format(time.RFC3339)
+
+	log.Printf("[MESSAGE] %s : %s", timestamp, message)
 }
 
 func (l *Logger) Log(message string) {

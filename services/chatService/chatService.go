@@ -5,7 +5,6 @@ import (
 	ent "server/data/entities"
 	i "server/interfaces"
 	typ "server/types"
-	"time"
 )
 
 func NewChatService(lgr i.Logger, c i.ChatRepository) *ChatService {
@@ -38,26 +37,4 @@ func (c *ChatService) GetChats(userId typ.UserId) ([]ent.Chat, error) {
 	}
 
 	return chats, nil
-}
-
-func testChats() []ent.Chat {
-	chat1 := ent.Chat{
-		Id:                 11,
-		Name:               "test1",
-		AdminId:            3,
-		AdminName:          "alf",
-		MemberCount:        4,
-		UnreadMessageCount: 14,
-		CreatedAt:          time.Now(),
-	}
-	chat2 := ent.Chat{
-		Id:                 12,
-		Name:               "test2",
-		AdminId:            4,
-		AdminName:          "derek",
-		MemberCount:        3,
-		UnreadMessageCount: 2,
-		CreatedAt:          time.Now(),
-	}
-	return []ent.Chat{chat1, chat2}
 }
