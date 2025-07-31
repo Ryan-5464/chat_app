@@ -80,6 +80,7 @@ type UserService interface {
 type ConnectionService interface {
 	StoreConnection(conn Socket, userId typ.UserId)
 	GetConnection(userId typ.UserId) Socket
+	DisconnectUser(userId typ.UserId)
 }
 
 type Socket interface {

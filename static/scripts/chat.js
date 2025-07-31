@@ -5,6 +5,7 @@
 
 */
 
+
 const socket = new WebSocket('ws://localhost:8081/ws');
 
 socket.onopen = function () {
@@ -39,8 +40,8 @@ function addNewChatEventListenerToButton() {
         const chatNameInput = document.getElementById("chat-name-input")
         const chatName = chatNameInput.value.trim()
         console.log("newChatName: ", chatName)
-        sendNewChatInfo(chatName)
         chatNameInput.value = '';
+        newChat(chatName)
     })
 }
 
@@ -51,8 +52,8 @@ function addNewChatEventListenerToInput() {
             const chatNameInput = document.getElementById("chat-name-input")
             const chatName = chatNameInput.value.trim()
             console.log("newChatName: ", chatName)
-            sendNewChatInfo(chatName)
             chatNameInput.value = '';
+            newChat(chatName)
         }
     })
 }
@@ -61,11 +62,12 @@ function addSwitchChatListenerToChats() {
     document.querySelectorAll('.chat').forEach(function (elem) {
         elem.addEventListener('click', function () {
             const chatId = elem.getAttribute('data-chatid')
-            requestChatMessages(chatId)
+            switchChat(chatId)
         })
     })
 }
 
+// need to refactor to handle ids better
 function addNewMsgListenerToMsgInput() {
     const input = document.getElementById("input")
     input.addEventListener('keydown', function (event) {
@@ -74,12 +76,13 @@ function addNewMsgListenerToMsgInput() {
             const userId = getUserIdFromExistingMessage()
             const replyId = null
             const msgText = input.value.trim()
-            sendMessage(userId, msgText, chatId, replyId)
             input.value = '';
+            sendMessage(userId, msgText, chatId, replyId)
         }
     })
 }
 
+// need to refactor to handle ids better
 function addNewMsgListenerToSendMsgButton() {
     const button = document.getElementById("send-message-button")
     button.addEventListener('click', function () {
@@ -107,19 +110,6 @@ function getUserIdFromExistingMessage() {
     return userId
 }
 
-function sendNewChatInfo(chatName) {
-    console.log("NEWCHAT::chatName: ", chatName)
-    if (chatName) {
-        payload = {
-            Type: "NewChat",
-            Data: {
-                Name: chatName,
-            }
-        }
-        socket.send(JSON.stringify(payload));
-    }
-}
-
 function sendMessage(userId, msgText, chatId, replyId) {
     console.log("MESSAGE::userId: ", userId, "chatId: ", chatId, "replyId: ", replyId, "msgText: ", msgText)
     if (msgText) {
@@ -134,17 +124,6 @@ function sendMessage(userId, msgText, chatId, replyId) {
         }
         socket.send(JSON.stringify(payload));
     }
-}
-
-function requestChatMessages(chatId) {
-    console.log("chatId: ", chatId)
-    payload = {
-        Type: "SwitchChat",
-        Data: {
-            ChatId: String(chatId),
-        }
-    }
-    socket.send(JSON.stringify(payload))
 }
 
 function renderChats(chatData, overwrite) {
@@ -241,4 +220,80 @@ function addChatToggleEventListenerToContainer() {
     // Add 'active' to the clicked chat
     clickedChat.classList.add('active');
   });
+}
+
+/* NEW CHAT REQUEST ===================================================== */
+
+function newChat(chatName) {
+    fetch(BASEURL + '/api/chat/new', newChatRequestBody(chatName))
+    .then(response => {
+        if (!response.ok) {
+            throw new Error(`Server error: ${response.status}`);
+        }
+        return response.json(); 
+    })
+    .then(responsePayload => {
+        console.log('[NewChat]Received:', responsePayload);
+        renderChats(responsePayload.Chats, false);
+        renderMessages(responsePayload.Messages, true);
+        const newActiveChatId = responsePayload.NewActiveChatId 
+        switchActiveChat(newActiveChatId)
+    })
+    .catch(error => {
+        console.error('Fetch error:', error);
+    });
+}
+
+function newChatRequestBody(chatName) {
+    return {
+        method: 'POST',
+        headers: { 
+            'Content-Type': 'application/json' 
+        },
+        body: JSON.stringify({
+            Name: chatName,
+        })
+    }
+}
+
+/* SWITCH CHAT REQUEST ================================================== */
+
+function switchChat(chatId) {
+    fetch(BASEURL + '/api/chat/switch', switchChatRequestBody(chatId))
+    .then(response => {
+        if (!response.ok) {
+            throw new Error(`Server error: ${response.status}`);
+        }
+        return response.json(); 
+    })
+    .then(responsePayload => {
+        console.log('[SwitchChat]Received:', responsePayload);
+        renderMessages(responsePayload.Messages, true);
+        const newActiveChatId = responsePayload.NewActiveChatId 
+        switchActiveChat(newActiveChatId)
+    })
+    .catch(error => {
+        console.error('Fetch error:', error);
+    });
+}
+
+function switchChatRequestBody(chatId) {
+    return {
+        method: 'POST',
+        headers: { 
+            'Content-Type': 'application/json' 
+        },
+        body: JSON.stringify({
+            ChatId: chatId,
+        })
+    }
+}
+
+function switchActiveChat(newActiveChatId) {
+     document.querySelectorAll(`.chat`).forEach(chat => {
+        chat.classList.remove(`active`)
+    })
+    
+    const newChat = document.querySelector(`[data-chatid="${newActiveChatId}"]`)
+    newChat.classList.add(`active`)
 }

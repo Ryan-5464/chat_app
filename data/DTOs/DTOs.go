@@ -7,11 +7,11 @@ import (
 	typ "server/types"
 )
 
-type SwitchChat struct {
+type SwitchChatRequest struct {
 	ChatId string `json:"ChatId"`
 }
 
-func (s *SwitchChat) GetChatId() (typ.ChatId, error) {
+func (s *SwitchChatRequest) GetChatId() (typ.ChatId, error) {
 	cid, err := lib.ConvertStringToInt64(s.ChatId)
 	if err != nil {
 		return typ.ChatId(0), err
@@ -19,25 +19,78 @@ func (s *SwitchChat) GetChatId() (typ.ChatId, error) {
 	return typ.ChatId(cid), nil
 }
 
-type NewChat struct {
-	UserId string `json:"UserId"`
-	Name   string `json:"Name"`
+type SwitchChatResponse struct {
+	NewActiveChatId typ.ChatId
+	Messages        []entities.Message `json:"Messages"`
 }
 
-type NewMessage struct {
+type NewChatRequest struct {
+	Name string `json:"Name"`
+}
+
+type NewChatResponse struct {
+	Chats           []entities.Chat
+	Messages        []entities.Message
+	NewActiveChatId typ.ChatId
+}
+
+type NewMessageRequest struct {
 	UserId  string `json:"UserId"`
 	ChatId  string `json:"ChatId"`
 	ReplyId string `json:"ReplyId"`
 	MsgText string `json:"MsgText"`
 }
 
-type Payload struct {
+func (n *NewMessageRequest) ToMessageEntity() (entities.Message, error) {
+	userId, err := lib.ConvertStringToInt64(n.UserId)
+	if err != nil {
+		return entities.Message{}, err
+	}
+
+	chatId, err := lib.ConvertStringToInt64(n.ChatId)
+	if err != nil {
+		return entities.Message{}, err
+	}
+
+	var replyId int64
+	if n.ReplyId != "" {
+		replyId, err = lib.ConvertStringToInt64(n.ReplyId)
+		if err != nil {
+			return entities.Message{}, err
+		}
+	}
+
+	msgE := entities.Message{
+		UserId:  typ.UserId(userId),
+		ChatId:  typ.ChatId(chatId),
+		ReplyId: typ.MessageId(replyId),
+		Text:    n.MsgText,
+	}
+
+	return msgE, nil
+
+}
+
+type WebsocketPayload struct {
 	Type string          `json:"Type"`
 	Data json.RawMessage `json:"Data"`
 }
 
+func (w *WebsocketPayload) ParseNewMessageRequest() (NewMessageRequest, error) {
+	newMessageRequest := NewMessageRequest{}
+	if err := json.Unmarshal(w.Data, &newMessageRequest); err != nil {
+		return NewMessageRequest{}, err
+	}
+	return newMessageRequest, nil
+}
+
 type ResponsePayload struct {
 	Type     string             `json:"Type"`
+	Chats    []entities.Chat    `json:"Chats"`
+	Messages []entities.Message `json:"Messages"`
+}
+
+type RenderChatPayload struct {
 	Chats    []entities.Chat    `json:"Chats"`
 	Messages []entities.Message `json:"Messages"`
 }
