@@ -96,6 +96,10 @@ func (dbs *DbService) FindUser(email cred.Email) (model.User, error) {
 		return model.User{}, fmt.Errorf("failed to find user email from database: %w", err)
 	}
 
+	if len(rows) == 0 {
+		return model.User{}, nil
+	}
+
 	usrs := populateUserModels(rows)
 
 	return usrs[0], err

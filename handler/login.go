@@ -81,7 +81,7 @@ func (l *LoginHandler) LoginUser(w http.ResponseWriter, r *http.Request) {
 		Email: email,
 	}
 
-	// Need to add some type of rollback in the case of an error
+	// Need to add some type of rollback in the case of an error?
 	usr, err := l.userS.FindUser(usrE)
 	if err != nil {
 		log.Printf("failed to find user %v", err)

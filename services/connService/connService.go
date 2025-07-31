@@ -26,7 +26,12 @@ func (c *ConnectionService) StoreConnection(conn i.Socket, userId typ.UserId) {
 
 func (c *ConnectionService) GetConnection(userId typ.UserId) i.Socket {
 	c.lgr.LogFunctionInfo()
+	return c.pool[userId]
+}
+
+func (c *ConnectionService) DisconnectUser(userId typ.UserId) {
+	c.lgr.LogFunctionInfo()
+	delete(c.pool, userId)
 	msgUserDisconnected := "User disconnected: Id = " + userId.String()
 	c.lgr.Log(msgUserDisconnected)
-	return c.pool[userId]
 }
