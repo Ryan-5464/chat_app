@@ -62,12 +62,29 @@ func Get() []string {
 			%s INTEGER NOT NULL,
 			%s INTEGER NOT NULL,
 			%s DATETIME DEFAULT CURRENT_TIMESTAMP,
-			PRIMARY KEY (chatId, userId)
+			PRIMARY KEY (%s, %s)
 		);`,
 		MemberTable,
 		ChatId,
 		UserId,
 		LastReadMsgId,
+		ChatId,
+		UserId,
+	)
+
+	friendsTable := fmt.Sprintf(`
+		CREATE TABLE IF NOT EXISTS %s (
+			%s INTEGER NOT NULL,
+			%s INTEGER NOT NULL,
+			%s DATETIME DEFAULT CURRENT_TIMESTAMP,
+			PRIMARY KEY (%s, %s)
+		);`,
+		FriendsTable,
+		UserAId,
+		UserBId,
+		CreatedAt,
+		UserAId,
+		UserBId,
 	)
 
 	var schema []string
@@ -77,6 +94,7 @@ func Get() []string {
 		newMessageTable,
 		newChatTable,
 		newMemberTable,
+		friendsTable,
 	)
 
 	return schema

@@ -16,4 +16,6 @@ const (
 	MsgText       string = "MsgText"
 	ReplyId       string = "ReplyId"
 	LastEditAt    string = "LastEditAt"
+	UserAId       string = "UserAId"
+	UserBId       string = "UserBId"
 )

@@ -67,7 +67,34 @@
 
     </div>
 
-    <div id="right-sidebar"></div>
+    <div id="right-sidebar">
+
+        <div id="right-siderbar-container">
+
+            <div id="friends-list-header">
+
+            <div id="add-friend-input-container">
+                <input id="friend-email-input" type="text" placeholder="Type user email..." />
+                <button id="add-friend-button">+</button>
+            </div>
+
+            </div>
+
+            <div id="friends-list-container">
+                {{ range .Friends }}
+                    <div class="friend">
+                        <div class="friend-name">{{ .Name }}</div>
+                        <div class="friend-email">{{ .Email }}</div>
+                        <div class="friend-since">{{ .CreatedAt }}</div>
+                        <div class="friend-status">{{ .Status }}</div>
+                    </div>
+                {{ end }}
+            </div>
+
+        </div>
+
+
+    </div>
 
 </div>
 

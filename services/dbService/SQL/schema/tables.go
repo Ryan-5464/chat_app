@@ -5,4 +5,5 @@ const (
 	ChatTable    string = "Chat"
 	UserTable    string = "User"
 	MemberTable  string = "Member"
+	FriendsTable string = "Friends"
 )

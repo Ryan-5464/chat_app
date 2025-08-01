@@ -5,10 +5,7 @@
 
 */
 
-
 const typeNewMessage = "1"
-
-
 
 const socket = new WebSocket('ws://localhost:8081/ws');
 
@@ -35,14 +32,41 @@ document.addEventListener("DOMContentLoaded", function() {
     addNewMsgListenerToSendMsgButton()
     addNewChatEventListenerToButton()
     addNewChatEventListenerToInput()
+    addAddFriendEventListenerToButton()
+    addAddFriendEventListenerToInput()
     addChatToggleEventListenerToContainer()
     highlightActiveChat() 
 })
 
 function highlightActiveChat() {
+    // console.log("highlighting active chat")
     const chats = document.querySelectorAll('.chat')
     const chatId = chats[0].getAttribute('data-chatid')
     switchActiveChat(chatId)
+}
+
+function addAddFriendEventListenerToButton() {
+    elem = document.getElementById("add-friend-button")
+    elem.addEventListener('click', function () {
+        const friendEmailInput = document.getElementById("friend-email-input")
+        const email = friendEmailInput.value.trim()
+        console.log("friendEmail: ", email)
+        friendEmailInput.value = '';
+        addFriend(email)
+    })
+}
+
+function addAddFriendEventListenerToInput() {
+    elem = document.getElementById("friend-email-input")
+    elem.addEventListener('keydown', function (event) {
+        if (event.key == "Enter") {
+            const friendEmailInput = document.getElementById("friend-email-input")
+            const email = friendEmailInput.value.trim()
+            console.log("friendEmail: ", email)
+            friendEmailInput.value = '';
+            addFriend(email)
+        }
+    })
 }
 
 function addNewChatEventListenerToButton() {
@@ -168,6 +192,38 @@ function renderChats(chatData, overwrite) {
     });
 }
 
+function renderFriendList(friendListData, overwrite) {
+    const friendListContainer = document.getElementById('friend-list-container')
+    if (overwrite == true) {
+        friendListContainer.innerHTML = ''; 
+    }
+
+    friendListData.forEach(friend => {
+        console.log("FRIEND: ", friend)
+        const friendElement = document.createElement('div');
+        friendElement.className = "friend"
+        
+        // friendElement.addEventListener("click", function() {
+        //     requestfriendMessages(friend.Id)
+        // })
+        
+        friendListContainer.appendChild(friendElement);
+
+        const data = {
+            "friend-name": `${friend.Name}`,
+            "friend-email": `${friend.Email}`,
+            "friend-since": `${friend.CreatedAt}`,
+            "friend-status": `${friend.Status}`,
+        }
+        for (const [key, value] of Object.entries(data)) {
+            const element = document.createElement('div')
+            element.className = key
+            element.textContent = `${value}`
+            friendElement.appendChild(element);
+        }
+    });
+}
+
 function renderMessages(messageData, overwrite) {
     const messageContainer = document.getElementById('messages-container');
     if (overwrite == true) {
@@ -214,14 +270,43 @@ function addChatToggleEventListenerToContainer() {
     const clickedChat = e.target.closest('.chat');
     if (!clickedChat || !container.contains(clickedChat)) return;
 
-    // Remove 'active' from all chats
     container.querySelectorAll('.chat').forEach(chat => {
       chat.classList.remove('active');
     });
 
-    // Add 'active' to the clicked chat
     clickedChat.classList.add('active');
   });
+}
+
+/* NEW FRIEND REQUEST =================================================== */
+
+function addFriend(email) {
+    fetch(BASEURL + '/api/chat/friend/add', addFriendRequestBody(email))
+    .then(response => {
+        if (!response.ok) {
+            throw new Error(`Server error: ${response.status}`);
+        }
+        return response.json(); 
+    })
+    .then(responsePayload => {
+        console.log('[AddFriend]Received:', responsePayload);
+        renderFriendList(responsePayload.Friends, false);
+    })
+    .catch(error => {
+        console.error('Fetch error:', error);
+    });
+}
+
+function addFriendRequestBody(email) {
+    return {
+        method: 'POST',
+        headers: { 
+            'Content-Type': 'application/json' 
+        },
+        body: JSON.stringify({
+            Name: email,
+        })
+    }
 }
 
 /* NEW CHAT REQUEST ===================================================== */

@@ -354,6 +354,77 @@ func (dbs *DbService) NewMessage(m model.Message) (model.Message, error) {
 	return msg, nil
 }
 
+func (dbs *DbService) FindUserByEmail(email cred.Email) (model.User, error) {
+	dbs.lgr.LogFunctionInfo()
+
+	qb := qbuilder.NewQueryBuilder()
+
+	userTable := qb.Table(schema.UserTable)
+	emailF := qb.Field(schema.Email)
+
+	query := qb.SELECT(qb.All()).FROM(userTable).WHERE(emailF, qb.EqualTo())
+
+	rows, err := dbs.db.Read(query.String(), email)
+	if err != nil {
+		return model.User{}, err
+	}
+
+	if len(rows) == 0 {
+		return model.User{}, nil
+	}
+
+	users := populateUserModels(rows)
+	return users[0], nil
+}
+
+func (dbs *DbService) InsertFriend(userBEmail cred.Email, userAId typ.UserId) error {
+	dbs.lgr.LogFunctionInfo()
+
+	userB, err := dbs.FindUserByEmail(userBEmail)
+	if err != nil {
+		return err
+	}
+
+	qb := qbuilder.NewQueryBuilder()
+
+	friendsTable := qb.Table(schema.FriendsTable)
+	userAIdF := qb.Field(schema.UserAId)
+	userBIdF := qb.Field(schema.UserBId)
+
+	query := qb.INSERT_INTO(friendsTable, userAIdF, userBIdF).VALUES(userAId, userB.Id)
+
+	_, err = dbs.db.Create(query.String(), userAId, userB.Id)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (dbs *DbService) DeleteFriend(email cred.Email) error {
+	dbs.lgr.LogFunctionInfo()
+
+	user, err := dbs.FindUserByEmail(email)
+	if err != nil {
+		return err
+	}
+
+	qb := qbuilder.NewQueryBuilder()
+
+	friendsTable := qb.Table(schema.FriendsTable)
+
+	userAIdF := qb.Field(schema.UserAId)
+	userBIdF := qb.Field(schema.UserBId)
+
+	query := qb.DELETE_FROM(friendsTable).WHERE(userAIdF, qb.EqualTo()).OR(userBIdF, qb.EqualTo())
+
+	if err := dbs.db.Delete(query.String(), user.Id); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func populateChatModels(rows typ.Rows) []model.Chat {
 	log.Println("test")
 	var chatMs []model.Chat

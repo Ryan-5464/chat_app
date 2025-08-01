@@ -109,6 +109,12 @@ func (q *queryBuilder) SELECT(fields ...field) *queryBuilder {
 	return q
 }
 
+func (q *queryBuilder) DELETE_FROM(t table) *queryBuilder {
+	q.WriteString("DELETE FROM ")
+	q.WriteString(t.String())
+	return q
+}
+
 func (q *queryBuilder) INSERT_INTO(t table, fields ...field) *queryBuilder {
 	q.WriteString("INSERT INTO ")
 	q.WriteString(t.String())
@@ -134,6 +140,14 @@ func (q *queryBuilder) JOIN(t table, o on) *queryBuilder {
 
 func (q *queryBuilder) WHERE(f field, ph placeholders) *queryBuilder {
 	q.WriteString(" WHERE ")
+	q.WriteString(f.String())
+	q.WriteString(" ")
+	q.WriteString(string(ph))
+	return q
+}
+
+func (q *queryBuilder) OR(f field, ph placeholders) *queryBuilder {
+	q.WriteString(" OR ")
 	q.WriteString(f.String())
 	q.WriteString(" ")
 	q.WriteString(string(ph))
