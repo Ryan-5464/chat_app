@@ -74,6 +74,10 @@ func (cr *ChatHandler) RenderChatPage(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
+	// move this check close to database
+	if messages == nil {
+		messages = []entities.Message{}
+	}
 
 	tmpl, err := template.ParseFiles("./static/templates/chat.html")
 	if err != nil {
@@ -86,8 +90,7 @@ func (cr *ChatHandler) RenderChatPage(w http.ResponseWriter, r *http.Request) {
 		Messages: messages,
 	}
 
-	err = tmpl.Execute(w, renderChatpayload)
-	if err != nil {
+	if err = tmpl.Execute(w, renderChatpayload); err != nil {
 		http.Error(w, InternalServerError, http.StatusInternalServerError)
 	}
 }
@@ -107,9 +110,10 @@ func (h *ChatHandler) ChatWebsocket(w http.ResponseWriter, r *http.Request) {
 		conn.Close()
 		return
 	}
+	userId := session.UserId()
 
-	h.connS.StoreConnection(conn, session.UserId())
-	defer h.connS.DisconnectUser(session.UserId())
+	h.connS.StoreConnection(conn, userId)
+	defer h.connS.DisconnectUser(userId)
 
 	for {
 
@@ -129,7 +133,7 @@ func (h *ChatHandler) ChatWebsocket(w http.ResponseWriter, r *http.Request) {
 				break
 			}
 
-			if err = h.handleNewMessageRequest(newMessageRequest); err != nil {
+			if err = h.handleNewMessageRequest(newMessageRequest, userId); err != nil {
 				http.Error(w, InternalServerError, http.StatusInternalServerError)
 				break
 			}
@@ -153,8 +157,8 @@ func (h *ChatHandler) readIncomingMessage(conn i.Socket) (dto.WebsocketPayload, 
 	return payload, nil
 }
 
-func (h *ChatHandler) handleNewMessageRequest(newMessageRequest dto.NewMessageRequest) error {
-	msgE, err := newMessageRequest.ToMessageEntity()
+func (h *ChatHandler) handleNewMessageRequest(newMessageRequest dto.NewMessageRequest, userId typ.UserId) error {
+	msgE, err := newMessageRequest.ToMessageEntity(userId)
 	if err != nil {
 		return err
 	}
@@ -211,6 +215,10 @@ func (h *ChatHandler) handleChatSwitchRequest(switchChatRequest dto.SwitchChatRe
 	messages, err := h.msgS.GetChatMessages(chatId)
 	if err != nil {
 		return dto.SwitchChatResponse{}, err
+	}
+	// move this check close to the database
+	if messages == nil {
+		messages = []entities.Message{}
 	}
 
 	switchChatResponse := dto.SwitchChatResponse{

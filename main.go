@@ -58,13 +58,13 @@ func main() {
 
 	authMW := mw.NewAuthMiddleware(logger, authS)
 
-	http.Handle("/register", authMW.AttachTo(http.HandlerFunc(registerHandler.RenderRegisterPage)))
 	http.Handle("/api/register", authMW.AttachTo(http.HandlerFunc(registerHandler.RegisterUser)))
-	http.Handle("/login", authMW.AttachTo(http.HandlerFunc(loginHandler.RenderLoginPage)))
 	http.Handle("/api/login", authMW.AttachTo(http.HandlerFunc(loginHandler.LoginUser)))
-	http.Handle("/chat", authMW.AttachTo(http.HandlerFunc(chatHandler.RenderChatPage)))
 	http.Handle("/api/chat/new", authMW.AttachTo(http.HandlerFunc(chatHandler.NewChat)))
 	http.Handle("/api/chat/switch", authMW.AttachTo(http.HandlerFunc(chatHandler.SwitchChat)))
+	http.Handle("/login", authMW.AttachTo(http.HandlerFunc(loginHandler.RenderLoginPage)))
+	http.Handle("/register", authMW.AttachTo(http.HandlerFunc(registerHandler.RenderRegisterPage)))
+	http.Handle("/chat", authMW.AttachTo(http.HandlerFunc(chatHandler.RenderChatPage)))
 	http.Handle("/ws", authMW.AttachTo(http.HandlerFunc(chatHandler.ChatWebsocket)))
 	http.Handle("/", authMW.AttachTo(http.HandlerFunc(indexHandler.RenderIndexPage)))
 

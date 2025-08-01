@@ -6,7 +6,6 @@ import (
 	"server/data/entities"
 	i "server/interfaces"
 	typ "server/types"
-	"time"
 )
 
 func NewMessageService(lgr i.Logger, m i.MessageRepository, u i.UserService, c i.ConnectionService) *MessageService {
@@ -84,11 +83,11 @@ func (m *MessageService) BroadcastMessage(userId typ.UserId, conn i.Socket, msg 
 	log.Println("BROADCASTMSG ", messages)
 
 	payload := struct {
-		Type     string
+		Type     int
 		Chats    []entities.Chat
 		Messages []entities.Message
 	}{
-		Type:     "NewMessage",
+		Type:     1,
 		Chats:    nil,
 		Messages: messages,
 	}
@@ -110,57 +109,4 @@ func (m *MessageService) GetChatMessages(chatId typ.ChatId) ([]entities.Message,
 	}
 
 	return messages, nil
-}
-
-func testMessages(chatId typ.ChatId) []entities.Message {
-	var messages []entities.Message
-	log.Println("chatId", chatId)
-	switch int(chatId) {
-	case 1:
-		message1 := entities.Message{
-			Id:         1,
-			UserId:     3,
-			ChatId:     11,
-			ReplyId:    0,
-			Author:     "alf",
-			Text:       "hello",
-			CreatedAt:  time.Now(),
-			LastEditAt: time.Now(),
-		}
-		message2 := entities.Message{
-			Id:         2,
-			UserId:     3,
-			ChatId:     11,
-			ReplyId:    0,
-			Author:     "alf",
-			Text:       "there",
-			CreatedAt:  time.Now(),
-			LastEditAt: time.Now(),
-		}
-		messages = append(messages, message1, message2)
-
-	case 2:
-		message1 := entities.Message{
-			Id:         1,
-			UserId:     3,
-			ChatId:     12,
-			ReplyId:    0,
-			Author:     "alf",
-			Text:       "chat",
-			CreatedAt:  time.Now(),
-			LastEditAt: time.Now(),
-		}
-		message2 := entities.Message{
-			Id:         2,
-			UserId:     3,
-			ChatId:     12,
-			ReplyId:    0,
-			Author:     "alf",
-			Text:       "changed",
-			CreatedAt:  time.Now(),
-			LastEditAt: time.Now(),
-		}
-		messages = append(messages, message1, message2)
-	}
-	return messages
 }

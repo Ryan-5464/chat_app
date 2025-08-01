@@ -11,17 +11,19 @@
     <h1>Welcome Back</h1>
 
     <!-- ✅ Updated to use method POST and action /login -->
-    <form id="loginForm" method="POST" action="/api/login">
+    <form id="loginForm">
       <input type="email" id="email" name="Email" placeholder="Email" required>
       <input type="password" id="password" name="Password" placeholder="Password" required>
 
       <div id="error" class="error-message"></div>
 
       <div class="buttons">
-        <button type="submit" class="btn btn-login">Login</button>
+        <button type="button" id="login-btn" class="btn btn-login">Login</button>
         <button type="button" class="btn btn-register" onclick="location.href='register'">Register</button>
       </div>
     </form>
   </div>
 </body>
+<script src="/static/scripts/config.js"></script>
+<script src="/static/scripts/login.js"></script>
 </html>

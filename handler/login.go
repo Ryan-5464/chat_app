@@ -1,8 +1,10 @@
 package handler
 
 import (
+	"encoding/json"
 	"log"
 	"net/http"
+	dto "server/data/DTOs"
 	ent "server/data/entities"
 	i "server/interfaces"
 	cred "server/services/authService/credentials"
@@ -58,24 +60,19 @@ func (l *LoginHandler) LoginUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err := r.ParseForm()
-	if err != nil {
-		log.Printf("failed to parse form: %v", err)
-		http.Error(w, "Invalid form data", http.StatusBadRequest)
+	var loginRequest dto.LoginRequest
+	decoder := json.NewDecoder(r.Body)
+	if err := decoder.Decode(&loginRequest); err != nil {
+		http.Error(w, msgMalformedJSON, http.StatusBadRequest)
 		return
 	}
 
-	emailStr := r.FormValue("Email")
-	passwordStr := r.FormValue("Password")
-
-	email, err := cred.NewEmail(emailStr)
+	email, err := cred.NewEmail(loginRequest.Email)
 	if err != nil {
 		log.Printf("invalid email: %v", err)
-		http.Error(w, "Invalid email", http.StatusBadRequest)
+		SendErrorResponse(w, "Invalid Email format", false)
 		return
 	}
-
-	pwdBytes := []byte(passwordStr)
 
 	usrE := ent.User{
 		Email: email,
@@ -85,27 +82,38 @@ func (l *LoginHandler) LoginUser(w http.ResponseWriter, r *http.Request) {
 	usr, err := l.userS.FindUser(usrE)
 	if err != nil {
 		log.Printf("failed to find user %v", err)
-		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		SendErrorResponse(w, "Email not found", false)
 		return
 	}
 
+	pwdBytes := []byte(loginRequest.Password)
 	if err := usr.PwdHash.Compare(pwdBytes); err != nil {
 		log.Printf("invalid password: %v", err)
-		http.Error(w, "Invalid password", http.StatusBadRequest)
+		SendErrorResponse(w, "Invalid password", false)
 		return
 	}
-
-	log.Println("user exists")
 
 	session, err := l.authS.NewSession(usr.Id)
 	if err != nil {
 		log.Printf("failed to create new user %v", err)
-		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		http.Error(w, Status500, http.StatusInternalServerError)
 		return
 	}
 
 	http.SetCookie(w, session.Cookie())
 
-	http.Redirect(w, r, "/chat", http.StatusSeeOther)
+	LoginSuccessful(w)
+}
 
+func LoginSuccessful(w http.ResponseWriter) {
+	SendErrorResponse(w, "", true)
+}
+
+func SendErrorResponse(w http.ResponseWriter, message string, noError bool) {
+	errorResponse := dto.ErrorResponse{
+		NoError:      noError,
+		ErrorMessage: message,
+	}
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(errorResponse)
 }

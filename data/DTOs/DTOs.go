@@ -35,18 +35,12 @@ type NewChatResponse struct {
 }
 
 type NewMessageRequest struct {
-	UserId  string `json:"UserId"`
 	ChatId  string `json:"ChatId"`
 	ReplyId string `json:"ReplyId"`
 	MsgText string `json:"MsgText"`
 }
 
-func (n *NewMessageRequest) ToMessageEntity() (entities.Message, error) {
-	userId, err := lib.ConvertStringToInt64(n.UserId)
-	if err != nil {
-		return entities.Message{}, err
-	}
-
+func (n *NewMessageRequest) ToMessageEntity(userId typ.UserId) (entities.Message, error) {
 	chatId, err := lib.ConvertStringToInt64(n.ChatId)
 	if err != nil {
 		return entities.Message{}, err
@@ -61,7 +55,7 @@ func (n *NewMessageRequest) ToMessageEntity() (entities.Message, error) {
 	}
 
 	msgE := entities.Message{
-		UserId:  typ.UserId(userId),
+		UserId:  userId,
 		ChatId:  typ.ChatId(chatId),
 		ReplyId: typ.MessageId(replyId),
 		Text:    n.MsgText,
@@ -93,4 +87,14 @@ type ResponsePayload struct {
 type RenderChatPayload struct {
 	Chats    []entities.Chat    `json:"Chats"`
 	Messages []entities.Message `json:"Messages"`
+}
+
+type ErrorResponse struct {
+	NoError      bool   `json:"NoError"`
+	ErrorMessage string `json:"ErrorMessage"`
+}
+
+type LoginRequest struct {
+	Email    string `json:"Email"`
+	Password string `json:"Password"`
 }

@@ -6,6 +6,10 @@
 */
 
 
+const typeNewMessage = "1"
+
+
+
 const socket = new WebSocket('ws://localhost:8081/ws');
 
 socket.onopen = function () {
@@ -16,7 +20,7 @@ socket.onmessage = function (event) {
     console.log("New message received.");
     const payload = JSON.parse(event.data);
     console.log(payload)
-    if (payload.Type == "NewMessage") {
+    if (payload.Type == typeNewMessage) {
         renderChats(payload.Chats, false);
         renderMessages(payload.Messages, false);
         return
@@ -32,7 +36,14 @@ document.addEventListener("DOMContentLoaded", function() {
     addNewChatEventListenerToButton()
     addNewChatEventListenerToInput()
     addChatToggleEventListenerToContainer()
+    highlightActiveChat() 
 })
+
+function highlightActiveChat() {
+    const chats = document.querySelectorAll('.chat')
+    const chatId = chats[0].getAttribute('data-chatid')
+    switchActiveChat(chatId)
+}
 
 function addNewChatEventListenerToButton() {
     elem = document.getElementById("new-chat-button")
@@ -72,12 +83,11 @@ function addNewMsgListenerToMsgInput() {
     const input = document.getElementById("input")
     input.addEventListener('keydown', function (event) {
         if (event.key === "Enter") {
-            const chatId = getChatIdFromExistingMessage()
-            const userId = getUserIdFromExistingMessage()
+            const chatId = getActiveChatId()
             const replyId = null
             const msgText = input.value.trim()
             input.value = '';
-            sendMessage(userId, msgText, chatId, replyId)
+            sendMessage(msgText, chatId, replyId)
         }
     })
 }
@@ -87,36 +97,28 @@ function addNewMsgListenerToSendMsgButton() {
     const button = document.getElementById("send-message-button")
     button.addEventListener('click', function () {
         const input = document.getElementById("input")
-        const userId = getUserIdFromExistingMessage()
-        const chatId = getChatIdFromExistingMessage()
+        const chatId = getActiveChatId()
         const replyId = null
         const msgText = input.value.trim()
-        sendMessage(userId, msgText, chatId, replyId)
+        sendMessage(msgText, chatId, replyId)
         input.value = '';
     })
 }
 
-function getChatIdFromExistingMessage() {
-    const message = document.getElementsByClassName("message")
-    chatId = message[0].getAttribute("data-chatid")
-    console.log(chatId)
+function getActiveChatId() {
+    const chat = document.querySelector(".active")
+    chatId = chat.getAttribute("data-chatid")
+    console.log("active chat id:", chatId)
     return chatId
 }
 
-function getUserIdFromExistingMessage() {
-    const chat = document.getElementsByClassName("message")
-    userId = chat[0].getAttribute("data-userid")
-    console.log(userId)
-    return userId
-}
 
-function sendMessage(userId, msgText, chatId, replyId) {
-    console.log("MESSAGE::userId: ", userId, "chatId: ", chatId, "replyId: ", replyId, "msgText: ", msgText)
+function sendMessage(msgText, chatId, replyId) {
+    console.log("MESSAGE::chatId: ", chatId, "replyId: ", replyId, "msgText: ", msgText)
     if (msgText) {
         payload = {
-            Type: "NewMessage",
+            Type: typeNewMessage,
             Data: {
-                UserId: userId,
                 ChatId: chatId,
                 MsgText: msgText,
                 ReplyId: replyId
