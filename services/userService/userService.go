@@ -80,3 +80,9 @@ func (u *UserService) AddFriend(friend ent.Friend, userId typ.UserId) (ent.Frien
 	}
 	return friend, nil
 }
+
+func (u *UserService) GetFriends(userId typ.UserId) ([]ent.Friend, error) {
+	u.lgr.LogFunctionInfo()
+
+	return u.usrR.GetFriends(userId)
+}

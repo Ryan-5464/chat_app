@@ -401,6 +401,30 @@ func (dbs *DbService) InsertFriend(friend model.Friend) (model.Friend, error) {
 	return friendM, nil
 }
 
+func (dbs *DbService) GetFriends(userId typ.UserId) ([]model.Friend, error) {
+	dbs.lgr.LogFunctionInfo()
+
+	qb := qbuilder.NewQueryBuilder()
+
+	friendsTable := qb.Table(schema.FriendsTable)
+	userAIdF := qb.Field(schema.UserAId)
+	userBIdF := qb.Field(schema.UserBId)
+
+	query := qb.SELECT(qb.All()).FROM(friendsTable).
+		WHERE(userAIdF, qb.EqualTo()).OR(userBIdF, qb.EqualTo())
+
+	rows, err := dbs.db.Read(query.String(), userId)
+	if err != nil {
+		return []model.Friend{}, err
+	}
+
+	if len(rows) == 0 {
+		return []model.Friend{}, err
+	}
+
+	return populateFriendModels(rows), nil
+}
+
 func (dbs *DbService) GetFriend(friend model.Friend) (model.Friend, error) {
 	dbs.lgr.LogFunctionInfo()
 

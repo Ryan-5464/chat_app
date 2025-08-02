@@ -17,6 +17,7 @@ type UserRepository interface {
 	GetUsers(userIds []typ.UserId) ([]ent.User, error)
 	GetUser(userId typ.UserId) (ent.User, error)
 	FindUserByEmail(email cred.Email) (ent.User, error)
+	GetFriends(userId typ.UserId) ([]ent.Friend, error)
 	AddFriend(friend ent.Friend, userId typ.UserId) (ent.Friend, error)
 }
 
@@ -53,6 +54,7 @@ type DbService interface {
 	GetChatMessages(chatId typ.ChatId) ([]model.Message, error)
 	NewMessage(msgM model.Message) (model.Message, error)
 	NewUser(usrM model.User) (model.User, error)
+	GetFriends(userId typ.UserId) ([]model.Friend, error)
 	InsertFriend(friend model.Friend) (model.Friend, error)
 	GetFriend(friend model.Friend) (model.Friend, error)
 	DeleteFriend(email cred.Email) error
@@ -82,6 +84,7 @@ type UserService interface {
 	GetUser(userId typ.UserId) (ent.User, error)
 	NewUser(user ent.User) (ent.User, error)
 	AddFriend(friend ent.Friend, userId typ.UserId) (ent.Friend, error)
+	GetFriends(userId typ.UserId) ([]ent.Friend, error)
 }
 
 type ConnectionService interface {

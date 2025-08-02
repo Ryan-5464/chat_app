@@ -118,6 +118,33 @@ func (u *UserRepository) AddFriend(friend ent.Friend, userId typ.UserId) (ent.Fr
 	return friendE, err
 }
 
+func (u *UserRepository) GetFriends(userId typ.UserId) ([]ent.Friend, error) {
+	u.lgr.LogFunctionInfo()
+
+	friendMs, err := u.dbS.GetFriends(userId)
+	if err != nil {
+		return []ent.Friend{}, err
+	}
+
+	if len(friendMs) == 0 {
+		return []ent.Friend{}, nil
+	}
+
+	return friendEntitiesFromModels(friendMs), nil
+}
+
+func friendEntitiesFromModels(friendMs []model.Friend) []ent.Friend {
+	var friendEs []ent.Friend
+	for _, friendM := range friendMs {
+		friendE := ent.Friend{
+			Id:          friendM.UserAId,
+			FriendSince: friendM.FriendSince,
+		}
+		friendEs = append(friendEs, friendE)
+	}
+	return friendEs
+}
+
 func userEntitiesFromModels(usrMs []model.User) []ent.User {
 	var usrEs []ent.User
 	for _, usrM := range usrMs {
