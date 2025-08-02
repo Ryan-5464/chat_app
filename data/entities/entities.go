@@ -36,3 +36,14 @@ type User struct {
 	Joined  time.Time
 	Token   tkn.JWE
 }
+
+func (u User) IdIsZero() bool {
+	return u.Id == 0
+}
+
+type Friend struct {
+	Id          typ.UserId
+	Name        string
+	Email       cred.Email
+	FriendSince time.Time
+}

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	ent "server/data/entities"
 	i "server/interfaces"
+	cred "server/services/authService/credentials"
 	model "server/services/dbService/SQL/models"
 	typ "server/types"
 )
@@ -70,6 +71,51 @@ func (u *UserRepository) NewUser(usrE ent.User) (ent.User, error) {
 	}
 
 	return userEntityFromModel(newUsrM), nil
+}
+
+func (u *UserRepository) FindUserByEmail(email cred.Email) (ent.User, error) {
+	u.lgr.LogFunctionInfo()
+
+	userM, err := u.dbS.FindUser(email)
+	if err != nil {
+		return ent.User{}, err
+	}
+
+	if userM.Id == 0 {
+		return ent.User{}, nil
+	}
+
+	userMs := []model.User{userM}
+	userEs := userEntitiesFromModels(userMs)
+	return userEs[0], nil
+}
+
+func (u *UserRepository) AddFriend(friend ent.Friend, userId typ.UserId) (ent.Friend, error) {
+	u.lgr.LogFunctionInfo()
+
+	friendM := model.Friend{
+		UserAId: userId,
+		UserBId: friend.Id,
+	}
+
+	friendM, err := u.dbS.InsertFriend(friendM)
+	if err != nil {
+		return ent.Friend{}, err
+	}
+
+	user, err := u.dbS.GetUser(userId)
+	if err != nil {
+		return ent.Friend{}, err
+	}
+
+	friendE := ent.Friend{
+		Id:          user.Id,
+		Name:        user.Name,
+		Email:       user.Email,
+		FriendSince: friendM.FriendSince,
+	}
+
+	return friendE, err
 }
 
 func userEntitiesFromModels(usrMs []model.User) []ent.User {

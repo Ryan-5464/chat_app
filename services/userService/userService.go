@@ -61,3 +61,22 @@ func (u *UserService) FindUser(usr ent.User) (ent.User, error) {
 	}
 	return usr, nil
 }
+
+func (u *UserService) AddFriend(friend ent.Friend, userId typ.UserId) (ent.Friend, error) {
+	u.lgr.LogFunctionInfo()
+
+	user, err := u.usrR.FindUserByEmail(friend.Email)
+	if err != nil {
+		return ent.Friend{}, err
+	}
+
+	if user.IdIsZero() {
+		return ent.Friend{}, err
+	}
+
+	friend, err = u.usrR.AddFriend(friend, userId)
+	if err != nil {
+		return ent.Friend{}, err
+	}
+	return friend, nil
+}

@@ -377,13 +377,8 @@ func (dbs *DbService) FindUserByEmail(email cred.Email) (model.User, error) {
 	return users[0], nil
 }
 
-func (dbs *DbService) InsertFriend(userBEmail cred.Email, userAId typ.UserId) error {
+func (dbs *DbService) InsertFriend(friend model.Friend) (model.Friend, error) {
 	dbs.lgr.LogFunctionInfo()
-
-	userB, err := dbs.FindUserByEmail(userBEmail)
-	if err != nil {
-		return err
-	}
 
 	qb := qbuilder.NewQueryBuilder()
 
@@ -391,14 +386,49 @@ func (dbs *DbService) InsertFriend(userBEmail cred.Email, userAId typ.UserId) er
 	userAIdF := qb.Field(schema.UserAId)
 	userBIdF := qb.Field(schema.UserBId)
 
-	query := qb.INSERT_INTO(friendsTable, userAIdF, userBIdF).VALUES(userAId, userB.Id)
+	query := qb.INSERT_INTO(friendsTable, userAIdF, userBIdF).VALUES(friend.UserAId, friend.UserBId)
 
-	_, err = dbs.db.Create(query.String(), userAId, userB.Id)
+	_, err := dbs.db.Create(query.String(), friend.UserAId, friend.UserBId)
 	if err != nil {
-		return err
+		return model.Friend{}, err
 	}
 
-	return nil
+	friendM, err := dbs.GetFriend(friend)
+	if err != nil {
+		return model.Friend{}, err
+	}
+
+	return friendM, nil
+}
+
+func (dbs *DbService) GetFriend(friend model.Friend) (model.Friend, error) {
+	dbs.lgr.LogFunctionInfo()
+
+	qb := qbuilder.NewQueryBuilder()
+
+	friendsTable := qb.Table(schema.FriendsTable)
+	userAIdF := qb.Field(schema.UserAId)
+	userBIdF := qb.Field(schema.UserBId)
+
+	query := qb.SELECT(qb.All()).
+		FROM(friendsTable).
+		WHERE(userAIdF, qb.EqualTo()).AND(userBIdF, qb.EqualTo()).
+		OR(userBIdF, qb.EqualTo()).AND(userAIdF, qb.EqualTo())
+
+	dbs.lgr.DLog(query.String())
+
+	rows, err := dbs.db.Read(query.String(), friend.UserAId, friend.UserBId)
+	if err != nil {
+		return model.Friend{}, err
+	}
+
+	if len(rows) == 0 {
+		return model.Friend{}, nil
+	}
+
+	friendMs := populateFriendModels(rows)
+
+	return friendMs[0], nil
 }
 
 func (dbs *DbService) DeleteFriend(email cred.Email) error {
@@ -457,6 +487,21 @@ func populateMessageModels(rows typ.Rows) []model.Message {
 	}
 
 	return msgMs
+}
+
+func populateFriendModels(rows typ.Rows) []model.Friend {
+
+	var friendMs []model.Friend
+	for _, row := range rows {
+		friendM := model.Friend{
+			UserAId:     parseUserId(row[schema.UserAId]),
+			UserBId:     parseUserId(row[schema.UserBId]),
+			FriendSince: parseTime(row[schema.FriendSince]),
+		}
+		friendMs = append(friendMs, friendM)
+	}
+
+	return friendMs
 }
 
 func populateUserModels(rows typ.Rows) []model.User {

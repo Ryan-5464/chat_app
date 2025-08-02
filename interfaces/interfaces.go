@@ -16,6 +16,8 @@ type UserRepository interface {
 	GetUsersForChat(chatId typ.ChatId) ([]ent.User, error)
 	GetUsers(userIds []typ.UserId) ([]ent.User, error)
 	GetUser(userId typ.UserId) (ent.User, error)
+	FindUserByEmail(email cred.Email) (ent.User, error)
+	AddFriend(friend ent.Friend, userId typ.UserId) (ent.Friend, error)
 }
 
 type ChatRepository interface {
@@ -37,6 +39,7 @@ type MessageRepository interface {
 }
 
 type DbService interface {
+	// SCRAP THE SINGULAR RETURN FUNCTIONS AND ALWAYS RETURN A SLICE, CAN CHECK LEN SLICE == 0
 	FindUser(email cred.Email) (model.User, error)
 	GetUser(usrId typ.UserId) (model.User, error)
 	GetUsers(usrIds []typ.UserId) ([]model.User, error)
@@ -50,6 +53,9 @@ type DbService interface {
 	GetChatMessages(chatId typ.ChatId) ([]model.Message, error)
 	NewMessage(msgM model.Message) (model.Message, error)
 	NewUser(usrM model.User) (model.User, error)
+	InsertFriend(friend model.Friend) (model.Friend, error)
+	GetFriend(friend model.Friend) (model.Friend, error)
+	DeleteFriend(email cred.Email) error
 	Close()
 }
 
@@ -75,6 +81,7 @@ type UserService interface {
 	GetUsersForChat(chatId typ.ChatId) ([]ent.User, error)
 	GetUser(userId typ.UserId) (ent.User, error)
 	NewUser(user ent.User) (ent.User, error)
+	AddFriend(friend ent.Friend, userId typ.UserId) (ent.Friend, error)
 }
 
 type ConnectionService interface {

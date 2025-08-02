@@ -18,4 +18,5 @@ const (
 	LastEditAt    string = "LastEditAt"
 	UserAId       string = "UserAId"
 	UserBId       string = "UserBId"
+	FriendSince   string = "FriendSince"
 )

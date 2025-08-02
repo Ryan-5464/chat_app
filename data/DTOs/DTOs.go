@@ -4,7 +4,9 @@ import (
 	"encoding/json"
 	"server/data/entities"
 	"server/lib"
+	cred "server/services/authService/credentials"
 	typ "server/types"
+	"time"
 )
 
 type SwitchChatRequest struct {
@@ -97,4 +99,15 @@ type ErrorResponse struct {
 type LoginRequest struct {
 	Email    string `json:"Email"`
 	Password string `json:"Password"`
+}
+
+type AddFriendRequest struct {
+	Email string `json:"Email"`
+}
+
+type AddFriendResponse struct {
+	Name         string     `json:"Name"`
+	Email        cred.Email `json:"Email"`
+	FriendSince  time.Time  `json:"FriendSince"`
+	OnlineStatus bool       `json:"OnlineStatus"`
 }

@@ -212,8 +212,8 @@ function renderFriendList(friendListData, overwrite) {
         const data = {
             "friend-name": `${friend.Name}`,
             "friend-email": `${friend.Email}`,
-            "friend-since": `${friend.CreatedAt}`,
-            "friend-status": `${friend.Status}`,
+            "friend-since": `${friend.FriendSince}`,
+            "friend-status": `${friend.OnlineStatus}`,
         }
         for (const [key, value] of Object.entries(data)) {
             const element = document.createElement('div')
@@ -304,7 +304,7 @@ function addFriendRequestBody(email) {
             'Content-Type': 'application/json' 
         },
         body: JSON.stringify({
-            Name: email,
+            Email: email,
         })
     }
 }

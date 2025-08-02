@@ -37,3 +37,9 @@ type Member struct {
 	LastReadMsgId typ.MessageId
 	Joined        time.Time
 }
+
+type Friend struct {
+	UserAId     typ.UserId
+	UserBId     typ.UserId
+	FriendSince time.Time
+}

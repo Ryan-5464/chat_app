@@ -7,6 +7,7 @@ import (
 	"server/data/entities"
 	"server/handler/socket"
 	i "server/interfaces"
+	cred "server/services/authService/credentials"
 	typ "server/types"
 	"text/template"
 )
@@ -262,15 +263,15 @@ func (h *ChatHandler) NewChat(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(newChatResponse)
 }
 
-func (cr *ChatHandler) handleNewChatRequest(newChatRequest dto.NewChatRequest, userId typ.UserId) (dto.NewChatResponse, error) {
-	cr.lgr.LogFunctionInfo()
+func (h *ChatHandler) handleNewChatRequest(newChatRequest dto.NewChatRequest, userId typ.UserId) (dto.NewChatResponse, error) {
+	h.lgr.LogFunctionInfo()
 
 	newChat := entities.Chat{
 		Name: newChatRequest.Name,
 	}
 	newChat.AdminId = userId
 
-	chat, err := cr.chatS.NewChat(newChat)
+	chat, err := h.chatS.NewChat(newChat)
 	if err != nil {
 		return dto.NewChatResponse{}, err
 	}
@@ -282,4 +283,67 @@ func (cr *ChatHandler) handleNewChatRequest(newChatRequest dto.NewChatRequest, u
 	}
 
 	return newChatResponse, nil
+}
+
+/* ADD FRIEND REQUEST ========================================================================== */
+
+func (h *ChatHandler) AddFriend(w http.ResponseWriter, r *http.Request) {
+	h.lgr.LogFunctionInfo()
+
+	if r.Method != http.MethodPost {
+		http.Error(w, MethodNotAllowed, http.StatusMethodNotAllowed)
+		return
+	}
+
+	session, userAuthenticated := checkAuthenticationStatus(r)
+	if !userAuthenticated {
+		http.Redirect(w, r, "/", http.StatusSeeOther)
+		return
+	}
+
+	var addFriendRequest dto.AddFriendRequest
+	decoder := json.NewDecoder(r.Body)
+	if err := decoder.Decode(&addFriendRequest); err != nil {
+		http.Error(w, msgMalformedJSON, http.StatusBadRequest)
+		return
+	}
+
+	addFriendResponse, err := h.handleAddFriendRequest(addFriendRequest, session.UserId())
+	if err != nil {
+		http.Error(w, InternalServerError, http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(addFriendResponse)
+}
+
+func (h *ChatHandler) handleAddFriendRequest(addFriendRequest dto.AddFriendRequest, userId typ.UserId) (dto.AddFriendResponse, error) {
+	h.lgr.LogFunctionInfo()
+
+	newFriend := entities.Friend{
+		Email: cred.Email(addFriendRequest.Email),
+	}
+
+	friend, err := h.userS.AddFriend(newFriend, userId)
+	if err != nil {
+		return dto.AddFriendResponse{}, err
+	}
+
+	var onlineStatus bool
+	conn := h.connS.GetConnection(friend.Id)
+	if conn == nil {
+		onlineStatus = false
+	} else {
+		onlineStatus = true
+	}
+
+	addFriendResponse := dto.AddFriendResponse{
+		Name:         friend.Name,
+		Email:        friend.Email,
+		FriendSince:  friend.FriendSince,
+		OnlineStatus: onlineStatus,
+	}
+
+	return addFriendResponse, nil
 }

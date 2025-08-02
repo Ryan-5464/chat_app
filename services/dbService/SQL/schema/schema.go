@@ -82,7 +82,7 @@ func Get() []string {
 		FriendsTable,
 		UserAId,
 		UserBId,
-		CreatedAt,
+		FriendSince,
 		UserAId,
 		UserBId,
 	)
