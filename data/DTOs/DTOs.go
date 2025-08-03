@@ -112,3 +112,14 @@ type AddContactResponse struct {
 	KnownSince   time.Time  `json:"KnownSince"`
 	OnlineStatus bool       `json:"OnlineStatus"`
 }
+
+type NewUserInput struct {
+	Email   cred.Email
+	PwdHash cred.PwdHash
+	Name    string
+}
+
+type AddContactInput struct {
+	Email  cred.Email
+	UserId typ.UserId
+}

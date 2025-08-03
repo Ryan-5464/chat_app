@@ -3,7 +3,7 @@ package handler
 import (
 	"log"
 	"net/http"
-	ent "server/data/entities"
+	dto "server/data/DTOs"
 	i "server/interfaces"
 	cred "server/services/authService/credentials"
 	ss "server/services/authService/session"
@@ -84,13 +84,13 @@ func (rh *RegisterHandler) RegisterUser(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	usrE := ent.User{
+	newUserInput := dto.NewUserInput{
 		Email:   email,
 		PwdHash: pwdHash,
 	}
 
 	// Need to add some type of rollback in the case of an error
-	usr, err := rh.userS.NewUser(usrE)
+	user, err := rh.userS.NewUser(newUserInput)
 	if err != nil {
 		log.Printf("failed to create new user %v", err)
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
@@ -99,7 +99,7 @@ func (rh *RegisterHandler) RegisterUser(w http.ResponseWriter, r *http.Request) 
 
 	log.Println("successfully created new user")
 
-	session, err := rh.authS.NewSession(usr.Id)
+	session, err := rh.authS.NewSession(user.Id)
 	if err != nil {
 		log.Printf("failed to create new user %v", err)
 		http.Error(w, "Internal server error", http.StatusInternalServerError)

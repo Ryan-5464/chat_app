@@ -1,7 +1,7 @@
 package repository
 
 import (
-	"fmt"
+	"errors"
 	ent "server/data/entities"
 	i "server/interfaces"
 	model "server/services/dbService/SQL/models"
@@ -20,31 +20,42 @@ type ChatRepository struct {
 	dbS i.DbService
 }
 
-func (c *ChatRepository) NewChat(chat ent.Chat) (ent.Chat, error) {
-	chatM := chatEntityToModel(chat)
-	newChatM, err := c.dbS.NewChat(chatM)
+func (c *ChatRepository) NewChat(newChat ent.Chat) (*ent.Chat, error) {
+	chatModel := chatEntityToModel(newChat)
+	newChatModel, err := c.dbS.NewChat(chatModel)
 	if err != nil {
-		return ent.Chat{}, fmt.Errorf("failed to create new chat: %w", err)
+		return nil, err
 	}
 
-	if err := c.dbS.NewMember(newChatM.Id, newChatM.AdminId); err != nil {
-		return ent.Chat{}, err
+	if newChatModel == nil {
+		return nil, errors.New("new chat missing")
 	}
 
-	chatE := chatModelToEntity(newChatM)
-	return chatE, nil
+	if err := c.dbS.NewMember(newChatModel.Id, newChatModel.AdminId); err != nil {
+		return nil, err
+	}
+
+	return chatModelToEntity(newChatModel), nil
 }
 
 func (c *ChatRepository) GetChats(userId typ.UserId) ([]ent.Chat, error) {
 	c.lgr.LogFunctionInfo()
-	chats, err := c.dbS.GetChats(userId)
+
+	var chats []ent.Chat
+
+	chatModels, err := c.dbS.GetUserChats(userId)
 	if err != nil {
-		return []ent.Chat{}, fmt.Errorf("faied to get chats: %w", err)
+		return chats, err
 	}
-	return chatModelsToEntities(chats), nil
+
+	if len(chatModels) == 0 {
+		return chats, nil
+	}
+
+	return chatModelsToEntities(chatModels), nil
 }
 
-func chatentitiesToModels(chats []ent.Chat) []model.Chat {
+func chatEntitiesToModels(chats []ent.Chat) []model.Chat {
 	chatMdls := []model.Chat{}
 	for _, chat := range chats {
 		mdl := model.Chat{
@@ -72,8 +83,8 @@ func chatModelsToEntities(chats []model.Chat) []ent.Chat {
 	return chatEnts
 }
 
-func chatModelToEntity(chat model.Chat) ent.Chat {
-	return ent.Chat{
+func chatModelToEntity(chat *model.Chat) *ent.Chat {
+	return &ent.Chat{
 		Id:        chat.Id,
 		Name:      chat.Name,
 		AdminId:   chat.AdminId,

@@ -1,7 +1,7 @@
 package repository
 
 import (
-	"fmt"
+	"errors"
 	ent "server/data/entities"
 	i "server/interfaces"
 	cred "server/services/authService/credentials"
@@ -21,85 +21,137 @@ type UserRepository struct {
 	dbS i.DbService
 }
 
-func (u *UserRepository) FindUser(usr ent.User) (ent.User, error) {
+func (u *UserRepository) GetUsers(userIds []typ.UserId) ([]ent.User, error) {
 	u.lgr.LogFunctionInfo()
-	usrM, err := u.dbS.FindUser(usr.Email)
+
+	var users []ent.User
+
+	userModels, err := u.dbS.GetUsers(userIds)
 	if err != nil {
-		return ent.User{}, fmt.Errorf("failed to find user in database service: %w", err)
+		return users, err
 	}
-	return userEntityFromModel(usrM), nil
+
+	if len(userModels) == 0 {
+		return users, nil
+	}
+
+	return userEntitiesFromModels(userModels), nil
+
 }
 
-func (u *UserRepository) GetUsers(usrIds []typ.UserId) ([]model.User, error) {
+func (u *UserRepository) GetChatUsers(chatId typ.ChatId) ([]ent.User, error) {
 	u.lgr.LogFunctionInfo()
-	return u.dbS.GetUsers(usrIds)
+
+	var users []ent.User
+
+	userModels, err := u.dbS.GetChatUsers(chatId)
+	if err != nil {
+		return users, err
+	}
+
+	if len(userModels) == 0 {
+		return users, nil
+	}
+
+	return userEntitiesFromModels(userModels), nil
 }
 
-func (u *UserRepository) GetUsersForChat(chatId typ.ChatId) ([]ent.User, error) {
+func (u *UserRepository) NewUser(newUser ent.User) (*ent.User, error) {
 	u.lgr.LogFunctionInfo()
-	userMs, err := u.dbS.GetUsersForChat(chatId)
+
+	newUserModel := userModelFromEntity(newUser)
+	userModel, err := u.dbS.NewUser(newUserModel)
 	if err != nil {
 		return nil, err
 	}
 
-	return userEntitiesFromModels(userMs), nil
-}
-
-func (u *UserRepository) NewUser(usrE ent.User) (ent.User, error) {
-	u.lgr.LogFunctionInfo()
-
-	usrM := userModelFromEntity(usrE)
-	newUsrM, err := u.dbS.NewUser(usrM)
-	if err != nil {
-		return ent.User{}, fmt.Errorf("failed to create new user: %w", err)
+	if userModel == nil {
+		return nil, errors.New("new user missing!")
 	}
 
-	return userEntityFromModel(newUsrM), nil
+	return userEntityFromModel(userModel), nil
 }
 
-func (u *UserRepository) FindUsers(emails []cred.Email) ([]model.User, error) {
+func (u *UserRepository) FindUsers(emails []cred.Email) ([]ent.User, error) {
 	u.lgr.LogFunctionInfo()
-	return u.dbS.FindUsers(emails)
+
+	var users []ent.User
+
+	userModels, err := u.dbS.FindUsers(emails)
+	if err != nil {
+		return users, err
+	}
+
+	if len(userModels) == 0 {
+		return users, nil
+	}
+
+	return userEntitiesFromModels(userModels), nil
 }
 
-func (u *UserRepository) AddContact(contact ent.Contact, user ent.User) ([]ent.Contact, error) {
+func (u *UserRepository) AddContact(contact ent.Contact, userId typ.UserId) (*ent.Contact, error) {
+	u.lgr.LogFunctionInfo()
+
+	contactRelation, err := u.dbS.AddContactRelation(userId, contact.Id)
+	if err != nil {
+		return nil, err
+	}
+
+	if contactRelation == nil {
+		return nil, errors.New("added contact relation missing!")
+	}
+
+	c := &ent.Contact{
+		Id:         contact.Id,
+		Name:       contact.Name,
+		Email:      contact.Email,
+		KnownSince: contactRelation.Established,
+	}
+
+	return c, nil
+
+}
+
+func (u *UserRepository) GetContacts(userId typ.UserId) ([]ent.Contact, error) {
 	u.lgr.LogFunctionInfo()
 
 	var contacts []ent.Contact
 
-	contactRelations, err := u.dbS.AddContactRelation(user.Id, contact.Id)
+	contactRelations, err := u.dbS.GetContactRelations(userId)
 	if err != nil {
 		return contacts, err
 	}
 
-	c := ent.Contact{
-		Id:         user.Id,
-		Name:       user.Name,
-		Email:      contact.Email,
-		KnownSince: contactRelations[0].Established,
+	if len(contactRelations) == 0 {
+		return contacts, nil
 	}
 
-	return append(contacts, c), nil
+	contactIds := getContactIds(contactRelations)
 
-}
+	users, err := u.GetUsers(contactIds)
+	if err != nil {
+		return contacts, err
+	}
 
-func (u *UserRepository) GetContactRelations(userId typ.UserId) ([]model.ContactRelation, error) {
-	u.lgr.LogFunctionInfo()
+	if len(users) == 0 {
+		return contacts, errors.New("users missing!")
+	}
 
-	return u.dbS.GetContactRelations(userId)
+	return createContacts(users, contactRelations), nil
+
 }
 
 func userEntitiesFromModels(usrMs []model.User) []ent.User {
 	var usrEs []ent.User
 	for _, usrM := range usrMs {
-		usrE := userEntityFromModel(usrM)
-		usrEs = append(usrEs, usrE)
+		usrE := userEntityFromModel(&usrM)
+		usrEs = append(usrEs, *usrE)
 	}
 	return usrEs
 }
 
-func userEntityFromModel(m model.User) ent.User {
-	return ent.User{
+func userEntityFromModel(m *model.User) *ent.User {
+	return &ent.User{
 		Id:      m.Id,
 		Name:    m.Name,
 		Email:   m.Email,
@@ -116,4 +168,32 @@ func userModelFromEntity(u ent.User) model.User {
 		PwdHash: u.PwdHash,
 		Joined:  u.Joined,
 	}
+}
+
+func createContacts(users []ent.User, crs []model.ContactRelation) []ent.Contact {
+	var contacts []ent.Contact
+	for i := 0; i < len(users); i++ {
+		contact := ent.Contact{
+			Id:         crs[i].ContactId,
+			KnownSince: crs[i].Established,
+		}
+		// Can probably optimize this with a better data structure
+		for _, user := range users {
+			if user.Id == crs[i].UserId {
+				contact.Name = user.Name
+				contact.Email = user.Email
+				break
+			}
+		}
+		contacts = append(contacts, contact)
+	}
+	return contacts
+}
+
+func getContactIds(c []model.ContactRelation) []typ.UserId {
+	var contactIds []typ.UserId
+	for _, relation := range c {
+		contactIds = append(contactIds, relation.ContactId)
+	}
+	return contactIds
 }

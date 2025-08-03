@@ -5,7 +5,6 @@ import (
 	"log"
 	"net/http"
 	dto "server/data/DTOs"
-	ent "server/data/entities"
 	i "server/interfaces"
 	cred "server/services/authService/credentials"
 	ss "server/services/authService/session"
@@ -74,26 +73,32 @@ func (l *LoginHandler) LoginUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	usrE := ent.User{
-		Email: email,
-	}
+	emails := []cred.Email{email}
 
 	// Need to add some type of rollback in the case of an error?
-	usr, err := l.userS.FindUser(usrE)
+	users, err := l.userS.FindUsers(emails)
 	if err != nil {
 		log.Printf("failed to find user %v", err)
 		SendErrorResponse(w, "Email not found", false)
 		return
 	}
 
+	if len(users) == 0 {
+		log.Printf("failed to find user %v", err)
+		SendErrorResponse(w, "Email not found", false)
+		return
+	}
+
+	user := users[0]
+
 	pwdBytes := []byte(loginRequest.Password)
-	if err := usr.PwdHash.Compare(pwdBytes); err != nil {
+	if err := user.PwdHash.Compare(pwdBytes); err != nil {
 		log.Printf("invalid password: %v", err)
 		SendErrorResponse(w, "Invalid password", false)
 		return
 	}
 
-	session, err := l.authS.NewSession(usr.Id)
+	session, err := l.authS.NewSession(user.Id)
 	if err != nil {
 		log.Printf("failed to create new user %v", err)
 		http.Error(w, Status500, http.StatusInternalServerError)

@@ -62,16 +62,13 @@ func Get() []string {
 			%s INTEGER PRIMARY KEY AUTOINCREMENT,
 			%s INTEGER NOT NULL,
 			%s INTEGER NOT NULL,
-			%s DATETIME DEFAULT CURRENT_TIMESTAMP,
-			PRIMARY KEY (%s, %s)
+			%s DATETIME DEFAULT CURRENT_TIMESTAMP
 		);`,
 		MemberTable,
 		RowId,
 		ChatId,
 		UserId,
 		LastReadMsgId,
-		ChatId,
-		UserId,
 	)
 
 	contactsTable := fmt.Sprintf(`
@@ -79,16 +76,13 @@ func Get() []string {
 			%s INTEGER PRIMARY KEY AUTOINCREMENT,
 			%s INTEGER NOT NULL,
 			%s INTEGER NOT NULL,
-			%s DATETIME DEFAULT CURRENT_TIMESTAMP,
-			PRIMARY KEY (%s, %s)
+			%s DATETIME DEFAULT CURRENT_TIMESTAMP
 		);`,
 		ContactsTable,
 		RowId,
 		Contact1,
 		Contact2,
 		Established,
-		Contact1,
-		Contact2,
 	)
 
 	var schema []string

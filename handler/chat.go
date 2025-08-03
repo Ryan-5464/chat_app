@@ -331,24 +331,20 @@ func (h *ChatHandler) handleAddContactRequest(addContactRequest dto.AddContactRe
 
 	var addContactResponse dto.AddContactResponse
 
-	contact := entities.Contact{
-		Email: cred.Email(addContactRequest.Email),
+	addContactInput := dto.AddContactInput{
+		Email:  cred.Email(addContactRequest.Email),
+		UserId: userId,
 	}
 
-	user := entities.User{
-		Id: userId,
-	}
-
-	contacts, err := h.userS.AddContact(contact, user)
+	contact, err := h.userS.AddContact(addContactInput)
 	if err != nil {
 		return addContactResponse, err
 	}
 
-	if len(contacts) == 0 {
+	if contact == nil {
 		return addContactResponse, errors.New("failed to add contact")
 	}
 
-	contact = contacts[0]
 	var onlineStatus bool
 	conn := h.connS.GetConnection(contact.Id)
 	if conn == nil {

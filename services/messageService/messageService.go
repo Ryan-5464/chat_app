@@ -24,54 +24,49 @@ type MessageService struct {
 	connS i.ConnectionService
 }
 
-func (m *MessageService) NewMessage(msg entities.Message) (entities.Message, error) {
+func (m *MessageService) NewMessage(newMsg entities.Message) (*entities.Message, error) {
 	m.lgr.LogFunctionInfo()
-
-	msg, err := m.msgR.NewMessage(msg)
-	if err != nil {
-		return entities.Message{}, fmt.Errorf("failed to create new message: %w", err)
-	}
-
-	return msg, nil
+	return m.msgR.NewMessage(newMsg)
 }
 
-func (m *MessageService) HandleNewMessage(msg entities.Message) error {
+func (m *MessageService) HandleNewMessage(newMsg entities.Message) error {
 	m.lgr.LogFunctionInfo()
 
-	msg, err := m.msgR.NewMessage(msg)
+	msg, err := m.msgR.NewMessage(newMsg)
 	if err != nil {
 		return fmt.Errorf("failed to create new message: %w", err)
 	}
-	log.Println("MESSAGE USERID: ", msg.UserId)
 
-	usr, err := m.usrS.GetUser(msg.UserId)
+	userIds := []typ.UserId{msg.UserId}
+	users, err := m.usrS.GetUsers(userIds)
 	if err != nil {
-		return fmt.Errorf("failed to get user: %w", err)
+		return err
 	}
-	log.Println(3)
 
-	msg.Author = usr.Name
-	log.Println("MESSAGECHATID: ", 4, msg.ChatId)
+	if len(users) == 0 {
+		return nil
+	}
 
-	usrs, err := m.usrS.GetUsersForChat(msg.ChatId)
+	user := users[0]
+
+	msg.Author = user.Name
+
+	users, err = m.usrS.GetChatUsers(msg.ChatId)
 	if err != nil {
-		return fmt.Errorf("failed to get users: %w", err)
+		return err
 	}
-	log.Println("USERS :", 5, usrs)
 
 	usrConns := make(map[typ.UserId]i.Socket)
-	for _, usr := range usrs {
+	for _, usr := range users {
 		conn := m.connS.GetConnection(usr.Id)
 		usrConns[usr.Id] = conn
 	}
-	log.Println("USRCONNS:", 6, usrConns)
 
 	for userId, conn := range usrConns {
 		if err := m.BroadcastMessage(userId, conn, msg); err != nil {
 			return fmt.Errorf("failed to braodcast message: %w", err)
 		}
 	}
-	log.Println(7)
 
 	return nil
 }

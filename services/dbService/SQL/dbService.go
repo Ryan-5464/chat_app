@@ -37,8 +37,10 @@ func (dbs *DbService) Close() {
 	dbs.db.Close()
 }
 
-func (dbs *DbService) GetChat(chatId typ.ChatId) (model.Chat, error) {
+func (dbs *DbService) GetChats(chatId []typ.ChatId) ([]model.Chat, error) {
 	dbs.lgr.LogFunctionInfo()
+
+	var chats []model.Chat
 
 	qb := qbuilder.NewQueryBuilder()
 
@@ -49,21 +51,20 @@ func (dbs *DbService) GetChat(chatId typ.ChatId) (model.Chat, error) {
 
 	rows, err := dbs.db.Read(query.String(), chatId)
 	if err != nil {
-		return model.Chat{}, err
+		return chats, err
 	}
 
 	if len(rows) == 0 {
-		return model.Chat{}, nil
+		return chats, nil
 	}
 
-	chatMs := populateChatModels(rows)
-
-	return chatMs[0], nil
-
+	return populateChatModels(rows), nil
 }
 
-func (dbs *DbService) GetChats(userId typ.UserId) ([]model.Chat, error) {
+func (dbs *DbService) GetUserChats(userId typ.UserId) ([]model.Chat, error) {
 	dbs.lgr.LogFunctionInfo()
+
+	var chats []model.Chat
 
 	qb := qbuilder.NewQueryBuilder()
 
@@ -74,12 +75,14 @@ func (dbs *DbService) GetChats(userId typ.UserId) ([]model.Chat, error) {
 
 	rows, err := dbs.db.Read(query.String(), userId)
 	if err != nil {
-		return []model.Chat{}, fmt.Errorf("failed to read chats from database")
+		return chats, err
 	}
-	log.Println("ROWS : ", rows)
-	chatMs := populateChatModels(rows)
 
-	return chatMs, nil
+	if len(rows) == 0 {
+		return chats, nil
+	}
+
+	return populateChatModels(rows), nil
 }
 
 func (dbs *DbService) FindUser(email cred.Email) (model.User, error) {
@@ -106,20 +109,11 @@ func (dbs *DbService) FindUser(email cred.Email) (model.User, error) {
 	return usrs[0], err
 }
 
-func (dbs *DbService) GetUser(usrId typ.UserId) (model.User, error) {
-	dbs.lgr.LogFunctionInfo()
-	usrIds := []typ.UserId{usrId}
-
-	usrs, err := dbs.GetUsers(usrIds)
-	if err != nil {
-		return model.User{}, fmt.Errorf("failed to get user from database: %w", err)
-	}
-
-	return usrs[0], nil
-}
-
 func (dbs *DbService) GetUsers(usrIds []typ.UserId) ([]model.User, error) {
 	dbs.lgr.LogFunctionInfo()
+
+	var userModels []model.User
+
 	qb := qbuilder.NewQueryBuilder()
 
 	usrTbl := qb.Table(schema.UserTable)
@@ -131,12 +125,14 @@ func (dbs *DbService) GetUsers(usrIds []typ.UserId) ([]model.User, error) {
 
 	rows, err := dbs.db.Read(query.String(), ids...)
 	if err != nil {
-		return nil, fmt.Errorf("failed to read users from database: %w", err)
+		return userModels, err
 	}
 
-	usrMs := populateUserModels(rows)
+	if len(rows) == 0 {
+		return userModels, nil
+	}
 
-	return usrMs, err
+	return populateUserModels(rows), nil
 }
 
 func (dbs *DbService) GetMembers(chatId typ.ChatId) ([]model.Member, error) {
@@ -157,26 +153,26 @@ func (dbs *DbService) GetMembers(chatId typ.ChatId) ([]model.Member, error) {
 	return mbrMs, err
 }
 
-func (dbs *DbService) GetUsersForChat(chatId typ.ChatId) ([]model.User, error) {
+func (dbs *DbService) GetChatUsers(chatId typ.ChatId) ([]model.User, error) {
 	dbs.lgr.LogFunctionInfo()
 
-	mbrMs, err := dbs.GetMembers(chatId)
+	var userModels []model.User
+
+	memberModels, err := dbs.GetMembers(chatId)
 	if err != nil {
-		return nil, err
+		return userModels, err
 	}
 
-	var usrIds []typ.UserId
-	for _, mdl := range mbrMs {
-		usrIds = append(usrIds, mdl.UserId)
+	var userIds []typ.UserId
+	for _, mdl := range memberModels {
+		userIds = append(userIds, mdl.UserId)
 	}
 
-	usrMs, err := dbs.GetUsers(usrIds)
-	if err != nil {
-		return nil, err
+	if len(userIds) == 0 {
+		return userModels, err
 	}
 
-	return usrMs, nil
-
+	return dbs.GetUsers(userIds)
 }
 
 func (dbs *DbService) GetMessage(msgId typ.MessageId) (model.Message, error) {
@@ -227,7 +223,7 @@ func (dbs *DbService) GetMessages(msgIds []typ.MessageId) ([]model.Message, erro
 	return populateMessageModels(rows), nil
 }
 
-func (dbs *DbService) NewChat(c model.Chat) (model.Chat, error) {
+func (dbs *DbService) NewChat(c model.Chat) (*model.Chat, error) {
 	dbs.lgr.LogFunctionInfo()
 	qb := qbuilder.NewQueryBuilder()
 
@@ -240,20 +236,28 @@ func (dbs *DbService) NewChat(c model.Chat) (model.Chat, error) {
 
 	res, err := dbs.db.Create(query.String(), c.Name, c.AdminId)
 	if err != nil {
-		return model.Chat{}, fmt.Errorf("failed to create chat in database: %w", err)
+		return nil, err
 	}
 
 	newChatId, err := res.LastInsertId()
 	if err != nil {
-		return model.Chat{}, err
+		return nil, err
 	}
 
-	chat, err := dbs.GetChat(typ.ChatId(newChatId))
+	chatIds := []typ.ChatId{typ.ChatId(newChatId)}
+
+	chats, err := dbs.GetChats(chatIds)
 	if err != nil {
-		return model.Chat{}, fmt.Errorf("faield to get chat")
+		return nil, err
 	}
 
-	return chat, nil
+	if len(chats) == 0 {
+		return nil, errors.New("new chat missing!")
+	}
+
+	chat := chats[0]
+
+	return &chat, nil
 }
 
 func (dbs *DbService) NewMember(chatId typ.ChatId, userId typ.UserId) error {
@@ -276,8 +280,9 @@ func (dbs *DbService) NewMember(chatId typ.ChatId, userId typ.UserId) error {
 	return nil
 }
 
-func (dbs *DbService) NewUser(u model.User) (model.User, error) {
+func (dbs *DbService) NewUser(u model.User) (*model.User, error) {
 	dbs.lgr.LogFunctionInfo()
+
 	qb := qbuilder.NewQueryBuilder()
 
 	usrTbl := qb.Table(schema.UserTable)
@@ -292,20 +297,27 @@ func (dbs *DbService) NewUser(u model.User) (model.User, error) {
 
 	res, err := dbs.db.Create(query.String(), u.Name, u.Email, u.PwdHash)
 	if err != nil {
-		return model.User{}, fmt.Errorf("failed to create user in database: %w", err)
+		return nil, err
 	}
 
 	newUsrId, err := res.LastInsertId()
 	if err != nil {
-		return model.User{}, err
+		return nil, err
 	}
 
-	usr, err := dbs.GetUser(typ.UserId(newUsrId))
+	userIds := []typ.UserId{typ.UserId(newUsrId)}
+
+	users, err := dbs.GetUsers(userIds)
 	if err != nil {
-		return model.User{}, fmt.Errorf("failed to get user from database: %w", err)
+		return nil, err
 	}
 
-	return usr, nil
+	if len(users) == 0 {
+		return nil, err
+	}
+
+	user := users[0]
+	return &user, nil
 }
 
 func (dbs *DbService) NewMessage(m model.Message) (model.Message, error) {
@@ -378,14 +390,11 @@ func (dbs *DbService) FindUsers(e []cred.Email) ([]model.User, error) {
 		return users, nil
 	}
 
-	users = populateUserModels(rows)
-	return users, nil
+	return populateUserModels(rows), nil
 }
 
-func (dbs *DbService) AddContactRelation(userId typ.UserId, contactId typ.UserId) ([]model.ContactRelation, error) {
+func (dbs *DbService) AddContactRelation(userId typ.UserId, contactId typ.UserId) (*model.ContactRelation, error) {
 	dbs.lgr.LogFunctionInfo()
-
-	var contactRelations []model.ContactRelation
 
 	qb := qbuilder.NewQueryBuilder()
 
@@ -394,21 +403,24 @@ func (dbs *DbService) AddContactRelation(userId typ.UserId, contactId typ.UserId
 	contact2F := qb.Field(schema.Contact2)
 
 	query := qb.INSERT_INTO(contactsTable, contact1F, contact2F).
-		VALUES(c.Contact1, c.Contact2)
+		VALUES(userId, contactId)
 
 	res, err := dbs.db.Create(query.String(), userId, contactId)
 	if err != nil {
-		return contactRelations, err
+		return nil, err
 	}
 
-	return dbs.getContactRelation(userId, res.LastInsertId())
+	lastInsertId, err := res.LastInsertId()
+	if err != nil {
+		return nil, err
+	}
+
+	return dbs.getContactRelation(userId, lastInsertId)
 }
 
 // Specific helper function for AddContactRelation.
-func (dbs *DbService) getContactRelation(userId typ.UserId, rowId int64, err error) ([]model.ContactRelation, error) {
+func (dbs *DbService) getContactRelation(userId typ.UserId, rowId int64) (*model.ContactRelation, error) {
 	dbs.lgr.LogFunctionInfo()
-
-	var contactRelations []model.ContactRelation
 
 	qb := qbuilder.NewQueryBuilder()
 
@@ -420,14 +432,20 @@ func (dbs *DbService) getContactRelation(userId typ.UserId, rowId int64, err err
 
 	rows, err := dbs.db.Read(query.String(), rowId)
 	if err != nil {
-		return contactRelations, err
+		return nil, err
 	}
 
 	if len(rows) == 0 {
-		return contactRelations, errors.New("failed to retrieve newly created contact relation")
+		return nil, errors.New("failed to retrieve newly created contact relation")
 	}
 
-	return populateContactRelationModels(rows, userId), nil
+	contactRelations, err := populateContactRelationModels(rows, userId), nil
+	if err != nil {
+		return nil, err
+	}
+
+	contactRelation := contactRelations[0]
+	return &contactRelation, nil
 }
 
 func (dbs *DbService) GetContactRelations(userId typ.UserId) ([]model.ContactRelation, error) {
@@ -490,48 +508,33 @@ func populateMessageModels(rows typ.Rows) []model.Message {
 	return msgMs
 }
 
-func populateContactRelationModels(rows typ.Rows, userId typ.UserId) []model.ContactRelation {
+func populateContactRelationModels(rows typ.Rows, uid typ.UserId) []model.ContactRelation {
 	var relations []model.ContactRelation
 	for _, row := range rows {
-		contactA := parseUserId(row[schema.Contact1])
-		contactB := parseUserId(row[schema.Contact2])
+		contact1 := parseUserId(row[schema.Contact1])
+		contact2 := parseUserId(row[schema.Contact2])
 
 		// The user may be in any of the columns in the contactRelation table, so we want to
 		// make sure the user is always contact1 in the models so we can assume it in the rest
 		// of the program.
-		var contact1 typ.UserId
-		var contact2 typ.UserId
-		if contactA == userId {
-			contact1 = contactA
-			contact2 = contactB
+		var userId typ.UserId
+		var contactId typ.UserId
+		if contact1 == uid {
+			userId = contact1
+			contactId = contact2
 		} else {
-			contact1 = contactB
-			contact2 = contactA
+			userId = contact2
+			contactId = contact1
 		}
 
 		relation := model.ContactRelation{
-			Contact1:    contact1,
-			Contact2:    contact2,
+			UserId:      userId,
+			ContactId:   contactId,
 			Established: parseTime(row[schema.Established]),
 		}
 		relations = append(relations, relation)
 	}
 	return relations
-}
-
-func populateFriendModels(rows typ.Rows) []model.Friend {
-
-	var friendMs []model.Friend
-	for _, row := range rows {
-		friendM := model.Friend{
-			UserAId:     parseUserId(row[schema.UserAId]),
-			UserBId:     parseUserId(row[schema.UserBId]),
-			FriendSince: parseTime(row[schema.FriendSince]),
-		}
-		friendMs = append(friendMs, friendM)
-	}
-
-	return friendMs
 }
 
 func populateUserModels(rows typ.Rows) []model.User {

@@ -1,8 +1,8 @@
 package repository
 
 import (
+	"errors"
 	"fmt"
-	"log"
 	"server/data/entities"
 	i "server/interfaces"
 	model "server/services/dbService/SQL/models"
@@ -21,22 +21,22 @@ type MessageRepository struct {
 	dbS i.DbService
 }
 
-func (m *MessageRepository) NewMessage(msgE entities.Message) (entities.Message, error) {
+func (m *MessageRepository) NewMessage(newMsg entities.Message) (*entities.Message, error) {
 	m.lgr.LogFunctionInfo()
-	msgM := messageModelFromEntity(msgE)
+	msgModel := messageModelFromEntity(newMsg)
 
-	if m.dbS == nil {
-		log.Fatal("database service is nil")
-	}
-
-	newMsg, err := m.dbS.NewMessage(msgM)
+	msg, err := m.dbS.NewMessage(msgModel)
 	if err != nil {
-		return entities.Message{}, fmt.Errorf("failed to create new message: %w", err)
+		return nil, err
 	}
 
-	newMsgE := messageEntityFromModel(newMsg)
+	if msg == nil {
+		return nil, errors.New("new message missing!")
+	}
 
-	return newMsgE, nil
+	msgEnt := messageEntityFromModel(*msg)
+
+	return &msgEnt, nil
 }
 
 func (m *MessageRepository) GetMessages(msgIds []typ.MessageId) {
