@@ -1,6 +1,7 @@
 package SQL
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	i "server/interfaces"
@@ -381,7 +382,7 @@ func (dbs *DbService) FindUsers(e []cred.Email) ([]model.User, error) {
 	return users, nil
 }
 
-func (dbs *DbService) AddContactRelation(c model.ContactRelation) ([]model.ContactRelation, error) {
+func (dbs *DbService) AddContactRelation(userId typ.UserId, contactId typ.UserId) ([]model.ContactRelation, error) {
 	dbs.lgr.LogFunctionInfo()
 
 	var contactRelations []model.ContactRelation
@@ -395,16 +396,16 @@ func (dbs *DbService) AddContactRelation(c model.ContactRelation) ([]model.Conta
 	query := qb.INSERT_INTO(contactsTable, contact1F, contact2F).
 		VALUES(c.Contact1, c.Contact2)
 
-	res, err := dbs.db.Create(query.String(), c.Contact1, c.Contact2)
+	res, err := dbs.db.Create(query.String(), userId, contactId)
 	if err != nil {
 		return contactRelations, err
 	}
 
-	return dbs.getContactRelation(res.LastInsertId())
+	return dbs.getContactRelation(userId, res.LastInsertId())
 }
 
 // Specific helper function for AddContactRelation.
-func (dbs *DbService) getContactRelation(rowId int64, err error) ([]model.ContactRelation, error) {
+func (dbs *DbService) getContactRelation(userId typ.UserId, rowId int64, err error) ([]model.ContactRelation, error) {
 	dbs.lgr.LogFunctionInfo()
 
 	var contactRelations []model.ContactRelation
@@ -422,7 +423,11 @@ func (dbs *DbService) getContactRelation(rowId int64, err error) ([]model.Contac
 		return contactRelations, err
 	}
 
-	return populateContactRelationModels(rows), nil
+	if len(rows) == 0 {
+		return contactRelations, errors.New("failed to retrieve newly created contact relation")
+	}
+
+	return populateContactRelationModels(rows, userId), nil
 }
 
 func (dbs *DbService) GetContactRelations(userId typ.UserId) ([]model.ContactRelation, error) {
@@ -449,84 +454,6 @@ func (dbs *DbService) GetContactRelations(userId typ.UserId) ([]model.ContactRel
 	}
 
 	return populateContactRelationModels(rows, userId), nil
-}
-
-func (dbs *DbService) GetFriends(userId typ.UserId) ([]model.Friend, error) {
-	dbs.lgr.LogFunctionInfo()
-
-	qb := qbuilder.NewQueryBuilder()
-
-	friendsTable := qb.Table(schema.FriendsTable)
-	userAIdF := qb.Field(schema.UserAId)
-	userBIdF := qb.Field(schema.UserBId)
-
-	query := qb.SELECT(qb.All()).FROM(friendsTable).
-		WHERE(userAIdF, qb.EqualTo()).OR(userBIdF, qb.EqualTo())
-
-	rows, err := dbs.db.Read(query.String(), userId, userId)
-	if err != nil {
-		return []model.Friend{}, err
-	}
-
-	if len(rows) == 0 {
-		return []model.Friend{}, err
-	}
-
-	return populateFriendModels(rows), nil
-}
-
-func (dbs *DbService) GetFriend(friend model.Friend) (model.Friend, error) {
-	dbs.lgr.LogFunctionInfo()
-
-	qb := qbuilder.NewQueryBuilder()
-
-	friendsTable := qb.Table(schema.FriendsTable)
-	userAIdF := qb.Field(schema.UserAId)
-	userBIdF := qb.Field(schema.UserBId)
-
-	query := qb.SELECT(qb.All()).
-		FROM(friendsTable).
-		WHERE(userAIdF, qb.EqualTo()).AND(userBIdF, qb.EqualTo()).
-		OR(userBIdF, qb.EqualTo()).AND(userAIdF, qb.EqualTo())
-
-	dbs.lgr.DLog(query.String())
-
-	rows, err := dbs.db.Read(query.String(), friend.UserAId, friend.UserBId)
-	if err != nil {
-		return model.Friend{}, err
-	}
-
-	if len(rows) == 0 {
-		return model.Friend{}, nil
-	}
-
-	friendMs := populateFriendModels(rows)
-
-	return friendMs[0], nil
-}
-
-func (dbs *DbService) DeleteFriend(email cred.Email) error {
-	dbs.lgr.LogFunctionInfo()
-
-	user, err := dbs.FindUserByEmail(email)
-	if err != nil {
-		return err
-	}
-
-	qb := qbuilder.NewQueryBuilder()
-
-	friendsTable := qb.Table(schema.FriendsTable)
-
-	userAIdF := qb.Field(schema.UserAId)
-	userBIdF := qb.Field(schema.UserBId)
-
-	query := qb.DELETE_FROM(friendsTable).WHERE(userAIdF, qb.EqualTo()).OR(userBIdF, qb.EqualTo())
-
-	if err := dbs.db.Delete(query.String(), user.Id); err != nil {
-		return err
-	}
-
-	return nil
 }
 
 func populateChatModels(rows typ.Rows) []model.Chat {

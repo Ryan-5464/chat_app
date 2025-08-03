@@ -2,6 +2,7 @@ package handler
 
 import (
 	"encoding/json"
+	"errors"
 	"net/http"
 	dto "server/data/DTOs"
 	"server/data/entities"
@@ -294,7 +295,7 @@ func (h *ChatHandler) handleNewChatRequest(newChatRequest dto.NewChatRequest, us
 
 /* ADD FRIEND REQUEST ========================================================================== */
 
-func (h *ChatHandler) AddFriend(w http.ResponseWriter, r *http.Request) {
+func (h *ChatHandler) AddContact(w http.ResponseWriter, r *http.Request) {
 	h.lgr.LogFunctionInfo()
 
 	if r.Method != http.MethodPost {
@@ -308,49 +309,60 @@ func (h *ChatHandler) AddFriend(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var addFriendRequest dto.AddFriendRequest
+	var addContactRequest dto.AddContactRequest
 	decoder := json.NewDecoder(r.Body)
-	if err := decoder.Decode(&addFriendRequest); err != nil {
+	if err := decoder.Decode(&addContactRequest); err != nil {
 		http.Error(w, msgMalformedJSON, http.StatusBadRequest)
 		return
 	}
 
-	addFriendResponse, err := h.handleAddFriendRequest(addFriendRequest, session.UserId())
+	addContactResponse, err := h.handleAddContactRequest(addContactRequest, session.UserId())
 	if err != nil {
 		http.Error(w, InternalServerError, http.StatusInternalServerError)
 		return
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(addFriendResponse)
+	json.NewEncoder(w).Encode(addContactResponse)
 }
 
-func (h *ChatHandler) handleAddFriendRequest(addFriendRequest dto.AddFriendRequest, userId typ.UserId) (dto.AddFriendResponse, error) {
+func (h *ChatHandler) handleAddContactRequest(addContactRequest dto.AddContactRequest, userId typ.UserId) (dto.AddContactResponse, error) {
 	h.lgr.LogFunctionInfo()
 
-	newFriend := entities.Friend{
-		Email: cred.Email(addFriendRequest.Email),
+	var addContactResponse dto.AddContactResponse
+
+	contact := entities.Contact{
+		Email: cred.Email(addContactRequest.Email),
 	}
 
-	friend, err := h.userS.AddFriend(newFriend, userId)
+	user := entities.User{
+		Id: userId,
+	}
+
+	contacts, err := h.userS.AddContact(contact, user)
 	if err != nil {
-		return dto.AddFriendResponse{}, err
+		return addContactResponse, err
 	}
 
+	if len(contacts) == 0 {
+		return addContactResponse, errors.New("failed to add contact")
+	}
+
+	contact = contacts[0]
 	var onlineStatus bool
-	conn := h.connS.GetConnection(friend.Id)
+	conn := h.connS.GetConnection(contact.Id)
 	if conn == nil {
 		onlineStatus = false
 	} else {
 		onlineStatus = true
 	}
 
-	addFriendResponse := dto.AddFriendResponse{
-		Name:         friend.Name,
-		Email:        friend.Email,
-		FriendSince:  friend.FriendSince,
+	addContactResponse = dto.AddContactResponse{
+		Name:         contact.Name,
+		Email:        contact.Email,
+		KnownSince:   contact.KnownSince,
 		OnlineStatus: onlineStatus,
 	}
 
-	return addFriendResponse, nil
+	return addContactResponse, nil
 }

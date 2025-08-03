@@ -64,31 +64,12 @@ func (u *UserService) FindUser(usr ent.User) (ent.User, error) {
 	return usr, nil
 }
 
-func (u *UserService) AddFriend(friend ent.Friend, userId typ.UserId) (ent.Friend, error) {
-	u.lgr.LogFunctionInfo()
-
-	user, err := u.usrR.FindUserByEmail(friend.Email)
-	if err != nil {
-		return ent.Friend{}, err
-	}
-
-	if user.IdIsZero() {
-		return ent.Friend{}, err
-	}
-
-	friend, err = u.usrR.AddFriend(friend, userId)
-	if err != nil {
-		return ent.Friend{}, err
-	}
-	return friend, nil
-}
-
-func (u *UserService) AddContact(contactEmail cred.Email, userId typ.UserId) ([]ent.Contact, error) {
+func (u *UserService) AddContact(contact ent.Contact, user ent.User) ([]ent.Contact, error) {
 	u.lgr.LogFunctionInfo()
 
 	var contacts []ent.Contact
 	var contactEmails []cred.Email
-	contactEmails = append(contactEmails, contactEmail)
+	contactEmails = append(contactEmails, contact.Email)
 	users, err := u.usrR.FindUsers(contactEmails)
 	if err != nil {
 		return contacts, err
@@ -98,25 +79,7 @@ func (u *UserService) AddContact(contactEmail cred.Email, userId typ.UserId) ([]
 		return contacts, err
 	}
 
-	contactRelation := model.ContactRelation{
-		UserId:    userId,
-		ContactId: users[0].Id,
-	}
-
-	contactRelations, err := u.usrR.AddContact(contactRelation)
-	if err != nil {
-		return contacts, err
-	}
-
-	contact := ent.Contact{
-		Id:         users[0].Id,
-		Name:       users[0].Name,
-		Email:      contactEmail,
-		KnownSince: contactRelations[0].Established,
-	}
-
-	contacts = append(contacts, contact)
-	return contacts, nil
+	return u.usrR.AddContact(contact, user)
 }
 
 func (u *UserService) GetContacts(userId typ.UserId) ([]ent.Contact, error) {

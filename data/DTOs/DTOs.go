@@ -102,13 +102,13 @@ type LoginRequest struct {
 	Password string `json:"Password"`
 }
 
-type AddFriendRequest struct {
+type AddContactRequest struct {
 	Email string `json:"Email"`
 }
 
-type AddFriendResponse struct {
+type AddContactResponse struct {
 	Name         string     `json:"Name"`
 	Email        cred.Email `json:"Email"`
-	FriendSince  time.Time  `json:"FriendSince"`
+	KnownSince   time.Time  `json:"KnownSince"`
 	OnlineStatus bool       `json:"OnlineStatus"`
 }

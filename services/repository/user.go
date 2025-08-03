@@ -62,74 +62,31 @@ func (u *UserRepository) FindUsers(emails []cred.Email) ([]model.User, error) {
 	return u.dbS.FindUsers(emails)
 }
 
-func (u *UserRepository) AddContact(c model.ContactRelation) ([]model.ContactRelation, error) {
+func (u *UserRepository) AddContact(contact ent.Contact, user ent.User) ([]ent.Contact, error) {
 	u.lgr.LogFunctionInfo()
 
-	var contactRelations []model.ContactRelation
+	var contacts []ent.Contact
 
-	contactRelations, err := u.dbS.AddContactRelation(c)
-
-}
-
-func (u *UserRepository) AddFriend(friend ent.Friend, userId typ.UserId) (ent.Friend, error) {
-	u.lgr.LogFunctionInfo()
-
-	friendM := model.Friend{
-		UserAId: userId,
-		UserBId: friend.Id,
-	}
-
-	friendM, err := u.dbS.InsertFriend(friendM)
+	contactRelations, err := u.dbS.AddContactRelation(user.Id, contact.Id)
 	if err != nil {
-		return ent.Friend{}, err
+		return contacts, err
 	}
 
-	user, err := u.dbS.GetUser(userId)
-	if err != nil {
-		return ent.Friend{}, err
+	c := ent.Contact{
+		Id:         user.Id,
+		Name:       user.Name,
+		Email:      contact.Email,
+		KnownSince: contactRelations[0].Established,
 	}
 
-	friendE := ent.Friend{
-		Id:          user.Id,
-		Name:        user.Name,
-		Email:       user.Email,
-		FriendSince: friendM.FriendSince,
-	}
+	return append(contacts, c), nil
 
-	return friendE, err
 }
 
 func (u *UserRepository) GetContactRelations(userId typ.UserId) ([]model.ContactRelation, error) {
 	u.lgr.LogFunctionInfo()
 
 	return u.dbS.GetContactRelations(userId)
-}
-
-func (u *UserRepository) GetFriends(userId typ.UserId) ([]ent.Friend, error) {
-	u.lgr.LogFunctionInfo()
-
-	friendMs, err := u.dbS.GetFriends(userId)
-	if err != nil {
-		return []ent.Friend{}, err
-	}
-
-	if len(friendMs) == 0 {
-		return []ent.Friend{}, nil
-	}
-
-	return friendEntitiesFromModels(friendMs), nil
-}
-
-func friendEntitiesFromModels(friendMs []model.Friend) []ent.Friend {
-	var friendEs []ent.Friend
-	for _, friendM := range friendMs {
-		friendE := ent.Friend{
-			Id:          friendM.UserAId,
-			FriendSince: friendM.FriendSince,
-		}
-		friendEs = append(friendEs, friendE)
-	}
-	return friendEs
 }
 
 func userEntitiesFromModels(usrMs []model.User) []ent.User {
