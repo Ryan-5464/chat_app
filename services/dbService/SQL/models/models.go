@@ -38,8 +38,8 @@ type Member struct {
 	Joined        time.Time
 }
 
-type Friend struct {
-	UserAId     typ.UserId
-	UserBId     typ.UserId
-	FriendSince time.Time
+type ContactRelation struct {
+	UserId      typ.UserId
+	ContactId   typ.UserId
+	Established time.Time
 }

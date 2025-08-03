@@ -30,25 +30,9 @@ func (u *UserRepository) FindUser(usr ent.User) (ent.User, error) {
 	return userEntityFromModel(usrM), nil
 }
 
-func (u *UserRepository) GetUser(userId typ.UserId) (ent.User, error) {
+func (u *UserRepository) GetUsers(usrIds []typ.UserId) ([]model.User, error) {
 	u.lgr.LogFunctionInfo()
-	ids := []typ.UserId{userId}
-	users, err := u.GetUsers(ids)
-	if err != nil {
-		return ent.User{}, fmt.Errorf("failed to get user from database service: %w", err)
-	}
-
-	return users[0], nil
-}
-
-func (u *UserRepository) GetUsers(usrIds []typ.UserId) ([]ent.User, error) {
-	u.lgr.LogFunctionInfo()
-	usrMs, err := u.dbS.GetUsers(usrIds)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get user models from database service: %w", err)
-	}
-
-	return userEntitiesFromModels(usrMs), nil
+	return u.dbS.GetUsers(usrIds)
 }
 
 func (u *UserRepository) GetUsersForChat(chatId typ.ChatId) ([]ent.User, error) {
@@ -73,21 +57,18 @@ func (u *UserRepository) NewUser(usrE ent.User) (ent.User, error) {
 	return userEntityFromModel(newUsrM), nil
 }
 
-func (u *UserRepository) FindUserByEmail(email cred.Email) (ent.User, error) {
+func (u *UserRepository) FindUsers(emails []cred.Email) ([]model.User, error) {
+	u.lgr.LogFunctionInfo()
+	return u.dbS.FindUsers(emails)
+}
+
+func (u *UserRepository) AddContact(c model.ContactRelation) ([]model.ContactRelation, error) {
 	u.lgr.LogFunctionInfo()
 
-	userM, err := u.dbS.FindUser(email)
-	if err != nil {
-		return ent.User{}, err
-	}
+	var contactRelations []model.ContactRelation
 
-	if userM.Id == 0 {
-		return ent.User{}, nil
-	}
+	contactRelations, err := u.dbS.AddContactRelation(c)
 
-	userMs := []model.User{userM}
-	userEs := userEntitiesFromModels(userMs)
-	return userEs[0], nil
 }
 
 func (u *UserRepository) AddFriend(friend ent.Friend, userId typ.UserId) (ent.Friend, error) {
@@ -116,6 +97,12 @@ func (u *UserRepository) AddFriend(friend ent.Friend, userId typ.UserId) (ent.Fr
 	}
 
 	return friendE, err
+}
+
+func (u *UserRepository) GetContactRelations(userId typ.UserId) ([]model.ContactRelation, error) {
+	u.lgr.LogFunctionInfo()
+
+	return u.dbS.GetContactRelations(userId)
 }
 
 func (u *UserRepository) GetFriends(userId typ.UserId) ([]ent.Friend, error) {

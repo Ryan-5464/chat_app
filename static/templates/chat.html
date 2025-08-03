@@ -71,22 +71,22 @@
 
         <div id="right-siderbar-container">
 
-            <div id="friends-list-header">
+            <div id="contact-list-header">
 
-            <div id="add-friend-input-container">
-                <input id="friend-email-input" type="text" placeholder="Type user email..." />
-                <button id="add-friend-button">+</button>
+            <div id="add-contact-input-container">
+                <input id="contact-email-input" type="text" placeholder="Type contact email..." />
+                <button id="add-contact-button">+</button>
             </div>
 
             </div>
 
-            <div id="friends-list-container">
-                {{ range .Friends }}
-                    <div class="friend">
-                        <div class="friend-name">{{ .Name }}</div>
-                        <div class="friend-email">{{ .Email }}</div>
-                        <div class="friend-since">{{ .FriendSince }}</div>
-                        <div class="friend-status">{{ .OnlineStatus }}</div>
+            <div id="contact-list-container">
+                {{ range .Contacts }}
+                    <div class="contact">
+                        <div class="contact-name">{{ .Name }}</div>
+                        <div class="contact-email">{{ .Email }}</div>
+                        <div class="contact-since">{{ .KnownSince }}</div>
+                        <div class="contact-status">{{ .OnlineStatus }}</div>
                     </div>
                 {{ end }}
             </div>

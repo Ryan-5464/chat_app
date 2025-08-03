@@ -80,7 +80,7 @@ func (cr *ChatHandler) RenderChatPage(w http.ResponseWriter, r *http.Request) {
 		messages = []entities.Message{}
 	}
 
-	friends, err := cr.userS.GetFriends(session.UserId())
+	contacts, err := cr.userS.GetContacts(session.UserId())
 	if err != nil {
 		http.Error(w, InternalServerError, http.StatusInternalServerError)
 		return
@@ -95,7 +95,7 @@ func (cr *ChatHandler) RenderChatPage(w http.ResponseWriter, r *http.Request) {
 	renderChatpayload := dto.RenderChatPayload{
 		Chats:    chats,
 		Messages: messages,
-		Friends:  friends,
+		Contacts: contacts,
 	}
 
 	if err = tmpl.Execute(w, renderChatpayload); err != nil {

@@ -1,6 +1,7 @@
 package schema
 
 const (
+	RowId         string = "RowId"
 	UserId        string = "UserId"
 	Name          string = "Name"
 	Email         string = "Email"
@@ -16,7 +17,7 @@ const (
 	MsgText       string = "MsgText"
 	ReplyId       string = "ReplyId"
 	LastEditAt    string = "LastEditAt"
-	UserAId       string = "UserAId"
-	UserBId       string = "UserBId"
-	FriendSince   string = "FriendSince"
+	Contact1      string = "Contact1"
+	Contact2      string = "Contact2"
+	Established   string = "Established"
 )

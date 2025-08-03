@@ -59,12 +59,14 @@ func Get() []string {
 
 	newMemberTable := fmt.Sprintf(`
 		CREATE TABLE IF NOT EXISTS %s (
+			%s INTEGER PRIMARY KEY AUTOINCREMENT,
 			%s INTEGER NOT NULL,
 			%s INTEGER NOT NULL,
 			%s DATETIME DEFAULT CURRENT_TIMESTAMP,
 			PRIMARY KEY (%s, %s)
 		);`,
 		MemberTable,
+		RowId,
 		ChatId,
 		UserId,
 		LastReadMsgId,
@@ -72,19 +74,21 @@ func Get() []string {
 		UserId,
 	)
 
-	friendsTable := fmt.Sprintf(`
+	contactsTable := fmt.Sprintf(`
 		CREATE TABLE IF NOT EXISTS %s (
+			%s INTEGER PRIMARY KEY AUTOINCREMENT,
 			%s INTEGER NOT NULL,
 			%s INTEGER NOT NULL,
 			%s DATETIME DEFAULT CURRENT_TIMESTAMP,
 			PRIMARY KEY (%s, %s)
 		);`,
-		FriendsTable,
-		UserAId,
-		UserBId,
-		FriendSince,
-		UserAId,
-		UserBId,
+		ContactsTable,
+		RowId,
+		Contact1,
+		Contact2,
+		Established,
+		Contact1,
+		Contact2,
 	)
 
 	var schema []string
@@ -94,7 +98,7 @@ func Get() []string {
 		newMessageTable,
 		newChatTable,
 		newMemberTable,
-		friendsTable,
+		contactsTable,
 	)
 
 	return schema

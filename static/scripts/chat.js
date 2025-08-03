@@ -32,8 +32,8 @@ document.addEventListener("DOMContentLoaded", function() {
     addNewMsgListenerToSendMsgButton()
     addNewChatEventListenerToButton()
     addNewChatEventListenerToInput()
-    addAddFriendEventListenerToButton()
-    addAddFriendEventListenerToInput()
+    addAddContactEventListenerToButton()
+    addAddContactEventListenerToInput()
     addChatToggleEventListenerToContainer()
     highlightActiveChat() 
 })
@@ -45,26 +45,26 @@ function highlightActiveChat() {
     switchActiveChat(chatId)
 }
 
-function addAddFriendEventListenerToButton() {
-    elem = document.getElementById("add-friend-button")
+function addAddContactEventListenerToButton() {
+    elem = document.getElementById("add-contact-button")
     elem.addEventListener('click', function () {
-        const friendEmailInput = document.getElementById("friend-email-input")
-        const email = friendEmailInput.value.trim()
-        console.log("friendEmail: ", email)
-        friendEmailInput.value = '';
-        addFriend(email)
+        const contactEmailInput = document.getElementById("contact-email-input")
+        const email = contactEmailInput.value.trim()
+        console.log("contactEmail: ", email)
+        contactEmailInput.value = '';
+        addContact(email)
     })
 }
 
-function addAddFriendEventListenerToInput() {
-    elem = document.getElementById("friend-email-input")
+function addAddContactEventListenerToInput() {
+    elem = document.getElementById("contact-email-input")
     elem.addEventListener('keydown', function (event) {
         if (event.key == "Enter") {
-            const friendEmailInput = document.getElementById("friend-email-input")
-            const email = friendEmailInput.value.trim()
-            console.log("friendEmail: ", email)
-            friendEmailInput.value = '';
-            addFriend(email)
+            const contactEmailInput = document.getElementById("contact-email-input")
+            const email = contactEmailInput.value.trim()
+            console.log("contactEmail: ", email)
+            contactEmailInput.value = '';
+            addContact(email)
         }
     })
 }
@@ -192,34 +192,34 @@ function renderChats(chatData, overwrite) {
     });
 }
 
-function renderFriendList(friendListData, overwrite) {
-    const friendListContainer = document.getElementById('friend-list-container')
+function renderContactList(contactListData, overwrite) {
+    const contactListContainer = document.getElementById('contact-list-container')
     if (overwrite == true) {
-        friendListContainer.innerHTML = ''; 
+        contactListContainer.innerHTML = ''; 
     }
 
-    friendListData.forEach(friend => {
-        console.log("FRIEND: ", friend)
-        const friendElement = document.createElement('div');
-        friendElement.className = "friend"
+    contactListData.forEach(contact => {
+        console.log("contact: ", contact)
+        const contactElement = document.createElement('div');
+        contactElement.className = "contact"
         
-        // friendElement.addEventListener("click", function() {
-        //     requestfriendMessages(friend.Id)
+        // contactElement.addEventListener("click", function() {
+        //     requestcontactMessages(contact.Id)
         // })
         
-        friendListContainer.appendChild(friendElement);
+        contactListContainer.appendChild(contactElement);
 
         const data = {
-            "friend-name": `${friend.Name}`,
-            "friend-email": `${friend.Email}`,
-            "friend-since": `${friend.FriendSince}`,
-            "friend-status": `${friend.OnlineStatus}`,
+            "contact-name": `${contact.Name}`,
+            "contact-email": `${contact.Email}`,
+            "contact-since": `${contact.contactSince}`,
+            "contact-status": `${contact.OnlineStatus}`,
         }
         for (const [key, value] of Object.entries(data)) {
             const element = document.createElement('div')
             element.className = key
             element.textContent = `${value}`
-            friendElement.appendChild(element);
+            contactElement.appendChild(element);
         }
     });
 }
@@ -278,10 +278,10 @@ function addChatToggleEventListenerToContainer() {
   });
 }
 
-/* NEW FRIEND REQUEST =================================================== */
+/* NEW Contact REQUEST =================================================== */
 
-function addFriend(email) {
-    fetch(BASEURL + '/api/chat/friend/add', addFriendRequestBody(email))
+function addContact(email) {
+    fetch(BASEURL + '/api/chat/contact/add', addContactRequestBody(email))
     .then(response => {
         if (!response.ok) {
             throw new Error(`Server error: ${response.status}`);
@@ -289,15 +289,15 @@ function addFriend(email) {
         return response.json(); 
     })
     .then(responsePayload => {
-        console.log('[AddFriend]Received:', responsePayload);
-        renderFriendList(responsePayload.Friends, false);
+        console.log('[AddContact]Received:', responsePayload);
+        renderContactList(responsePayload.Contacts, false);
     })
     .catch(error => {
         console.error('Fetch error:', error);
     });
 }
 
-function addFriendRequestBody(email) {
+function addContactRequestBody(email) {
     return {
         method: 'POST',
         headers: { 

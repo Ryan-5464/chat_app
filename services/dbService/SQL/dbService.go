@@ -354,51 +354,101 @@ func (dbs *DbService) NewMessage(m model.Message) (model.Message, error) {
 	return msg, nil
 }
 
-func (dbs *DbService) FindUserByEmail(email cred.Email) (model.User, error) {
+func (dbs *DbService) FindUsers(e []cred.Email) ([]model.User, error) {
 	dbs.lgr.LogFunctionInfo()
+
+	var users []model.User
 
 	qb := qbuilder.NewQueryBuilder()
 
 	userTable := qb.Table(schema.UserTable)
 	emailF := qb.Field(schema.Email)
 
-	query := qb.SELECT(qb.All()).FROM(userTable).WHERE(emailF, qb.EqualTo())
+	emails := ToAnySlice(e)
 
-	rows, err := dbs.db.Read(query.String(), email)
+	query := qb.SELECT(qb.All()).FROM(userTable).WHERE(emailF, qb.IN(emails...))
+
+	rows, err := dbs.db.Read(query.String(), emails...)
 	if err != nil {
-		return model.User{}, err
+		return users, err
 	}
 
 	if len(rows) == 0 {
-		return model.User{}, nil
+		return users, nil
 	}
 
-	users := populateUserModels(rows)
-	return users[0], nil
+	users = populateUserModels(rows)
+	return users, nil
 }
 
-func (dbs *DbService) InsertFriend(friend model.Friend) (model.Friend, error) {
+func (dbs *DbService) AddContactRelation(c model.ContactRelation) ([]model.ContactRelation, error) {
 	dbs.lgr.LogFunctionInfo()
+
+	var contactRelations []model.ContactRelation
 
 	qb := qbuilder.NewQueryBuilder()
 
-	friendsTable := qb.Table(schema.FriendsTable)
-	userAIdF := qb.Field(schema.UserAId)
-	userBIdF := qb.Field(schema.UserBId)
+	contactsTable := qb.Table(schema.ContactsTable)
+	contact1F := qb.Field(schema.Contact1)
+	contact2F := qb.Field(schema.Contact2)
 
-	query := qb.INSERT_INTO(friendsTable, userAIdF, userBIdF).VALUES(friend.UserAId, friend.UserBId)
+	query := qb.INSERT_INTO(contactsTable, contact1F, contact2F).
+		VALUES(c.Contact1, c.Contact2)
 
-	_, err := dbs.db.Create(query.String(), friend.UserAId, friend.UserBId)
+	res, err := dbs.db.Create(query.String(), c.Contact1, c.Contact2)
 	if err != nil {
-		return model.Friend{}, err
+		return contactRelations, err
 	}
 
-	friendM, err := dbs.GetFriend(friend)
+	return dbs.getContactRelation(res.LastInsertId())
+}
+
+// Specific helper function for AddContactRelation.
+func (dbs *DbService) getContactRelation(rowId int64, err error) ([]model.ContactRelation, error) {
+	dbs.lgr.LogFunctionInfo()
+
+	var contactRelations []model.ContactRelation
+
+	qb := qbuilder.NewQueryBuilder()
+
+	contactsTable := qb.Table(schema.ContactsTable)
+	rowIdF := qb.Field(schema.RowId)
+
+	query := qb.SELECT(qb.All()).FROM(contactsTable).
+		WHERE(rowIdF, qb.EqualTo())
+
+	rows, err := dbs.db.Read(query.String(), rowId)
 	if err != nil {
-		return model.Friend{}, err
+		return contactRelations, err
 	}
 
-	return friendM, nil
+	return populateContactRelationModels(rows), nil
+}
+
+func (dbs *DbService) GetContactRelations(userId typ.UserId) ([]model.ContactRelation, error) {
+	dbs.lgr.LogFunctionInfo()
+
+	var contactRelations []model.ContactRelation
+
+	qb := qbuilder.NewQueryBuilder()
+
+	contactsTable := qb.Table(schema.ContactsTable)
+	contact1F := qb.Field(schema.Contact1)
+	contact2F := qb.Field(schema.Contact2)
+
+	query := qb.SELECT(qb.All()).FROM(contactsTable).
+		WHERE(contact1F, qb.EqualTo()).OR(contact2F, qb.EqualTo())
+
+	rows, err := dbs.db.Read(query.String(), userId, userId)
+	if err != nil {
+		return contactRelations, err
+	}
+
+	if len(rows) == 0 {
+		return contactRelations, nil
+	}
+
+	return populateContactRelationModels(rows, userId), nil
 }
 
 func (dbs *DbService) GetFriends(userId typ.UserId) ([]model.Friend, error) {
@@ -413,7 +463,7 @@ func (dbs *DbService) GetFriends(userId typ.UserId) ([]model.Friend, error) {
 	query := qb.SELECT(qb.All()).FROM(friendsTable).
 		WHERE(userAIdF, qb.EqualTo()).OR(userBIdF, qb.EqualTo())
 
-	rows, err := dbs.db.Read(query.String(), userId)
+	rows, err := dbs.db.Read(query.String(), userId, userId)
 	if err != nil {
 		return []model.Friend{}, err
 	}
@@ -511,6 +561,35 @@ func populateMessageModels(rows typ.Rows) []model.Message {
 	}
 
 	return msgMs
+}
+
+func populateContactRelationModels(rows typ.Rows, userId typ.UserId) []model.ContactRelation {
+	var relations []model.ContactRelation
+	for _, row := range rows {
+		contactA := parseUserId(row[schema.Contact1])
+		contactB := parseUserId(row[schema.Contact2])
+
+		// The user may be in any of the columns in the contactRelation table, so we want to
+		// make sure the user is always contact1 in the models so we can assume it in the rest
+		// of the program.
+		var contact1 typ.UserId
+		var contact2 typ.UserId
+		if contactA == userId {
+			contact1 = contactA
+			contact2 = contactB
+		} else {
+			contact1 = contactB
+			contact2 = contactA
+		}
+
+		relation := model.ContactRelation{
+			Contact1:    contact1,
+			Contact2:    contact2,
+			Established: parseTime(row[schema.Established]),
+		}
+		relations = append(relations, relation)
+	}
+	return relations
 }
 
 func populateFriendModels(rows typ.Rows) []model.Friend {

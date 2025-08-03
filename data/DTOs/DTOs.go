@@ -89,6 +89,7 @@ type ResponsePayload struct {
 type RenderChatPayload struct {
 	Chats    []entities.Chat    `json:"Chats"`
 	Messages []entities.Message `json:"Messages"`
+	Contacts []entities.Contact `json:"Contacts"`
 }
 
 type ErrorResponse struct {
