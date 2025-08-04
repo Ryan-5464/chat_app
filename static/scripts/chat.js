@@ -41,6 +41,9 @@ document.addEventListener("DOMContentLoaded", function() {
 function highlightActiveChat() {
     // console.log("highlighting active chat")
     const chats = document.querySelectorAll('.chat')
+    if (chats.length == 0) {
+        return
+    }
     const chatId = chats[0].getAttribute('data-chatid')
     switchActiveChat(chatId)
 }
@@ -172,7 +175,7 @@ function renderChats(chatData, overwrite) {
         chatElement.setAttribute("data-createdat", chat.CreatedAt);
         
         chatElement.addEventListener("click", function() {
-            requestChatMessages(chat.Id)
+            switchChat(chat.Id)
         })
         
         chatContainer.appendChild(chatElement);
@@ -365,13 +368,14 @@ function switchChat(chatId) {
 }
 
 function switchChatRequestBody(chatId) {
+    console.log("SWITCHCHATCHATDI:::::", chatId)
     return {
         method: 'POST',
         headers: { 
             'Content-Type': 'application/json' 
         },
         body: JSON.stringify({
-            ChatId: chatId,
+            ChatId: String(chatId),
         })
     }
 }

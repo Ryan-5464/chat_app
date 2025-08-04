@@ -37,7 +37,7 @@ func (dbs *DbService) Close() {
 	dbs.db.Close()
 }
 
-func (dbs *DbService) GetChats(chatId []typ.ChatId) ([]model.Chat, error) {
+func (dbs *DbService) GetChats(chatIds []typ.ChatId) ([]model.Chat, error) {
 	dbs.lgr.LogFunctionInfo()
 
 	var chats []model.Chat
@@ -47,9 +47,11 @@ func (dbs *DbService) GetChats(chatId []typ.ChatId) ([]model.Chat, error) {
 	chatTbl := qb.Table(schema.ChatTable)
 	chatIdF := qb.Field(schema.ChatId)
 
+	ids := ToAnySlice(chatIds)
+
 	query := qb.SELECT(qb.All()).FROM(chatTbl).WHERE(chatIdF, qb.EqualTo())
 
-	rows, err := dbs.db.Read(query.String(), chatId)
+	rows, err := dbs.db.Read(query.String(), ids...)
 	if err != nil {
 		return chats, err
 	}
@@ -85,30 +87,6 @@ func (dbs *DbService) GetUserChats(userId typ.UserId) ([]model.Chat, error) {
 	return populateChatModels(rows), nil
 }
 
-func (dbs *DbService) FindUser(email cred.Email) (model.User, error) {
-	dbs.lgr.LogFunctionInfo()
-
-	qb := qbuilder.NewQueryBuilder()
-
-	usrTbl := qb.Table(schema.UserTable)
-	emailF := qb.Field(schema.Email)
-
-	query := qb.SELECT(qb.All()).FROM(usrTbl).WHERE(emailF, qb.EqualTo())
-
-	rows, err := dbs.db.Read(query.String(), email)
-	if err != nil {
-		return model.User{}, fmt.Errorf("failed to find user email from database: %w", err)
-	}
-
-	if len(rows) == 0 {
-		return model.User{}, nil
-	}
-
-	usrs := populateUserModels(rows)
-
-	return usrs[0], err
-}
-
 func (dbs *DbService) GetUsers(usrIds []typ.UserId) ([]model.User, error) {
 	dbs.lgr.LogFunctionInfo()
 
@@ -121,12 +99,16 @@ func (dbs *DbService) GetUsers(usrIds []typ.UserId) ([]model.User, error) {
 
 	ids := ToAnySlice(usrIds)
 
-	query := qb.SELECT(qb.All()).FROM(usrTbl).WHERE(usrIdF, qb.IN(ids))
+	log.Println("IDS:::::", ids)
+
+	query := qb.SELECT(qb.All()).FROM(usrTbl).WHERE(usrIdF, qb.IN(ids...))
 
 	rows, err := dbs.db.Read(query.String(), ids...)
 	if err != nil {
 		return userModels, err
 	}
+
+	log.Println("ROWS", rows)
 
 	if len(rows) == 0 {
 		return userModels, nil
@@ -137,6 +119,9 @@ func (dbs *DbService) GetUsers(usrIds []typ.UserId) ([]model.User, error) {
 
 func (dbs *DbService) GetMembers(chatId typ.ChatId) ([]model.Member, error) {
 	dbs.lgr.LogFunctionInfo()
+
+	var members []model.Member
+
 	qb := qbuilder.NewQueryBuilder()
 
 	mbrTbl := qb.Table(schema.MemberTable)
@@ -145,12 +130,14 @@ func (dbs *DbService) GetMembers(chatId typ.ChatId) ([]model.Member, error) {
 	query := qb.SELECT(qb.All()).FROM(mbrTbl).WHERE(chatIdF, qb.EqualTo())
 	rows, err := dbs.db.Read(query.String(), chatId)
 	if err != nil {
-		return nil, fmt.Errorf("failed to read members from database: %w", err)
+		return members, err
 	}
 
-	mbrMs := populateMemberModels(rows)
+	if len(rows) == 0 {
+		return members, nil
+	}
 
-	return mbrMs, err
+	return populateMemberModels(rows), nil
 }
 
 func (dbs *DbService) GetChatUsers(chatId typ.ChatId) ([]model.User, error) {
@@ -175,18 +162,6 @@ func (dbs *DbService) GetChatUsers(chatId typ.ChatId) ([]model.User, error) {
 	return dbs.GetUsers(userIds)
 }
 
-func (dbs *DbService) GetMessage(msgId typ.MessageId) (model.Message, error) {
-	dbs.lgr.LogFunctionInfo()
-	msgIds := []typ.MessageId{msgId}
-
-	msgs, err := dbs.GetMessages(msgIds)
-	if err != nil {
-		return model.Message{}, err
-	}
-
-	return msgs[0], nil
-}
-
 func (dbs *DbService) GetChatMessages(chatId typ.ChatId) ([]model.Message, error) {
 	dbs.lgr.LogFunctionInfo()
 	qb := qbuilder.NewQueryBuilder()
@@ -198,7 +173,7 @@ func (dbs *DbService) GetChatMessages(chatId typ.ChatId) ([]model.Message, error
 
 	rows, err := dbs.db.Read(query.String(), chatId)
 	if err != nil {
-		return nil, fmt.Errorf("failed to read messages from database: %w", err)
+		return nil, err
 	}
 
 	return populateMessageModels(rows), nil
@@ -206,6 +181,9 @@ func (dbs *DbService) GetChatMessages(chatId typ.ChatId) ([]model.Message, error
 
 func (dbs *DbService) GetMessages(msgIds []typ.MessageId) ([]model.Message, error) {
 	dbs.lgr.LogFunctionInfo()
+
+	var messages []model.Message
+
 	qb := qbuilder.NewQueryBuilder()
 
 	msgTbl := qb.Table(schema.MessageTable)
@@ -217,7 +195,11 @@ func (dbs *DbService) GetMessages(msgIds []typ.MessageId) ([]model.Message, erro
 
 	rows, err := dbs.db.Read(query.String(), ids...)
 	if err != nil {
-		return nil, fmt.Errorf("failed to read messages from database: %w", err)
+		return messages, err
+	}
+
+	if len(rows) == 0 {
+		return messages, nil
 	}
 
 	return populateMessageModels(rows), nil
@@ -274,7 +256,7 @@ func (dbs *DbService) NewMember(chatId typ.ChatId, userId typ.UserId) error {
 
 	_, err := dbs.db.Create(query.String(), chatId, userId)
 	if err != nil {
-		return fmt.Errorf("failed to create member in database: %w", err)
+		return err
 	}
 
 	return nil
@@ -320,7 +302,7 @@ func (dbs *DbService) NewUser(u model.User) (*model.User, error) {
 	return &user, nil
 }
 
-func (dbs *DbService) NewMessage(m model.Message) (model.Message, error) {
+func (dbs *DbService) NewMessage(m model.Message) (*model.Message, error) {
 	dbs.lgr.LogFunctionInfo()
 	qb := qbuilder.NewQueryBuilder()
 
@@ -351,20 +333,22 @@ func (dbs *DbService) NewMessage(m model.Message) (model.Message, error) {
 		m.Text,
 	)
 	if err != nil {
-		return model.Message{}, fmt.Errorf("failed to create message in database: %w", err)
+		return nil, err
 	}
 
 	newMsgId, err := res.LastInsertId()
 	if err != nil {
-		return model.Message{}, err
+		return nil, err
 	}
 
-	msg, err := dbs.GetMessage(typ.MessageId(newMsgId))
+	messageIds := []typ.MessageId{typ.MessageId(newMsgId)}
+	messages, err := dbs.GetMessages(messageIds)
 	if err != nil {
-		return model.Message{}, fmt.Errorf("failed to get message from database: %w", err)
+		return nil, err
 	}
 
-	return msg, nil
+	message := messages[0]
+	return &message, nil
 }
 
 func (dbs *DbService) FindUsers(e []cred.Email) ([]model.User, error) {

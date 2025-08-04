@@ -21,6 +21,8 @@ type ChatRepository struct {
 }
 
 func (c *ChatRepository) NewChat(newChat ent.Chat) (*ent.Chat, error) {
+	c.lgr.LogFunctionInfo()
+
 	chatModel := chatEntityToModel(newChat)
 	newChatModel, err := c.dbS.NewChat(chatModel)
 	if err != nil {

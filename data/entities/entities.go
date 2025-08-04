@@ -42,8 +42,9 @@ func (u User) IdIsZero() bool {
 }
 
 type Contact struct {
-	Id         typ.UserId
-	Name       string
-	Email      cred.Email
-	KnownSince time.Time
+	Id           typ.UserId
+	Name         string
+	Email        cred.Email
+	KnownSince   time.Time
+	OnlineStatus bool
 }

@@ -63,8 +63,8 @@ func (m *MessageService) HandleNewMessage(newMsg entities.Message) error {
 	}
 
 	for userId, conn := range usrConns {
-		if err := m.BroadcastMessage(userId, conn, msg); err != nil {
-			return fmt.Errorf("failed to braodcast message: %w", err)
+		if err := m.BroadcastMessage(userId, conn, *msg); err != nil {
+			return err
 		}
 	}
 

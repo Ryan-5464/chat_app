@@ -37,7 +37,7 @@ type DbService interface {
 	AddContactRelation(userId typ.UserId, contactId typ.UserId) (*model.ContactRelation, error)
 	NewMember(chatId typ.ChatId, userId typ.UserId) error
 	NewChat(chat model.Chat) (*model.Chat, error)
-	GetChats(chatId []typ.ChatId) (*model.Chat, error)
+	GetChats(chatId []typ.ChatId) ([]model.Chat, error)
 	GetUserChats(userId typ.UserId) ([]model.Chat, error)
 	GetMessages(msgIds []typ.MessageId) ([]model.Message, error)
 	GetChatMessages(chatId typ.ChatId) ([]model.Message, error)

@@ -2,6 +2,7 @@ package repository
 
 import (
 	"errors"
+	"log"
 	ent "server/data/entities"
 	i "server/interfaces"
 	cred "server/services/authService/credentials"
@@ -128,10 +129,14 @@ func (u *UserRepository) GetContacts(userId typ.UserId) ([]ent.Contact, error) {
 
 	contactIds := getContactIds(contactRelations)
 
+	log.Println("CONTACTIDS:::::", contactIds)
+
 	users, err := u.GetUsers(contactIds)
 	if err != nil {
 		return contacts, err
 	}
+
+	log.Println("USERS:::::", users)
 
 	if len(users) == 0 {
 		return contacts, errors.New("users missing!")
@@ -170,20 +175,22 @@ func userModelFromEntity(u ent.User) model.User {
 	}
 }
 
-func createContacts(users []ent.User, crs []model.ContactRelation) []ent.Contact {
+func createContacts(users []ent.User, relations []model.ContactRelation) []ent.Contact {
 	var contacts []ent.Contact
-	for i := 0; i < len(users); i++ {
+	var userEmailMap = make(map[typ.UserId]cred.Email)
+	var userNameMap = make(map[typ.UserId]string)
+
+	for _, user := range users {
+		userEmailMap[user.Id] = user.Email
+		userNameMap[user.Id] = user.Name
+	}
+
+	for _, relation := range relations {
 		contact := ent.Contact{
-			Id:         crs[i].ContactId,
-			KnownSince: crs[i].Established,
-		}
-		// Can probably optimize this with a better data structure
-		for _, user := range users {
-			if user.Id == crs[i].UserId {
-				contact.Name = user.Name
-				contact.Email = user.Email
-				break
-			}
+			Id:         relation.ContactId,
+			KnownSince: relation.Established,
+			Name:       userNameMap[relation.ContactId],
+			Email:      userEmailMap[relation.ContactId],
 		}
 		contacts = append(contacts, contact)
 	}

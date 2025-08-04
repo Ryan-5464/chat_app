@@ -3,6 +3,7 @@ package handler
 import (
 	"encoding/json"
 	"errors"
+	"log"
 	"net/http"
 	dto "server/data/DTOs"
 	"server/data/entities"
@@ -86,6 +87,8 @@ func (cr *ChatHandler) RenderChatPage(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, InternalServerError, http.StatusInternalServerError)
 		return
 	}
+
+	log.Println("CONTACTS:::::", contacts)
 
 	tmpl, err := template.ParseFiles("./static/templates/chat.html")
 	if err != nil {
@@ -199,6 +202,7 @@ func (h *ChatHandler) SwitchChat(w http.ResponseWriter, r *http.Request) {
 	var switchChatRequest dto.SwitchChatRequest
 	decoder := json.NewDecoder(r.Body)
 	if err := decoder.Decode(&switchChatRequest); err != nil {
+		log.Println("MALFORMEDJSON:::::")
 		http.Error(w, msgMalformedJSON, http.StatusBadRequest)
 		return
 	}
@@ -285,7 +289,7 @@ func (h *ChatHandler) handleNewChatRequest(newChatRequest dto.NewChatRequest, us
 	}
 
 	newChatResponse := dto.NewChatResponse{
-		Chats:           []entities.Chat{chat},
+		Chats:           []entities.Chat{*chat},
 		Messages:        []entities.Message{},
 		NewActiveChatId: chat.Id,
 	}
@@ -345,19 +349,15 @@ func (h *ChatHandler) handleAddContactRequest(addContactRequest dto.AddContactRe
 		return addContactResponse, errors.New("failed to add contact")
 	}
 
-	var onlineStatus bool
 	conn := h.connS.GetConnection(contact.Id)
 	if conn == nil {
-		onlineStatus = false
+		contact.OnlineStatus = false
 	} else {
-		onlineStatus = true
+		contact.OnlineStatus = true
 	}
 
 	addContactResponse = dto.AddContactResponse{
-		Name:         contact.Name,
-		Email:        contact.Email,
-		KnownSince:   contact.KnownSince,
-		OnlineStatus: onlineStatus,
+		Contacts: []entities.Contact{*contact},
 	}
 
 	return addContactResponse, nil

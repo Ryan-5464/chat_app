@@ -6,7 +6,6 @@ import (
 	"server/lib"
 	cred "server/services/authService/credentials"
 	typ "server/types"
-	"time"
 )
 
 type SwitchChatRequest struct {
@@ -31,9 +30,9 @@ type NewChatRequest struct {
 }
 
 type NewChatResponse struct {
-	Chats           []entities.Chat
-	Messages        []entities.Message
-	NewActiveChatId typ.ChatId
+	Chats           []entities.Chat    `json:"Chats"`
+	Messages        []entities.Message `json:"Messages"`
+	NewActiveChatId typ.ChatId         `json:"NewActiveChatId"`
 }
 
 type NewMessageRequest struct {
@@ -107,10 +106,7 @@ type AddContactRequest struct {
 }
 
 type AddContactResponse struct {
-	Name         string     `json:"Name"`
-	Email        cred.Email `json:"Email"`
-	KnownSince   time.Time  `json:"KnownSince"`
-	OnlineStatus bool       `json:"OnlineStatus"`
+	Contacts []entities.Contact `json:"Contacts"`
 }
 
 type NewUserInput struct {

@@ -32,7 +32,6 @@ func (a *AuthMiddleware) AttachTo(next http.Handler) http.Handler {
 		if err != nil {
 			if errors.Is(err, http.ErrNoCookie) {
 			} else {
-				http.Error(w, "Internal server error", http.StatusInternalServerError)
 				return
 			}
 		}
@@ -43,7 +42,6 @@ func (a *AuthMiddleware) AttachTo(next http.Handler) http.Handler {
 			session, err = a.authS.ValidateAndRefreshSession(token)
 			if err != nil {
 				log.Println("error validating or refreshing session", err)
-				http.Error(w, "Internal server error", http.StatusInternalServerError)
 				return
 			}
 			http.SetCookie(w, session.Cookie())
