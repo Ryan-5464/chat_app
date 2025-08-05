@@ -19,6 +19,7 @@ type Chat struct {
 	Name      string
 	AdminId   typ.UserId
 	CreatedAt time.Time
+	ChatType  typ.ChatType
 }
 
 type Message struct {

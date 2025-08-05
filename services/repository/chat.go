@@ -20,11 +20,16 @@ type ChatRepository struct {
 	dbS i.DbService
 }
 
-func (c *ChatRepository) NewChat(newChat ent.Chat) (*ent.Chat, error) {
+func (c *ChatRepository) NewMember(chatId typ.ChatId, userId typ.UserId) error {
 	c.lgr.LogFunctionInfo()
 
-	chatModel := chatEntityToModel(newChat)
-	newChatModel, err := c.dbS.NewChat(chatModel)
+	return c.dbS.NewMember(chatId, userId)
+}
+
+func (c *ChatRepository) NewChat(chatName string, adminId typ.UserId, chatType typ.ChatType) (*ent.Chat, error) {
+	c.lgr.LogFunctionInfo()
+
+	newChatModel, err := c.dbS.NewChat(chatName, adminId, chatType)
 	if err != nil {
 		return nil, err
 	}

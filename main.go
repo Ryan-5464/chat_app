@@ -46,7 +46,7 @@ func main() {
 	authS := sauth.NewAuthService(logger)
 	chatS := schat.NewChatService(logger, chatR)
 	connS := sconn.NewConnectionService(logger)
-	userS := suser.NewUserService(logger, userR)
+	userS := suser.NewUserService(logger, userR, chatR)
 	msgS := smsg.NewMessageService(logger, msgR, userS, connS)
 
 	chatHandler := handler.NewChatHandler(logger, authS, chatS, msgS, connS, userS)
@@ -63,6 +63,7 @@ func main() {
 	http.Handle("/api/login", authMW.AttachTo(http.HandlerFunc(loginHandler.LoginUser)))
 	http.Handle("/api/chat/new", authMW.AttachTo(http.HandlerFunc(chatHandler.NewChat)))
 	http.Handle("/api/chat/switch", authMW.AttachTo(http.HandlerFunc(chatHandler.SwitchChat)))
+	http.Handle("/api/chat/private/switch", authMW.AttachTo(http.HandlerFunc(chatHandler.SwitchPrivateChat)))
 	http.Handle("/api/chat/contact/add", authMW.AttachTo(http.HandlerFunc(chatHandler.AddContact)))
 	http.Handle("/login", authMW.AttachTo(http.HandlerFunc(loginHandler.RenderLoginPage)))
 	http.Handle("/register", authMW.AttachTo(http.HandlerFunc(registerHandler.RenderRegisterPage)))

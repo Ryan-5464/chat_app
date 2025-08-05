@@ -142,7 +142,12 @@ func (u *UserRepository) GetContacts(userId typ.UserId) ([]ent.Contact, error) {
 		return contacts, errors.New("users missing!")
 	}
 
-	return createContacts(users, contactRelations), nil
+	members, err := u.dbS.GetPrivateChatIdsForContacts(userId)
+	if err != nil {
+		return contacts, err
+	}
+
+	return createContacts(users, contactRelations, members), nil
 
 }
 
@@ -175,22 +180,28 @@ func userModelFromEntity(u ent.User) model.User {
 	}
 }
 
-func createContacts(users []ent.User, relations []model.ContactRelation) []ent.Contact {
+func createContacts(users []ent.User, relations []model.ContactRelation, members []model.Member) []ent.Contact {
 	var contacts []ent.Contact
 	var userEmailMap = make(map[typ.UserId]cred.Email)
 	var userNameMap = make(map[typ.UserId]string)
+	var chatIdMap = make(map[typ.UserId]typ.ChatId)
 
 	for _, user := range users {
 		userEmailMap[user.Id] = user.Email
 		userNameMap[user.Id] = user.Name
 	}
 
+	for _, member := range members {
+		chatIdMap[member.UserId] = member.ChatId
+	}
+
 	for _, relation := range relations {
 		contact := ent.Contact{
-			Id:         relation.ContactId,
-			KnownSince: relation.Established,
-			Name:       userNameMap[relation.ContactId],
-			Email:      userEmailMap[relation.ContactId],
+			Id:            relation.ContactId,
+			KnownSince:    relation.Established,
+			Name:          userNameMap[relation.ContactId],
+			Email:         userEmailMap[relation.ContactId],
+			PrivateChatId: chatIdMap[relation.ContactId],
 		}
 		contacts = append(contacts, contact)
 	}

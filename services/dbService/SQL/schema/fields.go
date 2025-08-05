@@ -20,4 +20,7 @@ const (
 	Contact1      string = "Contact1"
 	Contact2      string = "Contact2"
 	Established   string = "Established"
+	ChatType      string = "ChatType"
+	Private       string = "Private"
+	Group         string = "Group"
 )

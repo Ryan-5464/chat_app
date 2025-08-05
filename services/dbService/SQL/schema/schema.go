@@ -47,7 +47,8 @@ func Get() []string {
 			%s TEXT NOT NULL UNIQUE,
 			%s INTEGER NOT NULL,
 			%s DATETIME DEFAULT CURRENT_TIMESTAMP,
-			%s DATETIME DEFAULT CURRENT_TIMESTAMP
+			%s DATETIME DEFAULT CURRENT_TIMESTAMP,
+    		%s TEXT NOT NULL CHECK (%s IN ('%s', '%s'))
 		);`,
 		ChatTable,
 		ChatId,
@@ -55,6 +56,10 @@ func Get() []string {
 		AdminId,
 		CreatedAt,
 		LastMsgAt,
+		ChatType,
+		ChatType,
+		Private,
+		Group,
 	)
 
 	newMemberTable := fmt.Sprintf(`
@@ -85,6 +90,42 @@ func Get() []string {
 		Established,
 	)
 
+	enforcePrivateChatReadOnly := fmt.Sprintf(`
+		CREATE TRIGGER IF NOT EXISTS prevent_chat_type_change
+		BEFORE UPDATE ON %s
+		FOR EACH ROW
+		WHEN OLD.%s != NEW.%s
+		BEGIN
+			SELECT RAISE(ABORT, 'Cannot change chat type after creation');
+		END;
+	`,
+		ChatTable,
+		ChatType,
+		ChatType,
+	)
+
+	enforceTwoMemberLimitForPrivateChats := fmt.Sprintf(`
+		CREATE TRIGGER IF NOT EXISTS prevent_extra_private_members
+		BEFORE INSERT ON %s
+		WHEN (
+			(SELECT %s FROM %s WHERE %s = NEW.%s) = '%s' AND
+			(SELECT COUNT(*) FROM %s WHERE %s = NEW.%s) >= 2
+		)
+		BEGIN
+			SELECT RAISE(ABORT, 'Private chat cannot have more than 2 members');
+		END;
+	`,
+		MemberTable,
+		ChatType,
+		ChatTable,
+		ChatId,
+		ChatId,
+		Private,
+		MemberTable,
+		ChatId,
+		ChatId,
+	)
+
 	var schema []string
 	schema = append(
 		schema,
@@ -93,6 +134,8 @@ func Get() []string {
 		newChatTable,
 		newMemberTable,
 		contactsTable,
+		enforcePrivateChatReadOnly,
+		enforceTwoMemberLimitForPrivateChats,
 	)
 
 	return schema

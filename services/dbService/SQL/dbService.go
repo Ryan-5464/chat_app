@@ -40,18 +40,26 @@ func (dbs *DbService) Close() {
 func (dbs *DbService) GetChats(chatIds []typ.ChatId) ([]model.Chat, error) {
 	dbs.lgr.LogFunctionInfo()
 
+	dbs.lgr.DLog(fmt.Sprintf("%v", chatIds))
+
 	var chats []model.Chat
 
 	qb := qbuilder.NewQueryBuilder()
 
 	chatTbl := qb.Table(schema.ChatTable)
 	chatIdF := qb.Field(schema.ChatId)
+	chatTypeF := qb.Field(schema.ChatType)
 
 	ids := ToAnySlice(chatIds)
+	query := qb.SELECT(qb.All()).FROM(chatTbl).WHERE(chatIdF, qb.IN(ids...)).AND(chatTypeF, qb.EqualTo())
 
-	query := qb.SELECT(qb.All()).FROM(chatTbl).WHERE(chatIdF, qb.EqualTo())
+	values := ids
+	values = append(values, typ.Group)
 
-	rows, err := dbs.db.Read(query.String(), ids...)
+	dbs.lgr.DLog(query.String())
+	dbs.lgr.DLog(fmt.Sprintf("%v", values))
+
+	rows, err := dbs.db.Read(query.String(), values...)
 	if err != nil {
 		return chats, err
 	}
@@ -72,10 +80,11 @@ func (dbs *DbService) GetUserChats(userId typ.UserId) ([]model.Chat, error) {
 
 	chatTbl := qb.Table(schema.ChatTable)
 	adminIdF := qb.Field(schema.AdminId)
+	chatTypeF := qb.Field(schema.ChatType)
 
-	query := qb.SELECT(qb.All()).FROM(chatTbl).WHERE(adminIdF, qb.EqualTo())
+	query := qb.SELECT(qb.All()).FROM(chatTbl).WHERE(adminIdF, qb.EqualTo()).AND(chatTypeF, qb.EqualTo())
 
-	rows, err := dbs.db.Read(query.String(), userId)
+	rows, err := dbs.db.Read(query.String(), userId, typ.Group)
 	if err != nil {
 		return chats, err
 	}
@@ -117,8 +126,10 @@ func (dbs *DbService) GetUsers(usrIds []typ.UserId) ([]model.User, error) {
 	return populateUserModels(rows), nil
 }
 
-func (dbs *DbService) GetMembers(chatId typ.ChatId) ([]model.Member, error) {
+func (dbs *DbService) GetMembers(chatIds []typ.ChatId) ([]model.Member, error) {
 	dbs.lgr.LogFunctionInfo()
+
+	dbs.lgr.DLog(fmt.Sprintf("chatIds: %v", chatIds))
 
 	var members []model.Member
 
@@ -127,11 +138,18 @@ func (dbs *DbService) GetMembers(chatId typ.ChatId) ([]model.Member, error) {
 	mbrTbl := qb.Table(schema.MemberTable)
 	chatIdF := qb.Field(schema.ChatId)
 
-	query := qb.SELECT(qb.All()).FROM(mbrTbl).WHERE(chatIdF, qb.EqualTo())
-	rows, err := dbs.db.Read(query.String(), chatId)
+	ids := ToAnySlice(chatIds)
+
+	query := qb.SELECT(qb.All()).FROM(mbrTbl).WHERE(chatIdF, qb.IN(ids...))
+
+	dbs.lgr.DLog(fmt.Sprintf("query: %s", query.String()))
+
+	rows, err := dbs.db.Read(query.String(), ids...)
 	if err != nil {
 		return members, err
 	}
+
+	dbs.lgr.DLog(fmt.Sprintf("rows: %v", rows))
 
 	if len(rows) == 0 {
 		return members, nil
@@ -145,7 +163,8 @@ func (dbs *DbService) GetChatUsers(chatId typ.ChatId) ([]model.User, error) {
 
 	var userModels []model.User
 
-	memberModels, err := dbs.GetMembers(chatId)
+	var chatIds = []typ.ChatId{chatId}
+	memberModels, err := dbs.GetMembers(chatIds)
 	if err != nil {
 		return userModels, err
 	}
@@ -205,18 +224,21 @@ func (dbs *DbService) GetMessages(msgIds []typ.MessageId) ([]model.Message, erro
 	return populateMessageModels(rows), nil
 }
 
-func (dbs *DbService) NewChat(c model.Chat) (*model.Chat, error) {
+func (dbs *DbService) NewChat(chatName string, adminId typ.UserId, chatType typ.ChatType) (*model.Chat, error) {
 	dbs.lgr.LogFunctionInfo()
 	qb := qbuilder.NewQueryBuilder()
 
 	chatTbl := qb.Table(schema.ChatTable)
-	chatName := qb.Field(schema.Name)
-	adminId := qb.Field(schema.AdminId)
+	chatNameF := qb.Field(schema.Name)
+	adminIdF := qb.Field(schema.AdminId)
+	chatTypeF := qb.Field(schema.ChatType)
 
-	query := qb.INSERT_INTO(chatTbl, chatName, adminId).
-		VALUES(chatName, adminId)
+	query := qb.INSERT_INTO(chatTbl, chatNameF, adminIdF, chatTypeF).
+		VALUES(chatName, adminId, chatType)
 
-	res, err := dbs.db.Create(query.String(), c.Name, c.AdminId)
+	values := []any{chatName, adminId, chatType}
+	log.Println("^^^^^", values)
+	res, err := dbs.db.Create(query.String(), values...)
 	if err != nil {
 		return nil, err
 	}
@@ -234,7 +256,7 @@ func (dbs *DbService) NewChat(c model.Chat) (*model.Chat, error) {
 	}
 
 	if len(chats) == 0 {
-		return nil, errors.New("new chat missing!")
+		return nil, errors.New("new chat missing")
 	}
 
 	chat := chats[0]
@@ -458,6 +480,60 @@ func (dbs *DbService) GetContactRelations(userId typ.UserId) ([]model.ContactRel
 	return populateContactRelationModels(rows, userId), nil
 }
 
+func (dbs *DbService) GetPrivateChatIdsForContacts(userId typ.UserId) ([]model.Member, error) {
+	dbs.lgr.LogFunctionInfo()
+
+	dbs.lgr.DLog(userId.String())
+
+	qb := qbuilder.NewQueryBuilder()
+
+	chatTable := qb.Table(schema.ChatTable)
+	adminIdF := qb.Field(schema.AdminId)
+	chatTypeF := qb.Field(schema.ChatType)
+
+	query := qb.SELECT(qb.All()).FROM(chatTable).WHERE(adminIdF, qb.EqualTo()).AND(chatTypeF, qb.EqualTo())
+	values := []any{userId, typ.Private}
+
+	dbs.lgr.DLog(fmt.Sprintf("query: %s", query.String()))
+	dbs.lgr.DLog(fmt.Sprintf("values: %v", values))
+
+	rows, err := dbs.db.Read(query.String(), values...)
+	if err != nil {
+		return []model.Member{}, err
+	}
+
+	if len(rows) == 0 {
+		return []model.Member{}, nil
+	}
+
+	chats := populateChatModels(rows)
+
+	var chatIds []typ.ChatId
+	for _, chat := range chats {
+		chatIds = append(chatIds, chat.Id)
+	}
+
+	dbs.lgr.DLog(fmt.Sprintf("chatids: %v", chatIds))
+
+	mbrs, err := dbs.GetMembers(chatIds)
+	if err != nil {
+		return []model.Member{}, err
+	}
+
+	dbs.lgr.DLog(fmt.Sprintf("members: %v", mbrs))
+
+	var members []model.Member
+	for _, member := range mbrs {
+		if member.UserId != userId {
+			members = append(members, member)
+		}
+	}
+
+	dbs.lgr.DLog(fmt.Sprintf("members: %v", members))
+
+	return members, nil
+}
+
 func populateChatModels(rows typ.Rows) []model.Chat {
 	log.Println("test")
 	var chatMs []model.Chat
@@ -471,6 +547,37 @@ func populateChatModels(rows typ.Rows) []model.Chat {
 		chatMs = append(chatMs, chatM)
 	}
 	return chatMs
+}
+
+func (dbs *DbService) NewPrivateChat(adminId typ.UserId, chatName string) (*model.Chat, error) {
+	dbs.lgr.LogFunctionInfo()
+
+	dbs.lgr.DLog(fmt.Sprintf("adminId: %v - name: %s", adminId, chatName))
+
+	qb := qbuilder.NewQueryBuilder()
+
+	chatTable := qb.Table(schema.ChatTable)
+	adminIdF := qb.Field(schema.AdminId)
+	chatNameF := qb.Field(schema.Name)
+
+	query := qb.INSERT_INTO(chatTable, adminIdF, chatNameF).
+		VALUES(adminId, chatName).Build()
+
+	dbs.lgr.DLog(query)
+
+	values := []any{adminId, chatName}
+	rows, err := dbs.db.Read(query, values...)
+	if err != nil {
+		return nil, err
+	}
+
+	dbs.lgr.DLog(fmt.Sprintf("rows: %v", rows))
+
+	chat := populateChatModels(rows)[0]
+
+	dbs.lgr.DLog(fmt.Sprintf("chat: %v", chat))
+
+	return &chat, nil
 }
 
 func populateMessageModels(rows typ.Rows) []model.Message {

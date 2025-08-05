@@ -96,6 +96,8 @@ func (cr *ChatHandler) RenderChatPage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	log.Println("*****CHATS*****", chats)
+
 	renderChatpayload := dto.RenderChatPayload{
 		Chats:    chats,
 		Messages: messages,
@@ -361,4 +363,61 @@ func (h *ChatHandler) handleAddContactRequest(addContactRequest dto.AddContactRe
 	}
 
 	return addContactResponse, nil
+}
+
+func (h *ChatHandler) SwitchPrivateChat(w http.ResponseWriter, r *http.Request) {
+	h.lgr.LogFunctionInfo()
+
+	if r.Method != http.MethodPost {
+		http.Error(w, MethodNotAllowed, http.StatusMethodNotAllowed)
+		return
+	}
+
+	_, userAuthenticated := checkAuthenticationStatus(r)
+	if !userAuthenticated {
+		http.Redirect(w, r, "/", http.StatusSeeOther)
+		return
+	}
+
+	var switchChatRequest dto.SwitchChatRequest
+	decoder := json.NewDecoder(r.Body)
+	if err := decoder.Decode(&switchChatRequest); err != nil {
+		log.Println("MALFORMEDJSON:::::")
+		http.Error(w, msgMalformedJSON, http.StatusBadRequest)
+		return
+	}
+
+	switchChatResponse, err := h.handlePrivateChatSwitchRequest(switchChatRequest)
+	if err != nil {
+		http.Error(w, InternalServerError, http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(switchChatResponse)
+}
+
+func (h *ChatHandler) handlePrivateChatSwitchRequest(switchChatRequest dto.SwitchChatRequest) (dto.SwitchChatResponse, error) {
+	h.lgr.LogFunctionInfo()
+
+	chatId, err := switchChatRequest.GetChatId()
+	if err != nil {
+		return dto.SwitchChatResponse{}, err
+	}
+
+	messages, err := h.msgS.GetChatMessages(chatId)
+	if err != nil {
+		return dto.SwitchChatResponse{}, err
+	}
+	// move this check close to the database
+	if messages == nil {
+		messages = []entities.Message{}
+	}
+
+	switchChatResponse := dto.SwitchChatResponse{
+		Messages:        messages,
+		NewActiveChatId: chatId,
+	}
+
+	return switchChatResponse, nil
 }

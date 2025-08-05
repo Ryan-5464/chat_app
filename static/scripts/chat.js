@@ -205,10 +205,13 @@ function renderContactList(contactListData, overwrite) {
         console.log("contact: ", contact)
         const contactElement = document.createElement('div');
         contactElement.className = "contact"
-        
-        // contactElement.addEventListener("click", function() {
-        //     requestcontactMessages(contact.Id)
-        // })
+        console.log(contact.Id)
+        contactElement.setAttribute("data-contactid", contact.Id)
+        contactElement.setAttribute("data-privatechatid", contact.PrivateChatId)
+
+        contactElement.addEventListener("click", function() {
+            switchChat(contact.PrivateChatId)
+        })
         
         contactListContainer.appendChild(contactElement);
 
@@ -386,5 +389,48 @@ function switchActiveChat(newActiveChatId) {
     })
     
     const newChat = document.querySelector(`[data-chatid="${newActiveChatId}"]`)
+    newChat.classList.add(`active`)
+}
+
+/* SWITCH PRIVATE CHAT REQUEST ================================================== */
+
+function switchPrivateChat(chatId) {
+    fetch(BASEURL + '/api/chat/private/switch', switchPrivateChatRequestBody(chatId))
+    .then(response => {
+        if (!response.ok) {
+            throw new Error(`Server error: ${response.status}`);
+        }
+        return response.json(); 
+    })
+    .then(responsePayload => {
+        console.log('[SwitchChat]Received:', responsePayload);
+        renderMessages(responsePayload.Messages, true);
+        const newActivePrivateChatId = responsePayload.NewActiveChatId 
+        switchActivePrivateChat(newActivePrivateChatId)
+    })
+    .catch(error => {
+        console.error('Fetch error:', error);
+    });
+}
+
+function switchPrivateChatRequestBody(chatId) {
+    console.log("SWITCHPRIVATECHATID:::::", chatId)
+    return {
+        method: 'POST',
+        headers: { 
+            'Content-Type': 'application/json' 
+        },
+        body: JSON.stringify({
+            ChatId: String(chatId),
+        })
+    }
+}
+
+function switchActivePrivateChat(newActivePrivateChatId) {
+     document.querySelectorAll(`.contact`).forEach(chat => {
+        chat.classList.remove(`active`)
+    })
+    
+    const newChat = document.querySelector(`[data-privatechatid="${newActivePrivateChatId}"]`)
     newChat.classList.add(`active`)
 }
