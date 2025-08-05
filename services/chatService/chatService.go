@@ -20,22 +20,10 @@ type ChatService struct {
 
 func (c *ChatService) NewChat(newChat ent.Chat) (*ent.Chat, error) {
 	c.lgr.LogFunctionInfo()
-	return c.chatR.NewChat(newChat.Name, newChat.AdminId, typ.Group)
+	return c.chatR.NewChat(newChat.Name, newChat.AdminId)
 }
 
 func (c *ChatService) GetChats(userId typ.UserId) ([]ent.Chat, error) {
 	c.lgr.LogFunctionInfo()
-
-	var chats []ent.Chat
-
-	chats, err := c.chatR.GetChats(userId)
-	if err != nil {
-		return chats, err
-	}
-
-	if len(chats) == 0 {
-		return chats, nil
-	}
-
-	return chats, nil
+	return c.chatR.GetChats(userId)
 }

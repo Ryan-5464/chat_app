@@ -77,10 +77,6 @@ func (cr *ChatHandler) RenderChatPage(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
-	// move this check close to database
-	if messages == nil {
-		messages = []entities.Message{}
-	}
 
 	contacts, err := cr.userS.GetContacts(session.UserId())
 	if err != nil {
@@ -88,15 +84,11 @@ func (cr *ChatHandler) RenderChatPage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	log.Println("CONTACTS:::::", contacts)
-
 	tmpl, err := template.ParseFiles("./static/templates/chat.html")
 	if err != nil {
 		http.Error(w, InternalServerError, http.StatusInternalServerError)
 		return
 	}
-
-	log.Println("*****CHATS*****", chats)
 
 	renderChatpayload := dto.RenderChatPayload{
 		Chats:    chats,

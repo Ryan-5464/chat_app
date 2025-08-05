@@ -82,7 +82,7 @@
 
             <div id="contact-list-container">
                 {{ range .Contacts }}
-                    <div class="contact" data-contactid="{{ .Id }}" data-privatechatid="{{ .PrivateChatId }}">
+                    <div class="contact" data-contactid="{{ .Id }}" data-contactchatid="{{ .ContactChatId }}">
                         <div class="contact-name">{{ .Name }}</div>
                         <div class="contact-email">{{ .Email }}</div>
                         <div class="contact-since">{{ .KnownSince }}</div>

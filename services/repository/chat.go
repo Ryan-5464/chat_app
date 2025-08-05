@@ -2,6 +2,7 @@ package repository
 
 import (
 	"errors"
+	"fmt"
 	ent "server/data/entities"
 	i "server/interfaces"
 	model "server/services/dbService/SQL/models"
@@ -20,46 +21,70 @@ type ChatRepository struct {
 	dbS i.DbService
 }
 
+func (c *ChatRepository) GetChatMessages(chatId typ.ChatId) ([]ent.Message, error) {
+	c.lgr.DLog(fmt.Sprintf("chatid %v", chatId))
+
+	messages, err := c.dbS.GetChatMessages(chatId)
+	if err != nil {
+		return []ent.Message{}, err
+	}
+
+	if len(messages) == 0 {
+		return []ent.Message{}, nil
+	}
+
+	return messageEntitiesFromModels(messages), nil
+}
+
 func (c *ChatRepository) NewMember(chatId typ.ChatId, userId typ.UserId) error {
 	c.lgr.LogFunctionInfo()
 
 	return c.dbS.NewMember(chatId, userId)
 }
 
-func (c *ChatRepository) NewChat(chatName string, adminId typ.UserId, chatType typ.ChatType) (*ent.Chat, error) {
+func (c *ChatRepository) NewChat(chatName string, adminId typ.UserId) (*ent.Chat, error) {
 	c.lgr.LogFunctionInfo()
 
-	newChatModel, err := c.dbS.NewChat(chatName, adminId, chatType)
+	chat, err := c.dbS.NewChat(chatName, adminId)
 	if err != nil {
 		return nil, err
 	}
 
-	if newChatModel == nil {
+	if chat == nil {
 		return nil, errors.New("new chat missing")
 	}
 
-	if err := c.dbS.NewMember(newChatModel.Id, newChatModel.AdminId); err != nil {
+	if err := c.dbS.NewMember(chat.Id, chat.AdminId); err != nil {
 		return nil, err
 	}
 
-	return chatModelToEntity(newChatModel), nil
+	return chatModelToEntity(chat), nil
 }
 
 func (c *ChatRepository) GetChats(userId typ.UserId) ([]ent.Chat, error) {
 	c.lgr.LogFunctionInfo()
 
-	var chats []ent.Chat
-
-	chatModels, err := c.dbS.GetUserChats(userId)
+	chats, err := c.dbS.GetUserChats(userId)
 	if err != nil {
-		return chats, err
+		return []ent.Chat{}, err
 	}
 
-	if len(chatModels) == 0 {
-		return chats, nil
+	if len(chats) == 0 {
+		return []ent.Chat{}, nil
 	}
 
-	return chatModelsToEntities(chatModels), nil
+	return chatModelsToEntities(chats), nil
+}
+
+func (c *ChatRepository) NewContactChat(adminId typ.UserId, contactId typ.UserId) error {
+	c.lgr.LogFunctionInfo()
+
+	_, err := c.dbS.NewContactChat(adminId, contactId)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func chatEntitiesToModels(chats []ent.Chat) []model.Chat {

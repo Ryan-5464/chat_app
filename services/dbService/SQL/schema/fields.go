@@ -17,10 +17,6 @@ const (
 	MsgText       string = "MsgText"
 	ReplyId       string = "ReplyId"
 	LastEditAt    string = "LastEditAt"
-	Contact1      string = "Contact1"
-	Contact2      string = "Contact2"
-	Established   string = "Established"
-	ChatType      string = "ChatType"
-	Private       string = "Private"
-	Group         string = "Group"
+	Member1Id     string = "Member1Id"
+	Member2Id     string = "Member2Id"
 )

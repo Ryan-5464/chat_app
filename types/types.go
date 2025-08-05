@@ -26,9 +26,4 @@ func (u UserId) String() string {
 
 type Rows []map[string]any
 
-type ChatType string
-
-const (
-	Private ChatType = "Private"
-	Group   ChatType = "Group"
-)
+type LastInsertId int64

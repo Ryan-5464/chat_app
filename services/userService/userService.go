@@ -53,13 +53,7 @@ func (u *UserService) GetChatUsers(chatId typ.ChatId) ([]ent.User, error) {
 func (u *UserService) NewUser(userReq dto.NewUserInput) (*ent.User, error) {
 	u.lgr.LogFunctionInfo()
 
-	newUser := ent.User{
-		Email:   userReq.Email,
-		PwdHash: userReq.PwdHash,
-		Name:    userReq.Name,
-	}
-
-	user, err := u.usrR.NewUser(newUser)
+	user, err := u.usrR.NewUser(userReq.Name, userReq.Email, userReq.PwdHash)
 	if err != nil {
 		return nil, err
 	}
@@ -83,20 +77,19 @@ func (u *UserService) FindUsers(emails []cred.Email) ([]ent.User, error) {
 func (u *UserService) AddContact(a dto.AddContactInput) (*ent.Contact, error) {
 	u.lgr.LogFunctionInfo()
 
-	contactEmails := []cred.Email{a.Email}
-	users, err := u.usrR.FindUsers(contactEmails)
+	user, err := u.usrR.FindUser(a.Email)
 	if err != nil {
 		return nil, err
 	}
 
-	if len(users) == 0 {
+	if user == nil {
 		return nil, err
 	}
 
 	c := ent.Contact{
-		Id:    users[0].Id,
-		Name:  users[0].Name,
-		Email: users[0].Email,
+		Id:    user.Id,
+		Name:  user.Name,
+		Email: user.Email,
 	}
 
 	contact, err := u.usrR.AddContact(c, a.UserId)
@@ -105,7 +98,7 @@ func (u *UserService) AddContact(a dto.AddContactInput) (*ent.Contact, error) {
 	}
 
 	chatName := fmt.Sprintf("privateChat%v", a.UserId)
-	chat, err := u.chatR.NewChat(chatName, a.UserId, typ.Private)
+	chat, err := u.chatR.NewChat(chatName, a.UserId)
 	if err != nil {
 		return nil, err
 	}
@@ -114,7 +107,7 @@ func (u *UserService) AddContact(a dto.AddContactInput) (*ent.Contact, error) {
 		return nil, errors.New("new chat missing")
 	}
 
-	contact.PrivateChatId = chat.Id
+	contact.ContactChatId = chat.Id
 
 	if err := u.chatR.NewMember(chat.Id, contact.Id); err != nil {
 		return nil, err
@@ -125,13 +118,5 @@ func (u *UserService) AddContact(a dto.AddContactInput) (*ent.Contact, error) {
 
 func (u *UserService) GetContacts(userId typ.UserId) ([]ent.Contact, error) {
 	u.lgr.LogFunctionInfo()
-
-	var contacts []ent.Contact
-
-	contacts, err := u.usrR.GetContacts(userId)
-	if err != nil {
-		return contacts, err
-	}
-
-	return contacts, nil
+	return u.usrR.GetContacts(userId)
 }

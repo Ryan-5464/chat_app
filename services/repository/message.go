@@ -2,7 +2,6 @@ package repository
 
 import (
 	"errors"
-	"fmt"
 	"server/data/entities"
 	i "server/interfaces"
 	model "server/services/dbService/SQL/models"
@@ -47,13 +46,16 @@ func (m *MessageRepository) GetMessages(msgIds []typ.MessageId) {
 func (m *MessageRepository) GetChatMessages(chatId typ.ChatId) ([]entities.Message, error) {
 	m.lgr.LogFunctionInfo()
 
-	msgMs, err := m.dbS.GetChatMessages(chatId)
+	messages, err := m.dbS.GetChatMessages(chatId)
 	if err != nil {
-		return []entities.Message{}, fmt.Errorf("failed to get messages: %w", err)
+		return []entities.Message{}, err
 	}
 
-	msgEs := messageEntitiesFromModels(msgMs)
-	return msgEs, nil
+	if len(messages) == 0 {
+		return []entities.Message{}, nil
+	}
+
+	return messageEntitiesFromModels(messages), nil
 }
 
 func messageEntitiesFromModels(msgMs []model.Message) []entities.Message {

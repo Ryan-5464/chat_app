@@ -97,11 +97,5 @@ func (m *MessageService) BroadcastMessage(userId typ.UserId, conn i.Socket, msg 
 
 func (m *MessageService) GetChatMessages(chatId typ.ChatId) ([]entities.Message, error) {
 	m.lgr.LogFunctionInfo()
-
-	messages, err := m.msgR.GetChatMessages(chatId)
-	if err != nil {
-		return []entities.Message{}, fmt.Errorf("failed to get messsages: %w", err)
-	}
-
-	return messages, nil
+	return m.msgR.GetChatMessages(chatId)
 }

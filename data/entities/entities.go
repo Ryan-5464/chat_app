@@ -37,15 +37,11 @@ type User struct {
 	Token   tkn.JWE
 }
 
-func (u User) IdIsZero() bool {
-	return u.Id == 0
-}
-
 type Contact struct {
 	Id            typ.UserId
 	Name          string
 	Email         cred.Email
 	KnownSince    time.Time
 	OnlineStatus  bool
-	PrivateChatId typ.ChatId
+	ContactChatId typ.ChatId
 }

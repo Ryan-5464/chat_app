@@ -19,7 +19,14 @@ type Chat struct {
 	Name      string
 	AdminId   typ.UserId
 	CreatedAt time.Time
-	ChatType  typ.ChatType
+}
+
+type ContactChat struct {
+	Id            typ.ChatId
+	Member1Id     typ.UserId
+	Member2Id     typ.UserId
+	CreatedAt     time.Time
+	LastMessageAt time.Time
 }
 
 type Message struct {
@@ -37,10 +44,4 @@ type Member struct {
 	ChatId        typ.ChatId
 	LastReadMsgId typ.MessageId
 	Joined        time.Time
-}
-
-type ContactRelation struct {
-	UserId      typ.UserId
-	ContactId   typ.UserId
-	Established time.Time
 }

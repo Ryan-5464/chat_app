@@ -22,9 +22,9 @@ type on string
 type placeholders string
 type values string
 
-type field string
+type Field string
 
-func (f field) String() string {
+func (f Field) String() string {
 	return string(f)
 }
 
@@ -42,20 +42,20 @@ func (q *queryBuilder) Build() string {
 // =============================================================================
 // Objects
 
-func (q *queryBuilder) Field(name string) field {
-	return field(name)
+func (q *queryBuilder) Field(name string) Field {
+	return Field(name)
 }
 
-func (q *queryBuilder) FieldWithAlias(name string, tag string) field {
+func (q *queryBuilder) FieldWithAlias(name string, tag string) Field {
 	var b strings.Builder
 	b.WriteString(tag)
 	b.WriteString(".")
 	b.WriteString(name)
-	return field(b.String())
+	return Field(b.String())
 }
 
-func (q *queryBuilder) All() field {
-	return field("*")
+func (q *queryBuilder) All() Field {
+	return Field("*")
 }
 
 func (q *queryBuilder) Table(name string) table {
@@ -73,20 +73,20 @@ func (q *queryBuilder) TableWithAlias(name string, tag string) table {
 // =============================================================================
 // Functions
 
-func (q *queryBuilder) Count(f field) field {
+func (q *queryBuilder) Count(f Field) Field {
 	var b strings.Builder
 	b.WriteString(" COUNT(")
 	b.WriteString(f.String())
 	b.WriteString(") AS count")
-	return field(b.String())
+	return Field(b.String())
 }
 
-func (q *queryBuilder) Max(f field) field {
+func (q *queryBuilder) Max(f Field) Field {
 	var b strings.Builder
 	b.WriteString(" MAX(")
 	b.WriteString(f.String())
 	b.WriteString(") AS max")
-	return field(b.String())
+	return Field(b.String())
 }
 
 // =============================================================================
@@ -103,7 +103,7 @@ func (q *queryBuilder) GreaterThan() placeholders {
 // =============================================================================
 // KeyWords
 
-func (q *queryBuilder) SELECT(fields ...field) *queryBuilder {
+func (q *queryBuilder) SELECT(fields ...Field) *queryBuilder {
 	q.WriteString("SELECT ")
 	q.WriteString(q.concatFields(fields...))
 	return q
@@ -115,7 +115,7 @@ func (q *queryBuilder) DELETE_FROM(t table) *queryBuilder {
 	return q
 }
 
-func (q *queryBuilder) INSERT_INTO(t table, fields ...field) *queryBuilder {
+func (q *queryBuilder) INSERT_INTO(t table, fields ...Field) *queryBuilder {
 	q.WriteString("INSERT INTO ")
 	q.WriteString(t.String())
 	q.WriteString(" (")
@@ -138,7 +138,7 @@ func (q *queryBuilder) JOIN(t table, o on) *queryBuilder {
 	return q
 }
 
-func (q *queryBuilder) WHERE(f field, ph placeholders) *queryBuilder {
+func (q *queryBuilder) WHERE(f Field, ph placeholders) *queryBuilder {
 	q.WriteString(" WHERE ")
 	q.WriteString(f.String())
 	q.WriteString(" ")
@@ -146,7 +146,7 @@ func (q *queryBuilder) WHERE(f field, ph placeholders) *queryBuilder {
 	return q
 }
 
-func (q *queryBuilder) OR(f field, ph placeholders) *queryBuilder {
+func (q *queryBuilder) OR(f Field, ph placeholders) *queryBuilder {
 	q.WriteString(" OR ")
 	q.WriteString(f.String())
 	q.WriteString(" ")
@@ -154,7 +154,7 @@ func (q *queryBuilder) OR(f field, ph placeholders) *queryBuilder {
 	return q
 }
 
-func (q *queryBuilder) AND(f field, ph placeholders) *queryBuilder {
+func (q *queryBuilder) AND(f Field, ph placeholders) *queryBuilder {
 	q.WriteString(" AND ")
 	q.WriteString(f.String())
 	q.WriteString(" ")
@@ -162,7 +162,7 @@ func (q *queryBuilder) AND(f field, ph placeholders) *queryBuilder {
 	return q
 }
 
-func (q *queryBuilder) GROUPBY(f field) *queryBuilder {
+func (q *queryBuilder) GROUPBY(f Field) *queryBuilder {
 	q.WriteString(" GROUP BY ")
 	q.WriteString(f.String())
 	return q
@@ -177,7 +177,7 @@ func (q *queryBuilder) VALUES(v ...any) *queryBuilder {
 	return q
 }
 
-func (q *queryBuilder) ON(fieldA field, fieldB field) on {
+func (q *queryBuilder) ON(fieldA Field, fieldB Field) on {
 	var b strings.Builder
 	b.WriteString(fieldA.String())
 	b.WriteString(" = ")
@@ -197,7 +197,7 @@ func (q *queryBuilder) IN(v ...any) placeholders {
 // =============================================================================
 // Helpers
 
-func (q *queryBuilder) concatFields(fields ...field) string {
+func (q *queryBuilder) concatFields(fields ...Field) string {
 	var b strings.Builder
 	for i, f := range fields {
 		b.WriteString(f.String())

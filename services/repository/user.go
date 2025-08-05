@@ -2,7 +2,6 @@ package repository
 
 import (
 	"errors"
-	"log"
 	ent "server/data/entities"
 	i "server/interfaces"
 	cred "server/services/authService/credentials"
@@ -57,20 +56,29 @@ func (u *UserRepository) GetChatUsers(chatId typ.ChatId) ([]ent.User, error) {
 	return userEntitiesFromModels(userModels), nil
 }
 
-func (u *UserRepository) NewUser(newUser ent.User) (*ent.User, error) {
+func (u *UserRepository) NewUser(userName string, userEmail cred.Email, pwdHash cred.PwdHash) (*ent.User, error) {
 	u.lgr.LogFunctionInfo()
 
-	newUserModel := userModelFromEntity(newUser)
-	userModel, err := u.dbS.NewUser(newUserModel)
+	lastInsertId, err := u.dbS.CreateUser(userName, userEmail, pwdHash)
 	if err != nil {
 		return nil, err
 	}
 
-	if userModel == nil {
+	user, err := u.dbS.GetNewUser(lastInsertId)
+	if err != nil {
+		return nil, err
+	}
+
+	if user == nil {
 		return nil, errors.New("new user missing!")
 	}
 
-	return userEntityFromModel(userModel), nil
+	return userEntityFromModel(user), nil
+}
+
+func (u *UserRepository) FindUser(email cred.Email) (*model.User, error) {
+	u.lgr.LogFunctionInfo()
+	return u.dbS.FindUser(email)
 }
 
 func (u *UserRepository) FindUsers(emails []cred.Email) ([]ent.User, error) {
@@ -116,39 +124,77 @@ func (u *UserRepository) AddContact(contact ent.Contact, userId typ.UserId) (*en
 func (u *UserRepository) GetContacts(userId typ.UserId) ([]ent.Contact, error) {
 	u.lgr.LogFunctionInfo()
 
+	contactChats, err := u.dbS.GetContactChats(userId)
+	if err != nil {
+		return []ent.Contact{}, err
+	}
+
+	contacts, err := createContacts(contactChats, userId)
+	if err != nil {
+		return []ent.Contact{}, err
+	}
+
+	var contactIds []typ.UserId
+	for _, contact := range contacts {
+		contactIds = append(contactIds, contact.Id)
+	}
+
+	users, err := u.dbS.GetUsers(contactIds)
+	if err != nil {
+		return []ent.Contact{}, err
+	}
+
+	return mapUserInfoToContacts(contacts, users), nil
+}
+
+func mapUserInfoToContacts(contacts []ent.Contact, users []model.User) []ent.Contact {
+	contactIdMap := make(map[typ.UserId]ent.Contact)
+	for _, contact := range contacts {
+		contactIdMap[contact.Id] = contact
+	}
+
+	updatedContacts := []ent.Contact{}
+	for _, user := range users {
+		contact := contactIdMap[user.Id]
+		contact.Name = user.Name
+		contact.Email = user.Email
+		updatedContacts = append(updatedContacts, contact)
+	}
+
+	return updatedContacts
+}
+
+func createContacts(chats []model.ContactChat, userId typ.UserId) ([]ent.Contact, error) {
 	var contacts []ent.Contact
+	for _, chat := range chats {
 
-	contactRelations, err := u.dbS.GetContactRelations(userId)
-	if err != nil {
-		return contacts, err
+		contactId, err := decipherContactId(chat, userId)
+		if err != nil {
+			return []ent.Contact{}, err
+		}
+
+		contact := ent.Contact{
+			Id:            contactId,
+			ContactChatId: chat.Id,
+		}
+
+		contacts = append(contacts, contact)
 	}
 
-	if len(contactRelations) == 0 {
-		return contacts, nil
+	return contacts, nil
+}
+
+func decipherContactId(chat model.ContactChat, userId typ.UserId) (typ.UserId, error) {
+	var contactId typ.UserId
+	if chat.Member1Id == userId {
+		contactId = chat.Member2Id
 	}
-
-	contactIds := getContactIds(contactRelations)
-
-	log.Println("CONTACTIDS:::::", contactIds)
-
-	users, err := u.GetUsers(contactIds)
-	if err != nil {
-		return contacts, err
+	if chat.Member2Id == userId {
+		contactId = chat.Member1Id
+	} else {
+		return 0, errors.New("no matching id for contact")
 	}
-
-	log.Println("USERS:::::", users)
-
-	if len(users) == 0 {
-		return contacts, errors.New("users missing!")
-	}
-
-	members, err := u.dbS.GetPrivateChatIdsForContacts(userId)
-	if err != nil {
-		return contacts, err
-	}
-
-	return createContacts(users, contactRelations, members), nil
-
+	return contactId, nil
 }
 
 func userEntitiesFromModels(usrMs []model.User) []ent.User {
@@ -178,40 +224,4 @@ func userModelFromEntity(u ent.User) model.User {
 		PwdHash: u.PwdHash,
 		Joined:  u.Joined,
 	}
-}
-
-func createContacts(users []ent.User, relations []model.ContactRelation, members []model.Member) []ent.Contact {
-	var contacts []ent.Contact
-	var userEmailMap = make(map[typ.UserId]cred.Email)
-	var userNameMap = make(map[typ.UserId]string)
-	var chatIdMap = make(map[typ.UserId]typ.ChatId)
-
-	for _, user := range users {
-		userEmailMap[user.Id] = user.Email
-		userNameMap[user.Id] = user.Name
-	}
-
-	for _, member := range members {
-		chatIdMap[member.UserId] = member.ChatId
-	}
-
-	for _, relation := range relations {
-		contact := ent.Contact{
-			Id:            relation.ContactId,
-			KnownSince:    relation.Established,
-			Name:          userNameMap[relation.ContactId],
-			Email:         userEmailMap[relation.ContactId],
-			PrivateChatId: chatIdMap[relation.ContactId],
-		}
-		contacts = append(contacts, contact)
-	}
-	return contacts
-}
-
-func getContactIds(c []model.ContactRelation) []typ.UserId {
-	var contactIds []typ.UserId
-	for _, relation := range c {
-		contactIds = append(contactIds, relation.ContactId)
-	}
-	return contactIds
 }
