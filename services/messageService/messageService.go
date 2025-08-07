@@ -3,6 +3,7 @@ package messageservice
 import (
 	"fmt"
 	"log"
+	dto "server/data/DTOs"
 	"server/data/entities"
 	i "server/interfaces"
 	typ "server/types"
@@ -24,34 +25,27 @@ type MessageService struct {
 	connS i.ConnectionService
 }
 
-func (m *MessageService) NewMessage(newMsg entities.Message) (*entities.Message, error) {
-	m.lgr.LogFunctionInfo()
-	return m.msgR.NewMessage(newMsg)
-}
+// func (m *MessageService) newMessage(mi dto.NewMessageInput) (*entities.Message, error) {
+// 	m.lgr.LogFunctionInfo()
+// 	return m.msgR.NewMessage(mi.UserId, mi.ChatId, mi.ReplyId, mi.Text)
+// }
 
-func (m *MessageService) HandleNewMessage(newMsg entities.Message) error {
+func (m *MessageService) HandleNewMessage(mi dto.NewMessageInput) error {
 	m.lgr.LogFunctionInfo()
 
-	msg, err := m.msgR.NewMessage(newMsg)
+	msg, err := m.msgR.NewMessage(mi.UserId, mi.ChatId, mi.ReplyId, mi.Text)
 	if err != nil {
 		return fmt.Errorf("failed to create new message: %w", err)
 	}
 
-	userIds := []typ.UserId{msg.UserId}
-	users, err := m.usrS.GetUsers(userIds)
+	user, err := m.usrS.GetUser(msg.UserId)
 	if err != nil {
 		return err
 	}
 
-	if len(users) == 0 {
-		return nil
-	}
-
-	user := users[0]
-
 	msg.Author = user.Name
 
-	users, err = m.usrS.GetChatUsers(msg.ChatId)
+	users, err := m.usrS.GetChatUsers(msg.ChatId)
 	if err != nil {
 		return err
 	}

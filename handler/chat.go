@@ -9,6 +9,7 @@ import (
 	"server/data/entities"
 	"server/handler/socket"
 	i "server/interfaces"
+	"server/lib"
 	cred "server/services/authService/credentials"
 	typ "server/types"
 	"text/template"
@@ -163,13 +164,28 @@ func (h *ChatHandler) readIncomingMessage(conn i.Socket) (dto.WebsocketPayload, 
 	return payload, nil
 }
 
-func (h *ChatHandler) handleNewMessageRequest(newMessageRequest dto.NewMessageRequest, userId typ.UserId) error {
-	msgE, err := newMessageRequest.ToMessageEntity(userId)
+func (h *ChatHandler) handleNewMessageRequest(mr dto.NewMessageRequest, userId typ.UserId) error {
+	cid, err := lib.ConvertStringToInt64(mr.ChatId)
 	if err != nil {
 		return err
 	}
 
-	err = h.msgS.HandleNewMessage(msgE)
+	rid, err := lib.ConvertStringToInt64(mr.ReplyId)
+	if err != nil {
+		return err
+	}
+
+	chatId := typ.ChatId(cid)
+	replyId := typ.MessageId(rid)
+
+	newMsgInput := dto.NewMessageInput{
+		UserId:  userId,
+		ChatId:  chatId,
+		ReplyId: &replyId,
+		Text:    mr.MsgText,
+	}
+
+	err = h.msgS.HandleNewMessage(newMsgInput)
 	if err != nil {
 		return err
 	}
@@ -269,15 +285,10 @@ func (h *ChatHandler) NewChat(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(newChatResponse)
 }
 
-func (h *ChatHandler) handleNewChatRequest(newChatRequest dto.NewChatRequest, userId typ.UserId) (dto.NewChatResponse, error) {
+func (h *ChatHandler) handleNewChatRequest(cr dto.NewChatRequest, userId typ.UserId) (dto.NewChatResponse, error) {
 	h.lgr.LogFunctionInfo()
 
-	newChat := entities.Chat{
-		Name: newChatRequest.Name,
-	}
-	newChat.AdminId = userId
-
-	chat, err := h.chatS.NewChat(newChat)
+	chat, err := h.chatS.NewChat(cr.Name, userId)
 	if err != nil {
 		return dto.NewChatResponse{}, err
 	}

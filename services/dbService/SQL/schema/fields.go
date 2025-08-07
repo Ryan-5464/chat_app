@@ -17,6 +17,6 @@ const (
 	MsgText       string = "MsgText"
 	ReplyId       string = "ReplyId"
 	LastEditAt    string = "LastEditAt"
-	Member1Id     string = "Member1Id"
-	Member2Id     string = "Member2Id"
+	Id1           string = "Id1"
+	Id2           string = "Id2"
 )

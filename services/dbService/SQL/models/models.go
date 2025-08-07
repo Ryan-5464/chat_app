@@ -21,10 +21,10 @@ type Chat struct {
 	CreatedAt time.Time
 }
 
-type ContactChat struct {
-	Id            typ.ChatId
-	Member1Id     typ.UserId
-	Member2Id     typ.UserId
+type Contact struct {
+	ChatId        typ.ChatId
+	Id1           typ.UserId
+	Id2           typ.UserId
 	CreatedAt     time.Time
 	LastMessageAt time.Time
 }

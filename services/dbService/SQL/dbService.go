@@ -1,7 +1,6 @@
 package SQL
 
 import (
-	"errors"
 	"fmt"
 	"log"
 	i "server/interfaces"
@@ -94,6 +93,25 @@ func (dbs *DbService) GetUserChats(userId typ.UserId) ([]model.Chat, error) {
 	return populateChatModels(rows), nil
 }
 
+func (dbs *DbService) GetUser(userId typ.UserId) (*model.User, error) {
+	dbs.lgr.LogFunctionInfo()
+
+	dbs.lgr.DLog(fmt.Sprintf("userId %v", userId))
+
+	query := selectAllFromWhereEqualTo(schema.UserTable, schema.UserId)
+
+	dbs.lgr.DLog(fmt.Sprintf("query %v", query))
+
+	rows, err := dbs.db.Read(query, userId)
+	if err != nil {
+		return nil, err
+	}
+
+	dbs.lgr.DLog(fmt.Sprintf("rows %v", rows))
+
+	return populateUserModel(rows), nil
+}
+
 func (dbs *DbService) GetUsers(userIds []typ.UserId) ([]model.User, error) {
 	dbs.lgr.LogFunctionInfo()
 
@@ -114,17 +132,16 @@ func (dbs *DbService) GetUsers(userIds []typ.UserId) ([]model.User, error) {
 	return populateUserModels(rows), nil
 }
 
-func (dbs *DbService) GetMembers(chatIds []typ.ChatId) ([]model.Member, error) {
+func (dbs *DbService) GetMembers(chatId typ.ChatId) ([]model.Member, error) {
 	dbs.lgr.LogFunctionInfo()
 
-	dbs.lgr.DLog(fmt.Sprintf("chatIds: %v", chatIds))
+	dbs.lgr.DLog(fmt.Sprintf("chatId: %v", chatId))
 
-	ids := ToAnySlice(chatIds)
-	query := selectAllFromWhereIn(schema.MemberTable, schema.ChatId, ids...)
+	query := selectAllFromWhereIn(schema.MemberTable, schema.ChatId, chatId)
 
 	dbs.lgr.DLog(fmt.Sprintf("query: %v", query))
 
-	rows, err := dbs.db.Read(query, ids...)
+	rows, err := dbs.db.Read(query, chatId)
 	if err != nil {
 		return []model.Member{}, err
 	}
@@ -132,37 +149,6 @@ func (dbs *DbService) GetMembers(chatIds []typ.ChatId) ([]model.Member, error) {
 	dbs.lgr.DLog(fmt.Sprintf("rows: %v", rows))
 
 	return populateMemberModels(rows), nil
-}
-
-func (dbs *DbService) GetChatUsers(chatId typ.ChatId) ([]model.User, error) {
-	dbs.lgr.LogFunctionInfo()
-
-	dbs.lgr.DLog(fmt.Sprintf("chatId: %v", chatId))
-
-	var chatIds = []typ.ChatId{chatId}
-	members, err := dbs.GetMembers(chatIds)
-	if err != nil {
-		return []model.User{}, err
-	}
-
-	dbs.lgr.DLog(fmt.Sprintf("members: %v", members))
-
-	if len(members) == 0 {
-		return []model.User{}, errors.New("members missing for chat")
-	}
-
-	var userIds []typ.UserId
-	for _, member := range members {
-		userIds = append(userIds, member.UserId)
-	}
-
-	dbs.lgr.DLog(fmt.Sprintf("userIds: %v", userIds))
-
-	if len(userIds) == 0 {
-		return []model.User{}, err
-	}
-
-	return dbs.GetUsers(userIds)
 }
 
 func (dbs *DbService) GetChatMessages(chatId typ.ChatId) ([]model.Message, error) {
@@ -204,7 +190,7 @@ func (dbs *DbService) GetMessages(messageIds []typ.MessageId) ([]model.Message, 
 	return populateMessageModels(rows), nil
 }
 
-func (dbs *DbService) NewChat(chatName string, adminId typ.UserId) (*model.Chat, error) {
+func (dbs *DbService) CreateChat(chatName string, adminId typ.UserId) (typ.LastInsertId, error) {
 	dbs.lgr.LogFunctionInfo()
 
 	dbs.lgr.DLog(fmt.Sprintf("chatname %s: adminId %v", chatName, adminId))
@@ -215,25 +201,23 @@ func (dbs *DbService) NewChat(chatName string, adminId typ.UserId) (*model.Chat,
 
 	res, err := dbs.db.Create(query, chatName, adminId)
 	if err != nil {
-		return nil, err
+		return 0, err
 	}
 
-	chatId, err := res.LastInsertId()
+	lastInsertId, err := res.LastInsertId()
 	if err != nil {
-		return nil, err
+		return 0, err
 	}
 
-	dbs.lgr.DLog(fmt.Sprintf("chatId %v", chatId))
-
-	return dbs.GetChat(typ.ChatId(chatId))
+	return typ.LastInsertId(lastInsertId), nil
 }
 
-func (dbs *DbService) NewMember(chatId typ.ChatId, userId typ.UserId) error {
+func (dbs *DbService) CreateMember(chatId typ.ChatId, userId typ.UserId) error {
 	dbs.lgr.LogFunctionInfo()
 
 	dbs.lgr.DLog(fmt.Sprintf("chatId %v: userId %v", chatId, userId))
 
-	query := insertIntoValues(schema.MemberTable, schema.UserId, schema.ChatId)
+	query := insertIntoValues(schema.MemberTable, schema.ChatId, schema.UserId)
 
 	dbs.lgr.DLog(fmt.Sprintf("query %v", query))
 
@@ -245,16 +229,16 @@ func (dbs *DbService) NewMember(chatId typ.ChatId, userId typ.UserId) error {
 	return nil
 }
 
-func (dbs *DbService) CreateUser(userName string, userEmail cred.Email, pwdHash cred.PwdHash) (typ.LastInsertId, error) {
+func (dbs *DbService) CreateUser(userName string, email cred.Email, pwdHash cred.PwdHash) (typ.LastInsertId, error) {
 	dbs.lgr.LogFunctionInfo()
 
-	dbs.lgr.DLog(fmt.Sprintf("values: name - %v email - %v pwdHash - %v", userName, userEmail, pwdHash))
+	dbs.lgr.DLog(fmt.Sprintf("user %s: email %v: pwdHash %v", userName, email, pwdHash))
 
 	query := insertIntoValues(schema.UserTable, schema.Name, schema.Email, schema.PwdHash)
 
-	dbs.lgr.DLog(fmt.Sprintf("query %v", query))
+	dbs.lgr.DLog(fmt.Sprintf("query: %v", query))
 
-	res, err := dbs.db.Create(query, userName, userEmail, pwdHash)
+	res, err := dbs.db.Create(query, userName, email, pwdHash)
 	if err != nil {
 		return 0, err
 	}
@@ -264,95 +248,29 @@ func (dbs *DbService) CreateUser(userName string, userEmail cred.Email, pwdHash 
 		return 0, err
 	}
 
-	dbs.lgr.DLog(fmt.Sprintf("lastInsertId %v", lastInsertId))
-
 	return typ.LastInsertId(lastInsertId), nil
 }
 
-func (dbs *DbService) GetNewUser(lastInsertId typ.LastInsertId) (*model.User, error) {
+func (dbs *DbService) CreateMessage(userId typ.UserId, chatId typ.ChatId, replyId *typ.MessageId, text string) (typ.LastInsertId, error) {
 	dbs.lgr.LogFunctionInfo()
 
-	dbs.lgr.DLog(fmt.Sprintf("lastInsertId %v", lastInsertId))
-
-	query := selectAllFromWhereEqualTo(schema.UserTable, schema.UserId)
-
-	dbs.lgr.DLog(fmt.Sprintf("query %v", query))
-
-	rows, err := dbs.db.Read(query, lastInsertId)
-	if err != nil {
-		return nil, err
-	}
-
-	dbs.lgr.DLog(fmt.Sprintf("rows %v", rows))
-
-	return populateUserModel(rows), nil
-}
-
-func (dbs *DbService) NewUser(u model.User) (*model.User, error) {
-	dbs.lgr.LogFunctionInfo()
-
-	dbs.lgr.DLog(fmt.Sprintf("user: %v", u))
-
-	query := insertIntoValues(schema.UserTable, schema.Name, schema.Email, schema.PwdHash)
-
-	dbs.lgr.DLog(fmt.Sprintf("query: %v", query))
-
-	res, err := dbs.db.Create(query, u.Name, u.Email, u.PwdHash)
-	if err != nil {
-		return nil, err
-	}
-
-	newUsrId, err := res.LastInsertId()
-	if err != nil {
-		return nil, err
-	}
-
-	dbs.lgr.DLog(fmt.Sprintf("newUsrId: %v", newUsrId))
-
-	return dbs.GetUser(typ.UserId(newUsrId))
-}
-
-func (dbs *DbService) GetUser(userId typ.UserId) (*model.User, error) {
-	dbs.lgr.LogFunctionInfo()
-
-	dbs.lgr.DLog(fmt.Sprintf("userId %v", userId))
-
-	query := selectAllFromWhereEqualTo(schema.UserTable, schema.UserId)
-
-	dbs.lgr.DLog(fmt.Sprintf("query %v", query))
-
-	rows, err := dbs.db.Read(query, userId)
-	if err != nil {
-		return nil, err
-	}
-
-	dbs.lgr.DLog(fmt.Sprintf("rows %v", rows))
-
-	return populateUserModel(rows), nil
-}
-
-func (dbs *DbService) NewMessage(m model.Message) (*model.Message, error) {
-	dbs.lgr.LogFunctionInfo()
-
-	dbs.lgr.DLog(fmt.Sprintf("newmessage %v", m))
+	dbs.lgr.DLog(fmt.Sprintf("userId %v: chatId %v: replyId %v: text %s", userId, chatId, replyId, text))
 
 	query := insertIntoValues(schema.MessageTable, schema.UserId, schema.ChatId, schema.ReplyId, schema.MsgText)
 
 	dbs.lgr.DLog(fmt.Sprintf("query %v", query))
 
-	res, err := dbs.db.Create(query, m.UserId, m.ChatId, m.ReplyId, m.Text)
+	res, err := dbs.db.Create(query, userId, chatId, replyId, text)
 	if err != nil {
-		return nil, err
+		return 0, err
 	}
 
-	newMsgId, err := res.LastInsertId()
+	lastInsertId, err := res.LastInsertId()
 	if err != nil {
-		return nil, err
+		return 0, err
 	}
 
-	dbs.lgr.DLog(fmt.Sprintf("newmessageId %v", newMsgId))
-
-	return dbs.GetMessage(typ.MessageId(newMsgId))
+	return typ.LastInsertId(lastInsertId), nil
 }
 
 func (dbs *DbService) GetMessage(messageId typ.MessageId) (*model.Message, error) {
@@ -413,23 +331,23 @@ func (dbs *DbService) FindUsers(e []cred.Email) ([]model.User, error) {
 	return populateUserModels(rows), nil
 }
 
-func (dbs *DbService) NewContactChat(member1Id typ.UserId, member2Id typ.UserId) (*model.ContactChat, error) {
+func (dbs *DbService) CreateContact(id1 typ.UserId, id2 typ.UserId) (*model.Contact, error) {
 	dbs.lgr.LogFunctionInfo()
 
-	dbs.lgr.DLog(fmt.Sprintf("member1Id: %v - member2Id: %s", member1Id, member2Id))
+	dbs.lgr.DLog(fmt.Sprintf("id1: %v - id2: %s", id1, id2))
 
 	qb := qbuilder.NewQueryBuilder()
 
-	contactChatTable := qb.Table(schema.ContactChatTable)
-	member1IdF := qb.Field(schema.Member1Id)
-	member2IdF := qb.Field(schema.Member2Id)
+	contactTable := qb.Table(schema.ContactTable)
+	id1F := qb.Field(schema.Id1)
+	id2F := qb.Field(schema.Id2)
 
-	query := qb.INSERT_INTO(contactChatTable, member1IdF, member2IdF).
-		VALUES(member1Id, member2Id).Build()
+	query := qb.INSERT_INTO(contactTable, id1F, id2F).
+		VALUES(id1, id2).Build()
 
 	dbs.lgr.DLog(fmt.Sprintf("query %s", query))
 
-	values := []any{member1Id, member2Id}
+	values := []any{id1, id2}
 	rows, err := dbs.db.Read(query, values...)
 	if err != nil {
 		return nil, err
@@ -437,33 +355,33 @@ func (dbs *DbService) NewContactChat(member1Id typ.UserId, member2Id typ.UserId)
 
 	dbs.lgr.DLog(fmt.Sprintf("rows: %v", rows))
 
-	return populateContactChatModel(rows), nil
+	return populateContactModel(rows), nil
 }
 
-func (dbs *DbService) GetContactChats(userId typ.UserId) ([]model.ContactChat, error) {
+func (dbs *DbService) GetContacts(userId typ.UserId) ([]model.Contact, error) {
 	dbs.lgr.LogFunctionInfo()
 
 	dbs.lgr.DLog(fmt.Sprintf("userId: %v", userId))
 
 	qb := qbuilder.NewQueryBuilder()
 
-	contactChatTable := qb.Table(schema.ContactChatTable)
-	member1IdF := qb.Field(schema.Member1Id)
-	member2IdF := qb.Field(schema.Member2Id)
+	contactTable := qb.Table(schema.ContactTable)
+	id1F := qb.Field(schema.Id1)
+	id2F := qb.Field(schema.Id2)
 
-	query := qb.SELECT(qb.All()).FROM(contactChatTable).
-		WHERE(member1IdF, qb.EqualTo()).OR(member2IdF, qb.EqualTo()).Build()
+	query := qb.SELECT(qb.All()).FROM(contactTable).
+		WHERE(id1F, qb.EqualTo()).OR(id2F, qb.EqualTo()).Build()
 
 	dbs.lgr.DLog(fmt.Sprintf("query: %s", query))
 
 	rows, err := dbs.db.Read(query, userId, userId)
 	if err != nil {
-		return []model.ContactChat{}, nil
+		return []model.Contact{}, nil
 	}
 
 	dbs.lgr.DLog(fmt.Sprintf("rows: %v", rows))
 
-	return populateContactChatModels(rows), nil
+	return populateContactModels(rows), nil
 }
 
 func selectAllFromWhereEqualTo(table string, field string) string {
@@ -500,32 +418,32 @@ func insertIntoValues(table string, fields ...string) string {
 	return qb.INSERT_INTO(t, fs...).VALUES(vals...).Build()
 }
 
-func populateContactChatModel(rows typ.Rows) *model.ContactChat {
-	contactChats := populateContactChatModels(rows)
-	if len(contactChats) == 0 {
+func populateContactModel(rows typ.Rows) *model.Contact {
+	contacts := populateContactModels(rows)
+	if len(contacts) == 0 {
 		return nil
 	}
-	contactChat := contactChats[0]
-	return &contactChat
+	contact := contacts[0]
+	return &contact
 }
 
-func populateContactChatModels(rows typ.Rows) []model.ContactChat {
+func populateContactModels(rows typ.Rows) []model.Contact {
 	if len(rows) == 0 {
-		return []model.ContactChat{}
+		return []model.Contact{}
 	}
 
-	var contactChats []model.ContactChat
+	var contact []model.Contact
 	for _, row := range rows {
-		contactChat := model.ContactChat{
-			Id:            parseChatId(row[schema.ChatId]),
-			Member1Id:     parseUserId(row[schema.Member1Id]),
-			Member2Id:     parseUserId(row[schema.Member2Id]),
+		chat := model.Contact{
+			ChatId:        parseChatId(row[schema.ChatId]),
+			Id1:           parseUserId(row[schema.Id1]),
+			Id2:           parseUserId(row[schema.Id2]),
 			CreatedAt:     parseTime(row[schema.CreatedAt]),
 			LastMessageAt: parseTime(row[schema.LastMsgAt]),
 		}
-		contactChats = append(contactChats, contactChat)
+		contact = append(contact, chat)
 	}
-	return contactChats
+	return contact
 }
 
 func populateChatModel(rows typ.Rows) *model.Chat {

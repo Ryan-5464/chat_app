@@ -21,18 +21,24 @@ type UserRepository struct {
 	dbS i.DbService
 }
 
+func (u *UserRepository) GetUser(userId typ.UserId) (*ent.User, error) {
+	u.lgr.LogFunctionInfo()
+
+	userModel, err := u.dbS.GetUser(userId)
+	if err != nil {
+		return nil, err
+	}
+
+	return userEntityFromModel(userModel), nil
+
+}
+
 func (u *UserRepository) GetUsers(userIds []typ.UserId) ([]ent.User, error) {
 	u.lgr.LogFunctionInfo()
 
-	var users []ent.User
-
 	userModels, err := u.dbS.GetUsers(userIds)
 	if err != nil {
-		return users, err
-	}
-
-	if len(userModels) == 0 {
-		return users, nil
+		return []ent.User{}, err
 	}
 
 	return userEntitiesFromModels(userModels), nil
@@ -42,18 +48,19 @@ func (u *UserRepository) GetUsers(userIds []typ.UserId) ([]ent.User, error) {
 func (u *UserRepository) GetChatUsers(chatId typ.ChatId) ([]ent.User, error) {
 	u.lgr.LogFunctionInfo()
 
-	var users []ent.User
-
-	userModels, err := u.dbS.GetChatUsers(chatId)
+	members, err := u.dbS.GetMembers(chatId)
 	if err != nil {
-		return users, err
+		return []ent.User{}, err
 	}
 
-	if len(userModels) == 0 {
-		return users, nil
+	memberIds := getMemberIds(members)
+
+	users, err := u.dbS.GetUsers(memberIds)
+	if err != nil {
+		return []ent.User{}, err
 	}
 
-	return userEntitiesFromModels(userModels), nil
+	return userEntitiesFromModels(users), nil
 }
 
 func (u *UserRepository) NewUser(userName string, userEmail cred.Email, pwdHash cred.PwdHash) (*ent.User, error) {
@@ -64,7 +71,7 @@ func (u *UserRepository) NewUser(userName string, userEmail cred.Email, pwdHash 
 		return nil, err
 	}
 
-	user, err := u.dbS.GetNewUser(lastInsertId)
+	user, err := u.dbS.GetUser(typ.UserId(lastInsertId))
 	if err != nil {
 		return nil, err
 	}
@@ -84,52 +91,47 @@ func (u *UserRepository) FindUser(email cred.Email) (*model.User, error) {
 func (u *UserRepository) FindUsers(emails []cred.Email) ([]ent.User, error) {
 	u.lgr.LogFunctionInfo()
 
-	var users []ent.User
-
 	userModels, err := u.dbS.FindUsers(emails)
 	if err != nil {
-		return users, err
-	}
-
-	if len(userModels) == 0 {
-		return users, nil
+		return []ent.User{}, err
 	}
 
 	return userEntitiesFromModels(userModels), nil
 }
 
-func (u *UserRepository) AddContact(contact ent.Contact, userId typ.UserId) (*ent.Contact, error) {
+func (u *UserRepository) AddContact(contactId typ.UserId, contactName string, contactEmail cred.Email, userId typ.UserId) (*ent.Contact, error) {
 	u.lgr.LogFunctionInfo()
 
-	contactRelation, err := u.dbS.AddContactRelation(userId, contact.Id)
+	contactModel, err := u.dbS.CreateContact(userId, contactId)
 	if err != nil {
 		return nil, err
 	}
 
-	if contactRelation == nil {
+	if contactModel == nil {
 		return nil, errors.New("added contact relation missing!")
 	}
 
-	c := &ent.Contact{
-		Id:         contact.Id,
-		Name:       contact.Name,
-		Email:      contact.Email,
-		KnownSince: contactRelation.Established,
+	contactEnt := &ent.Contact{
+		Id:            decipherContactId(contactModel.Id1, contactModel.Id2, userId),
+		Name:          contactName,
+		Email:         contactEmail,
+		KnownSince:    contactModel.CreatedAt,
+		ContactChatId: contactModel.ChatId,
 	}
 
-	return c, nil
+	return contactEnt, nil
 
 }
 
 func (u *UserRepository) GetContacts(userId typ.UserId) ([]ent.Contact, error) {
 	u.lgr.LogFunctionInfo()
 
-	contactChats, err := u.dbS.GetContactChats(userId)
+	contactModels, err := u.dbS.GetContacts(userId)
 	if err != nil {
 		return []ent.Contact{}, err
 	}
 
-	contacts, err := createContacts(contactChats, userId)
+	contacts, err := createContacts(contactModels, userId)
 	if err != nil {
 		return []ent.Contact{}, err
 	}
@@ -164,18 +166,14 @@ func mapUserInfoToContacts(contacts []ent.Contact, users []model.User) []ent.Con
 	return updatedContacts
 }
 
-func createContacts(chats []model.ContactChat, userId typ.UserId) ([]ent.Contact, error) {
+func createContacts(contactModels []model.Contact, userId typ.UserId) ([]ent.Contact, error) {
 	var contacts []ent.Contact
-	for _, chat := range chats {
-
-		contactId, err := decipherContactId(chat, userId)
-		if err != nil {
-			return []ent.Contact{}, err
-		}
+	for _, model := range contactModels {
 
 		contact := ent.Contact{
-			Id:            contactId,
-			ContactChatId: chat.Id,
+			Id:            decipherContactId(model.Id1, model.Id2, userId),
+			ContactChatId: model.ChatId,
+			KnownSince:    model.CreatedAt,
 		}
 
 		contacts = append(contacts, contact)
@@ -184,29 +182,38 @@ func createContacts(chats []model.ContactChat, userId typ.UserId) ([]ent.Contact
 	return contacts, nil
 }
 
-func decipherContactId(chat model.ContactChat, userId typ.UserId) (typ.UserId, error) {
-	var contactId typ.UserId
-	if chat.Member1Id == userId {
-		contactId = chat.Member2Id
-	}
-	if chat.Member2Id == userId {
-		contactId = chat.Member1Id
+func decipherContactId(id1 typ.UserId, id2 typ.UserId, userId typ.UserId) typ.UserId {
+	if id1 == userId {
+		return id2
 	} else {
-		return 0, errors.New("no matching id for contact")
+		return id1
 	}
-	return contactId, nil
 }
 
-func userEntitiesFromModels(usrMs []model.User) []ent.User {
+func userEntitiesFromModels(userModels []model.User) []ent.User {
+	if len(userModels) == 0 {
+		return []ent.User{}
+	}
+
 	var usrEs []ent.User
-	for _, usrM := range usrMs {
-		usrE := userEntityFromModel(&usrM)
-		usrEs = append(usrEs, *usrE)
+	for _, m := range userModels {
+		usrE := ent.User{
+			Id:      m.Id,
+			Name:    m.Name,
+			Email:   m.Email,
+			PwdHash: m.PwdHash,
+			Joined:  m.Joined,
+		}
+		usrEs = append(usrEs, usrE)
 	}
 	return usrEs
 }
 
 func userEntityFromModel(m *model.User) *ent.User {
+	if m == nil {
+		return nil
+	}
+
 	return &ent.User{
 		Id:      m.Id,
 		Name:    m.Name,
@@ -216,12 +223,10 @@ func userEntityFromModel(m *model.User) *ent.User {
 	}
 }
 
-func userModelFromEntity(u ent.User) model.User {
-	return model.User{
-		Id:      u.Id,
-		Name:    u.Name,
-		Email:   u.Email,
-		PwdHash: u.PwdHash,
-		Joined:  u.Joined,
+func getMemberIds(members []model.Member) []typ.UserId {
+	var userIds []typ.UserId
+	for _, member := range members {
+		userIds = append(userIds, member.UserId)
 	}
+	return userIds
 }

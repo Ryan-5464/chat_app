@@ -12,43 +12,48 @@ import (
 type UserRepository interface {
 	NewUser(userName string, userEmail cred.Email, pwdHash cred.PwdHash) (*ent.User, error)
 	GetChatUsers(chatId typ.ChatId) ([]ent.User, error)
+	GetUser(userId typ.UserId) (*ent.User, error)
 	GetUsers(userIds []typ.UserId) ([]ent.User, error)
 	FindUser(email cred.Email) (*model.User, error)
 	FindUsers(emails []cred.Email) ([]ent.User, error)
 	GetContacts(userId typ.UserId) ([]ent.Contact, error)
-	AddContact(contact ent.Contact, userId typ.UserId) (*ent.Contact, error)
+	AddContact(contactId typ.UserId, contactName string, contactEmail cred.Email, userId typ.UserId) (*ent.Contact, error)
 }
 
 type ChatRepository interface {
 	NewChat(chatName string, adminId typ.UserId) (*ent.Chat, error)
 	GetChats(userId typ.UserId) ([]ent.Chat, error)
 	NewMember(chatId typ.ChatId, userId typ.UserId) error
-	NewContactChat(adminId typ.UserId, contactId typ.UserId) error
 }
 
 type MessageRepository interface {
-	NewMessage(msg ent.Message) (*ent.Message, error)
+	NewMessage(userId typ.UserId, chatId typ.ChatId, replyId *typ.MessageId, text string) (*ent.Message, error)
 	GetChatMessages(chatId typ.ChatId) ([]ent.Message, error)
 }
 
 type DbService interface {
 	FindUser(email cred.Email) (*model.User, error)
-	GetContactChats(userId typ.UserId) ([]model.ContactChat, error)
-	CreateUser(userName string, userEmail cred.Email, pwdHash cred.PwdHash) (typ.LastInsertId, error)
-	GetNewUser(lastInsertId typ.LastInsertId) (*model.User, error)
+
+	GetUser(usrIds typ.UserId) (*model.User, error)
 	GetUsers(usrIds []typ.UserId) ([]model.User, error)
-	GetChatUsers(chatId typ.ChatId) ([]model.User, error)
-	NewUser(userModel model.User) (*model.User, error)
+	CreateUser(userName string, email cred.Email, pwdHash cred.PwdHash) (typ.LastInsertId, error)
 	FindUsers(emails []cred.Email) ([]model.User, error)
-	NewMember(chatId typ.ChatId, userId typ.UserId) error
-	NewChat(chatName string, adminId typ.UserId) (*model.Chat, error)
+
+	CreateMember(chatId typ.ChatId, userId typ.UserId) error
+	GetMembers(chatId typ.ChatId) ([]model.Member, error)
+
+	CreateChat(chatName string, adminId typ.UserId) (typ.LastInsertId, error)
 	GetChat(chatId typ.ChatId) (*model.Chat, error)
 	GetChats(chatId []typ.ChatId) ([]model.Chat, error)
 	GetUserChats(userId typ.UserId) ([]model.Chat, error)
+
 	GetMessages(msgIds []typ.MessageId) ([]model.Message, error)
 	GetChatMessages(chatId typ.ChatId) ([]model.Message, error)
-	NewMessage(msgM model.Message) (*model.Message, error)
-	NewContactChat(adminId typ.UserId, memberId typ.UserId) (*model.ContactChat, error)
+	GetMessage(msgId typ.MessageId) (*model.Message, error)
+	CreateMessage(userId typ.UserId, chatId typ.ChatId, replyId *typ.MessageId, text string) (typ.LastInsertId, error)
+
+	CreateContact(id1 typ.UserId, id2 typ.UserId) (*model.Contact, error)
+	GetContacts(userId typ.UserId) ([]model.Contact, error)
 	Close()
 }
 
@@ -59,16 +64,17 @@ type AuthService interface {
 
 type ChatService interface {
 	GetChats(userId typ.UserId) ([]ent.Chat, error)
-	NewChat(chat ent.Chat) (*ent.Chat, error)
+	NewChat(chatName string, adminId typ.UserId) (*ent.Chat, error)
 }
 
 type MessageService interface {
 	GetChatMessages(chatId typ.ChatId) ([]ent.Message, error)
-	HandleNewMessage(msg ent.Message) error
-	NewMessage(msg ent.Message) (*ent.Message, error)
+	HandleNewMessage(mi dto.NewMessageInput) error
+	// newMessage(mi dto.NewMessageInput) (*ent.Message, error)
 }
 
 type UserService interface {
+	GetUser(userId typ.UserId) (*ent.User, error)
 	GetUsers(userId []typ.UserId) ([]ent.User, error)
 	GetChatUsers(chatId typ.ChatId) ([]ent.User, error)
 	NewUser(newUser dto.NewUserInput) (*ent.User, error)

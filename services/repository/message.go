@@ -20,28 +20,27 @@ type MessageRepository struct {
 	dbS i.DbService
 }
 
-func (m *MessageRepository) NewMessage(newMsg entities.Message) (*entities.Message, error) {
+func (m *MessageRepository) NewMessage(userId typ.UserId, chatId typ.ChatId, replyId *typ.MessageId, text string) (*entities.Message, error) {
 	m.lgr.LogFunctionInfo()
-	msgModel := messageModelFromEntity(newMsg)
 
-	msg, err := m.dbS.NewMessage(msgModel)
+	lastInsertId, err := m.dbS.CreateMessage(userId, chatId, replyId, text)
 	if err != nil {
 		return nil, err
 	}
 
-	if msg == nil {
-		return nil, errors.New("new message missing!")
+	messageModel, err := m.dbS.GetMessage(typ.MessageId(lastInsertId))
+
+	if messageModel == nil {
+		return nil, errors.New("new message missing")
 	}
 
-	msgEnt := messageEntityFromModel(*msg)
-
-	return &msgEnt, nil
+	return messageEntityFromModel(messageModel), nil
 }
 
-func (m *MessageRepository) GetMessages(msgIds []typ.MessageId) {
-	m.lgr.LogFunctionInfo()
-	m.dbS.GetMessages(msgIds)
-}
+// func (m *MessageRepository) GetMessages(msgIds []typ.MessageId) {
+// 	m.lgr.LogFunctionInfo()
+// 	m.dbS.GetMessages(msgIds)
+// }
 
 func (m *MessageRepository) GetChatMessages(chatId typ.ChatId) ([]entities.Message, error) {
 	m.lgr.LogFunctionInfo()
@@ -58,29 +57,33 @@ func (m *MessageRepository) GetChatMessages(chatId typ.ChatId) ([]entities.Messa
 	return messageEntitiesFromModels(messages), nil
 }
 
-func messageEntitiesFromModels(msgMs []model.Message) []entities.Message {
+func messageEntitiesFromModels(messages []model.Message) []entities.Message {
+	if len(messages) == 0 {
+		return []entities.Message{}
+	}
+
 	var msgEs []entities.Message
-	for _, msg := range msgMs {
-		usrE := messageEntityFromModel(msg)
+	for _, m := range messages {
+		usrE := entities.Message{
+			Id:         m.Id,
+			UserId:     m.UserId,
+			ChatId:     m.ChatId,
+			ReplyId:    m.ReplyId,
+			Text:       m.Text,
+			CreatedAt:  m.CreatedAt,
+			LastEditAt: m.LastEditAt,
+		}
 		msgEs = append(msgEs, usrE)
 	}
 	return msgEs
 }
 
-func messageEntityFromModel(m model.Message) entities.Message {
-	return entities.Message{
-		Id:         m.Id,
-		UserId:     m.UserId,
-		ChatId:     m.ChatId,
-		ReplyId:    m.ReplyId,
-		Text:       m.Text,
-		CreatedAt:  m.CreatedAt,
-		LastEditAt: m.LastEditAt,
+func messageEntityFromModel(m *model.Message) *entities.Message {
+	if m == nil {
+		return nil
 	}
-}
 
-func messageModelFromEntity(m entities.Message) model.Message {
-	return model.Message{
+	return &entities.Message{
 		Id:         m.Id,
 		UserId:     m.UserId,
 		ChatId:     m.ChatId,

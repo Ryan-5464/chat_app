@@ -46,7 +46,7 @@ func main() {
 	authS := sauth.NewAuthService(logger)
 	chatS := schat.NewChatService(logger, chatR)
 	connS := sconn.NewConnectionService(logger)
-	userS := suser.NewUserService(logger, userR, chatR)
+	userS := suser.NewUserService(logger, userR, chatS)
 	msgS := smsg.NewMessageService(logger, msgR, userS, connS)
 
 	chatHandler := handler.NewChatHandler(logger, authS, chatS, msgS, connS, userS)

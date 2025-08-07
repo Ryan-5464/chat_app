@@ -41,31 +41,6 @@ type NewMessageRequest struct {
 	MsgText string `json:"MsgText"`
 }
 
-func (n *NewMessageRequest) ToMessageEntity(userId typ.UserId) (entities.Message, error) {
-	chatId, err := lib.ConvertStringToInt64(n.ChatId)
-	if err != nil {
-		return entities.Message{}, err
-	}
-
-	var replyId int64
-	if n.ReplyId != "" {
-		replyId, err = lib.ConvertStringToInt64(n.ReplyId)
-		if err != nil {
-			return entities.Message{}, err
-		}
-	}
-
-	msgE := entities.Message{
-		UserId:  userId,
-		ChatId:  typ.ChatId(chatId),
-		ReplyId: typ.MessageId(replyId),
-		Text:    n.MsgText,
-	}
-
-	return msgE, nil
-
-}
-
 type WebsocketPayload struct {
 	Type string          `json:"Type"`
 	Data json.RawMessage `json:"Data"`
@@ -118,4 +93,11 @@ type NewUserInput struct {
 type AddContactInput struct {
 	Email  cred.Email
 	UserId typ.UserId
+}
+
+type NewMessageInput struct {
+	UserId  typ.UserId
+	ChatId  typ.ChatId
+	Text    string
+	ReplyId *typ.MessageId
 }

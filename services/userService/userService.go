@@ -1,8 +1,6 @@
 package userservice
 
 import (
-	"errors"
-	"fmt"
 	dto "server/data/DTOs"
 	ent "server/data/entities"
 	i "server/interfaces"
@@ -10,18 +8,23 @@ import (
 	typ "server/types"
 )
 
-func NewUserService(l i.Logger, u i.UserRepository, c i.ChatRepository) *UserService {
+func NewUserService(l i.Logger, u i.UserRepository, c i.ChatService) *UserService {
 	return &UserService{
 		lgr:   l,
 		usrR:  u,
-		chatR: c,
+		chatS: c,
 	}
 }
 
 type UserService struct {
 	lgr   i.Logger
 	usrR  i.UserRepository
-	chatR i.ChatRepository
+	chatS i.ChatService
+}
+
+func (u *UserService) GetUser(userId typ.UserId) (*ent.User, error) {
+	u.lgr.LogFunctionInfo()
+	return u.usrR.GetUser(userId)
 }
 
 func (u *UserService) GetUsers(userIds []typ.UserId) ([]ent.User, error) {
@@ -83,37 +86,10 @@ func (u *UserService) AddContact(a dto.AddContactInput) (*ent.Contact, error) {
 	}
 
 	if user == nil {
-		return nil, err
+		return nil, nil
 	}
 
-	c := ent.Contact{
-		Id:    user.Id,
-		Name:  user.Name,
-		Email: user.Email,
-	}
-
-	contact, err := u.usrR.AddContact(c, a.UserId)
-	if err != nil {
-		return nil, err
-	}
-
-	chatName := fmt.Sprintf("privateChat%v", a.UserId)
-	chat, err := u.chatR.NewChat(chatName, a.UserId)
-	if err != nil {
-		return nil, err
-	}
-
-	if chat == nil {
-		return nil, errors.New("new chat missing")
-	}
-
-	contact.ContactChatId = chat.Id
-
-	if err := u.chatR.NewMember(chat.Id, contact.Id); err != nil {
-		return nil, err
-	}
-
-	return contact, nil
+	return u.usrR.AddContact(user.Id, user.Name, user.Email, a.UserId)
 }
 
 func (u *UserService) GetContacts(userId typ.UserId) ([]ent.Contact, error) {

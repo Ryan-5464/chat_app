@@ -18,9 +18,9 @@ type ChatService struct {
 	chatR i.ChatRepository
 }
 
-func (c *ChatService) NewChat(newChat ent.Chat) (*ent.Chat, error) {
+func (c *ChatService) NewChat(chatName string, adminId typ.UserId) (*ent.Chat, error) {
 	c.lgr.LogFunctionInfo()
-	return c.chatR.NewChat(newChat.Name, newChat.AdminId)
+	return c.chatR.NewChat(chatName, adminId)
 }
 
 func (c *ChatService) GetChats(userId typ.UserId) ([]ent.Chat, error) {

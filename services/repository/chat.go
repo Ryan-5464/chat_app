@@ -1,7 +1,6 @@
 package repository
 
 import (
-	"errors"
 	"fmt"
 	ent "server/data/entities"
 	i "server/interfaces"
@@ -29,32 +28,28 @@ func (c *ChatRepository) GetChatMessages(chatId typ.ChatId) ([]ent.Message, erro
 		return []ent.Message{}, err
 	}
 
-	if len(messages) == 0 {
-		return []ent.Message{}, nil
-	}
-
 	return messageEntitiesFromModels(messages), nil
 }
 
 func (c *ChatRepository) NewMember(chatId typ.ChatId, userId typ.UserId) error {
 	c.lgr.LogFunctionInfo()
-
-	return c.dbS.NewMember(chatId, userId)
+	return c.dbS.CreateMember(chatId, userId)
 }
 
 func (c *ChatRepository) NewChat(chatName string, adminId typ.UserId) (*ent.Chat, error) {
 	c.lgr.LogFunctionInfo()
 
-	chat, err := c.dbS.NewChat(chatName, adminId)
+	lastInsertId, err := c.dbS.CreateChat(chatName, adminId)
 	if err != nil {
 		return nil, err
 	}
 
-	if chat == nil {
-		return nil, errors.New("new chat missing")
+	chat, err := c.dbS.GetChat(typ.ChatId(lastInsertId))
+	if err != nil {
+		return nil, err
 	}
 
-	if err := c.dbS.NewMember(chat.Id, chat.AdminId); err != nil {
+	if err := c.dbS.CreateMember(chat.Id, chat.AdminId); err != nil {
 		return nil, err
 	}
 
@@ -69,39 +64,14 @@ func (c *ChatRepository) GetChats(userId typ.UserId) ([]ent.Chat, error) {
 		return []ent.Chat{}, err
 	}
 
-	if len(chats) == 0 {
-		return []ent.Chat{}, nil
-	}
-
 	return chatModelsToEntities(chats), nil
 }
 
-func (c *ChatRepository) NewContactChat(adminId typ.UserId, contactId typ.UserId) error {
-	c.lgr.LogFunctionInfo()
-
-	_, err := c.dbS.NewContactChat(adminId, contactId)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func chatEntitiesToModels(chats []ent.Chat) []model.Chat {
-	chatMdls := []model.Chat{}
-	for _, chat := range chats {
-		mdl := model.Chat{
-			Id:        chat.Id,
-			Name:      chat.Name,
-			AdminId:   chat.AdminId,
-			CreatedAt: chat.CreatedAt,
-		}
-		chatMdls = append(chatMdls, mdl)
-	}
-	return chatMdls
-}
-
 func chatModelsToEntities(chats []model.Chat) []ent.Chat {
+	if len(chats) == 0 {
+		return []ent.Chat{}
+	}
+
 	chatEnts := []ent.Chat{}
 	for _, chat := range chats {
 		ent := ent.Chat{
@@ -116,16 +86,11 @@ func chatModelsToEntities(chats []model.Chat) []ent.Chat {
 }
 
 func chatModelToEntity(chat *model.Chat) *ent.Chat {
-	return &ent.Chat{
-		Id:        chat.Id,
-		Name:      chat.Name,
-		AdminId:   chat.AdminId,
-		CreatedAt: chat.CreatedAt,
+	if chat == nil {
+		return nil
 	}
-}
 
-func chatEntityToModel(chat ent.Chat) model.Chat {
-	return model.Chat{
+	return &ent.Chat{
 		Id:        chat.Id,
 		Name:      chat.Name,
 		AdminId:   chat.AdminId,
