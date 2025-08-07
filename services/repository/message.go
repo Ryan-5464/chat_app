@@ -37,10 +37,22 @@ func (m *MessageRepository) NewMessage(userId typ.UserId, chatId typ.ChatId, rep
 	return messageEntityFromModel(messageModel), nil
 }
 
-// func (m *MessageRepository) GetMessages(msgIds []typ.MessageId) {
-// 	m.lgr.LogFunctionInfo()
-// 	m.dbS.GetMessages(msgIds)
-// }
+func (m *MessageRepository) NewContactMessage(userId typ.UserId, chatId typ.ChatId, replyId *typ.MessageId, text string) (*entities.Message, error) {
+	m.lgr.LogFunctionInfo()
+
+	lastInsertId, err := m.dbS.CreateContactMessage(userId, chatId, replyId, text)
+	if err != nil {
+		return nil, err
+	}
+
+	messageModel, err := m.dbS.GetContactMessage(typ.MessageId(lastInsertId))
+
+	if messageModel == nil {
+		return nil, errors.New("new message missing")
+	}
+
+	return messageEntityFromModel(messageModel), nil
+}
 
 func (m *MessageRepository) GetChatMessages(chatId typ.ChatId) ([]entities.Message, error) {
 	m.lgr.LogFunctionInfo()

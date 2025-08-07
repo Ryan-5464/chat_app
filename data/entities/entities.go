@@ -38,7 +38,7 @@ type User struct {
 }
 
 type Contact struct {
-	Id            typ.UserId
+	Id            typ.ContactId
 	Name          string
 	Email         cred.Email
 	KnownSince    time.Time

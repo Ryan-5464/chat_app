@@ -80,19 +80,25 @@ func (u *UserService) FindUsers(emails []cred.Email) ([]ent.User, error) {
 func (u *UserService) AddContact(a dto.AddContactInput) (*ent.Contact, error) {
 	u.lgr.LogFunctionInfo()
 
-	user, err := u.usrR.FindUser(a.Email)
+	contact, err := u.usrR.FindUser(a.Email)
 	if err != nil {
 		return nil, err
 	}
 
-	if user == nil {
+	if contact == nil {
 		return nil, nil
 	}
 
-	return u.usrR.AddContact(user.Id, user.Name, user.Email, a.UserId)
+	return u.usrR.AddContact(typ.ContactId(contact.Id), contact.Name, contact.Email, a.UserId)
 }
 
 func (u *UserService) GetContacts(userId typ.UserId) ([]ent.Contact, error) {
 	u.lgr.LogFunctionInfo()
 	return u.usrR.GetContacts(userId)
+}
+
+func (u *UserService) GetContact(chatId typ.ChatId, userId typ.UserId) (*ent.Contact, error) {
+	u.lgr.LogFunctionInfo()
+	return u.usrR.GetContact(chatId, userId)
+
 }

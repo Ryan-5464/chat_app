@@ -273,6 +273,47 @@ func (dbs *DbService) CreateMessage(userId typ.UserId, chatId typ.ChatId, replyI
 	return typ.LastInsertId(lastInsertId), nil
 }
 
+func (dbs *DbService) CreateContactMessage(userId typ.UserId, chatId typ.ChatId, replyId *typ.MessageId, text string) (typ.LastInsertId, error) {
+	dbs.lgr.LogFunctionInfo()
+
+	dbs.lgr.DLog(fmt.Sprintf("userId %v: chatId %v: replyId %v: text %s", userId, chatId, replyId, text))
+
+	query := insertIntoValues(schema.ContactMessageTable, schema.UserId, schema.ChatId, schema.ReplyId, schema.MsgText)
+
+	dbs.lgr.DLog(fmt.Sprintf("query %v", query))
+
+	res, err := dbs.db.Create(query, userId, chatId, replyId, text)
+	if err != nil {
+		return 0, err
+	}
+
+	lastInsertId, err := res.LastInsertId()
+	if err != nil {
+		return 0, err
+	}
+
+	return typ.LastInsertId(lastInsertId), nil
+}
+
+func (dbs *DbService) GetContactMessage(messageId typ.MessageId) (*model.Message, error) {
+	dbs.lgr.LogFunctionInfo()
+
+	dbs.lgr.DLog(fmt.Sprintf("messageId %v", messageId))
+
+	query := selectAllFromWhereEqualTo(schema.ContactMessageTable, schema.MessageId)
+
+	dbs.lgr.DLog(fmt.Sprintf("query %v", query))
+
+	rows, err := dbs.db.Read(query, messageId)
+	if err != nil {
+		return nil, err
+	}
+
+	dbs.lgr.DLog(fmt.Sprintf("rows %v", rows))
+
+	return populateMessageModel(rows), nil
+}
+
 func (dbs *DbService) GetMessage(messageId typ.MessageId) (*model.Message, error) {
 	dbs.lgr.LogFunctionInfo()
 
@@ -331,10 +372,10 @@ func (dbs *DbService) FindUsers(e []cred.Email) ([]model.User, error) {
 	return populateUserModels(rows), nil
 }
 
-func (dbs *DbService) CreateContact(id1 typ.UserId, id2 typ.UserId) (*model.Contact, error) {
+func (dbs *DbService) CreateContact(id1 typ.UserId, id2 typ.ContactId) (*model.Contact, error) {
 	dbs.lgr.LogFunctionInfo()
 
-	dbs.lgr.DLog(fmt.Sprintf("id1: %v - id2: %s", id1, id2))
+	dbs.lgr.DLog(fmt.Sprintf("id1: %v - id2: %v", id1, id2))
 
 	qb := qbuilder.NewQueryBuilder()
 
@@ -349,6 +390,25 @@ func (dbs *DbService) CreateContact(id1 typ.UserId, id2 typ.UserId) (*model.Cont
 
 	values := []any{id1, id2}
 	rows, err := dbs.db.Read(query, values...)
+	if err != nil {
+		return nil, err
+	}
+
+	dbs.lgr.DLog(fmt.Sprintf("rows: %v", rows))
+
+	return populateContactModel(rows), nil
+}
+
+func (dbs *DbService) GetContact(chatId typ.ChatId) (*model.Contact, error) {
+	dbs.lgr.LogFunctionInfo()
+
+	dbs.lgr.DLog(fmt.Sprintf("chatId: %v", chatId))
+
+	query := selectAllFromWhereEqualTo(schema.ContactTable, schema.ChatId)
+
+	dbs.lgr.DLog(fmt.Sprintf("query: %s", query))
+
+	rows, err := dbs.db.Read(query, chatId)
 	if err != nil {
 		return nil, err
 	}
@@ -376,7 +436,7 @@ func (dbs *DbService) GetContacts(userId typ.UserId) ([]model.Contact, error) {
 
 	rows, err := dbs.db.Read(query, userId, userId)
 	if err != nil {
-		return []model.Contact{}, nil
+		return []model.Contact{}, err
 	}
 
 	dbs.lgr.DLog(fmt.Sprintf("rows: %v", rows))

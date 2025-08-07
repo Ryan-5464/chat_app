@@ -354,7 +354,7 @@ func (h *ChatHandler) handleAddContactRequest(addContactRequest dto.AddContactRe
 		return addContactResponse, errors.New("failed to add contact")
 	}
 
-	conn := h.connS.GetConnection(contact.Id)
+	conn := h.connS.GetConnection(typ.UserId(contact.Id))
 	if conn == nil {
 		contact.OnlineStatus = false
 	} else {

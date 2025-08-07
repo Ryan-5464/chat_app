@@ -25,10 +25,38 @@ type MessageService struct {
 	connS i.ConnectionService
 }
 
-// func (m *MessageService) newMessage(mi dto.NewMessageInput) (*entities.Message, error) {
-// 	m.lgr.LogFunctionInfo()
-// 	return m.msgR.NewMessage(mi.UserId, mi.ChatId, mi.ReplyId, mi.Text)
-// }
+func (m *MessageService) HandleNewContactMessage(mi dto.NewMessageInput) error {
+	m.lgr.LogFunctionInfo()
+
+	msg, err := m.msgR.NewContactMessage(mi.UserId, mi.ChatId, mi.ReplyId, mi.Text)
+	if err != nil {
+		return fmt.Errorf("failed to create new message: %w", err)
+	}
+
+	user, err := m.usrS.GetUser(msg.UserId)
+	if err != nil {
+		return err
+	}
+
+	msg.Author = user.Name
+
+	contact, err := m.usrS.GetContact(msg.ChatId, mi.UserId)
+	if err != nil {
+		return err
+	}
+
+	usrConns := make(map[typ.UserId]i.Socket)
+	usrConns[typ.UserId(contact.Id)] = m.connS.GetConnection(typ.UserId(contact.Id))
+	usrConns[user.Id] = m.connS.GetConnection(user.Id)
+
+	for userId, conn := range usrConns {
+		if err := m.BroadcastMessage(userId, conn, *msg); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
 
 func (m *MessageService) HandleNewMessage(mi dto.NewMessageInput) error {
 	m.lgr.LogFunctionInfo()
@@ -51,10 +79,11 @@ func (m *MessageService) HandleNewMessage(mi dto.NewMessageInput) error {
 	}
 
 	usrConns := make(map[typ.UserId]i.Socket)
-	for _, usr := range users {
-		conn := m.connS.GetConnection(usr.Id)
-		usrConns[usr.Id] = conn
+	for _, u := range users {
+		conn := m.connS.GetConnection(u.Id)
+		usrConns[u.Id] = conn
 	}
+	usrConns[user.Id] = m.connS.GetConnection(user.Id)
 
 	for userId, conn := range usrConns {
 		if err := m.BroadcastMessage(userId, conn, *msg); err != nil {

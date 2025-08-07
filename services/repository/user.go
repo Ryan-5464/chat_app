@@ -99,10 +99,10 @@ func (u *UserRepository) FindUsers(emails []cred.Email) ([]ent.User, error) {
 	return userEntitiesFromModels(userModels), nil
 }
 
-func (u *UserRepository) AddContact(contactId typ.UserId, contactName string, contactEmail cred.Email, userId typ.UserId) (*ent.Contact, error) {
+func (u *UserRepository) AddContact(contactId typ.ContactId, contactName string, contactEmail cred.Email, userId typ.UserId) (*ent.Contact, error) {
 	u.lgr.LogFunctionInfo()
 
-	contactModel, err := u.dbS.CreateContact(userId, contactId)
+	contactModel, err := u.dbS.CreateContact(userId, typ.ContactId(contactId))
 	if err != nil {
 		return nil, err
 	}
@@ -131,33 +131,50 @@ func (u *UserRepository) GetContacts(userId typ.UserId) ([]ent.Contact, error) {
 		return []ent.Contact{}, err
 	}
 
-	contacts, err := createContacts(contactModels, userId)
-	if err != nil {
-		return []ent.Contact{}, err
-	}
+	contacts := createContacts(contactModels, userId)
 
 	var contactIds []typ.UserId
 	for _, contact := range contacts {
-		contactIds = append(contactIds, contact.Id)
+		contactIds = append(contactIds, typ.UserId(contact.Id))
 	}
 
-	users, err := u.dbS.GetUsers(contactIds)
+	cs, err := u.dbS.GetUsers(contactIds)
 	if err != nil {
 		return []ent.Contact{}, err
 	}
 
-	return mapUserInfoToContacts(contacts, users), nil
+	return mapUserInfoToContacts(contacts, cs), nil
+}
+
+func (u *UserRepository) GetContact(chatId typ.ChatId, userId typ.UserId) (*ent.Contact, error) {
+	u.lgr.LogFunctionInfo()
+	contactModel, err := u.dbS.GetContact(chatId)
+	if err != nil {
+		return nil, err
+	}
+
+	contact := createContact(contactModel, userId)
+
+	user, err := u.dbS.GetUser(typ.UserId(contact.Id))
+	if err != nil {
+		return nil, err
+	}
+
+	contact.Name = user.Name
+	contact.Email = user.Email
+
+	return contact, nil
 }
 
 func mapUserInfoToContacts(contacts []ent.Contact, users []model.User) []ent.Contact {
-	contactIdMap := make(map[typ.UserId]ent.Contact)
+	contactIdMap := make(map[typ.ContactId]ent.Contact)
 	for _, contact := range contacts {
 		contactIdMap[contact.Id] = contact
 	}
 
 	updatedContacts := []ent.Contact{}
 	for _, user := range users {
-		contact := contactIdMap[user.Id]
+		contact := contactIdMap[typ.ContactId(user.Id)]
 		contact.Name = user.Name
 		contact.Email = user.Email
 		updatedContacts = append(updatedContacts, contact)
@@ -166,7 +183,15 @@ func mapUserInfoToContacts(contacts []ent.Contact, users []model.User) []ent.Con
 	return updatedContacts
 }
 
-func createContacts(contactModels []model.Contact, userId typ.UserId) ([]ent.Contact, error) {
+func createContact(c *model.Contact, userId typ.UserId) *ent.Contact {
+	return &ent.Contact{
+		Id:            decipherContactId(c.Id1, c.Id2, userId),
+		ContactChatId: c.ChatId,
+		KnownSince:    c.CreatedAt,
+	}
+}
+
+func createContacts(contactModels []model.Contact, userId typ.UserId) []ent.Contact {
 	var contacts []ent.Contact
 	for _, model := range contactModels {
 
@@ -179,14 +204,14 @@ func createContacts(contactModels []model.Contact, userId typ.UserId) ([]ent.Con
 		contacts = append(contacts, contact)
 	}
 
-	return contacts, nil
+	return contacts
 }
 
-func decipherContactId(id1 typ.UserId, id2 typ.UserId, userId typ.UserId) typ.UserId {
+func decipherContactId(id1 typ.UserId, id2 typ.UserId, userId typ.UserId) typ.ContactId {
 	if id1 == userId {
-		return id2
+		return typ.ContactId(id2)
 	} else {
-		return id1
+		return typ.ContactId(id1)
 	}
 }
 

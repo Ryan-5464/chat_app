@@ -17,7 +17,8 @@ type UserRepository interface {
 	FindUser(email cred.Email) (*model.User, error)
 	FindUsers(emails []cred.Email) ([]ent.User, error)
 	GetContacts(userId typ.UserId) ([]ent.Contact, error)
-	AddContact(contactId typ.UserId, contactName string, contactEmail cred.Email, userId typ.UserId) (*ent.Contact, error)
+	AddContact(contactId typ.ContactId, contactName string, contactEmail cred.Email, userId typ.UserId) (*ent.Contact, error)
+	GetContact(chatId typ.ChatId, userId typ.UserId) (*ent.Contact, error)
 }
 
 type ChatRepository interface {
@@ -29,6 +30,7 @@ type ChatRepository interface {
 type MessageRepository interface {
 	NewMessage(userId typ.UserId, chatId typ.ChatId, replyId *typ.MessageId, text string) (*ent.Message, error)
 	GetChatMessages(chatId typ.ChatId) ([]ent.Message, error)
+	NewContactMessage(userId typ.UserId, chatId typ.ChatId, replyId *typ.MessageId, text string) (*ent.Message, error)
 }
 
 type DbService interface {
@@ -51,9 +53,12 @@ type DbService interface {
 	GetChatMessages(chatId typ.ChatId) ([]model.Message, error)
 	GetMessage(msgId typ.MessageId) (*model.Message, error)
 	CreateMessage(userId typ.UserId, chatId typ.ChatId, replyId *typ.MessageId, text string) (typ.LastInsertId, error)
+	GetContactMessage(messageId typ.MessageId) (*model.Message, error)
+	CreateContactMessage(userId typ.UserId, chatId typ.ChatId, replyId *typ.MessageId, text string) (typ.LastInsertId, error)
 
-	CreateContact(id1 typ.UserId, id2 typ.UserId) (*model.Contact, error)
+	CreateContact(id1 typ.UserId, id2 typ.ContactId) (*model.Contact, error)
 	GetContacts(userId typ.UserId) ([]model.Contact, error)
+	GetContact(chatId typ.ChatId) (*model.Contact, error)
 	Close()
 }
 
@@ -70,7 +75,7 @@ type ChatService interface {
 type MessageService interface {
 	GetChatMessages(chatId typ.ChatId) ([]ent.Message, error)
 	HandleNewMessage(mi dto.NewMessageInput) error
-	// newMessage(mi dto.NewMessageInput) (*ent.Message, error)
+	HandleNewContactMessage(mi dto.NewMessageInput) error
 }
 
 type UserService interface {
@@ -81,6 +86,7 @@ type UserService interface {
 	FindUsers(emails []cred.Email) ([]ent.User, error)
 	AddContact(a dto.AddContactInput) (*ent.Contact, error)
 	GetContacts(userId typ.UserId) ([]ent.Contact, error)
+	GetContact(chatId typ.ChatId, userId typ.UserId) (*ent.Contact, error)
 }
 
 type ConnectionService interface {
