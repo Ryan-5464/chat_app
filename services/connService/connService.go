@@ -35,3 +35,7 @@ func (c *ConnectionService) DisconnectUser(userId typ.UserId) {
 	msgUserDisconnected := "User disconnected: Id = " + userId.String()
 	c.lgr.Log(msgUserDisconnected)
 }
+
+func (c *ConnectionService) GetActiveConnections() map[typ.UserId]i.Socket {
+	return c.pool
+}

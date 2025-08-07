@@ -128,6 +128,8 @@ func (h *ChatHandler) ChatWebsocket(w http.ResponseWriter, r *http.Request) {
 	h.connS.StoreConnection(conn, userId)
 	defer h.connS.DisconnectUser(userId)
 
+	log.Println("&&&&& active connections :", h.connS.GetActiveConnections())
+
 	for {
 
 		payload, err := h.readIncomingMessage(conn)

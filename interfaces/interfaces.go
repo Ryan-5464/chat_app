@@ -98,6 +98,7 @@ type ConnectionService interface {
 	DisconnectUser(userId typ.UserId)
 	GetConnection(userId typ.UserId) Socket
 	StoreConnection(conn Socket, userId typ.UserId)
+	GetActiveConnections() map[typ.UserId]Socket
 }
 
 type Socket interface {
