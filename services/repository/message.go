@@ -54,6 +54,21 @@ func (m *MessageRepository) NewContactMessage(userId typ.UserId, chatId typ.Chat
 	return messageEntityFromModel(messageModel), nil
 }
 
+func (m *MessageRepository) GetContactMessages(chatId typ.ChatId) ([]entities.Message, error) {
+	m.lgr.LogFunctionInfo()
+
+	messages, err := m.dbS.GetContactMessages(chatId)
+	if err != nil {
+		return []entities.Message{}, err
+	}
+
+	if len(messages) == 0 {
+		return []entities.Message{}, nil
+	}
+
+	return messageEntitiesFromModels(messages), nil
+}
+
 func (m *MessageRepository) GetChatMessages(chatId typ.ChatId) ([]entities.Message, error) {
 	m.lgr.LogFunctionInfo()
 

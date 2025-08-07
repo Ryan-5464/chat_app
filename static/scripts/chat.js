@@ -6,6 +6,7 @@
 */
 
 const typeNewMessage = "1"
+const typeNewContactMessage = "4"
 
 const socket = new WebSocket('ws://localhost:8081/ws');
 
@@ -30,6 +31,7 @@ socket.onmessage = function (event) {
 
 document.addEventListener("DOMContentLoaded", function() {
     addSwitchChatListenerToChats()
+    addSwitchChatListenerToContacts()
     addNewMsgListenerToMsgInput()
     addNewMsgListenerToSendMsgButton()
     addNewChatEventListenerToButton()
@@ -107,16 +109,31 @@ function addSwitchChatListenerToChats() {
     })
 }
 
+function addSwitchChatListenerToContacts() {
+    document.querySelectorAll('.contact').forEach(function (elem) {
+        elem.addEventListener('click', function () {
+            const contactChatId = elem.getAttribute('data-contactchatid')
+            switchContactChat(contactChatId)
+        })
+    })
+}
+
 // need to refactor to handle ids better
 function addNewMsgListenerToMsgInput() {
     const input = document.getElementById("input")
     input.addEventListener('keydown', function (event) {
         if (event.key === "Enter") {
-            const chatId = getActiveChatId()
             const replyId = null
             const msgText = input.value.trim()
+            const chat = document.querySelector(".active")
+            chatId = chat.getAttribute("data-chatid")
+            if (chatId == null) {
+                chatId = chat.getAttribute("data-contactchatid")
+                sendContactMessage(msgText, chatId, replyId)
+            } else {
+                sendMessage(msgText, chatId, replyId)
+            }
             input.value = '';
-            sendMessage(msgText, chatId, replyId)
         }
     })
 }
@@ -126,19 +143,34 @@ function addNewMsgListenerToSendMsgButton() {
     const button = document.getElementById("send-message-button")
     button.addEventListener('click', function () {
         const input = document.getElementById("input")
-        const chatId = getActiveChatId()
         const replyId = null
         const msgText = input.value.trim()
-        sendMessage(msgText, chatId, replyId)
+        const chat = document.querySelector(".active")
+        chatId = chat.getAttribute("data-chatid")
+        if (chatId == null) {
+            chatId = chat.getAttribute("data-contactchatid")
+            sendContactMessage(msgText, chatId, replyId)
+        } else {
+            sendMessage(msgText, chatId, replyId)
+        }
         input.value = '';
     })
 }
 
-function getActiveChatId() {
-    const chat = document.querySelector(".active")
-    chatId = chat.getAttribute("data-chatid")
-    console.log("current active chat id:", chatId)
-    return chatId
+function sendContactMessage(msgText, chatId, replyId) {
+    console.log(":: sending new message")
+    if (msgText) {
+        payload = {
+            Type: typeNewContactMessage,
+            Data: {
+                ChatId: chatId,
+                MsgText: msgText,
+                ReplyId: replyId
+            }
+        }
+        console.log(":: request payload, ", payload)
+        socket.send(JSON.stringify(payload));
+    }
 }
 
 

@@ -50,10 +50,16 @@ func (m *MessageService) HandleNewContactMessage(mi dto.NewMessageInput) error {
 	usrConns[user.Id] = m.connS.GetConnection(user.Id)
 
 	for userId, conn := range usrConns {
+		if conn == nil {
+			m.lgr.Log(fmt.Sprintf("user is offline for userId %v", userId))
+			continue
+		}
 		if err := m.BroadcastMessage(userId, conn, *msg); err != nil {
+			m.lgr.LogError(fmt.Errorf(":: failed to broadcast message %v", err))
 			return err
 		}
 	}
+	log.Println(":: broadcast successful")
 
 	return nil
 }
@@ -86,6 +92,10 @@ func (m *MessageService) HandleNewMessage(mi dto.NewMessageInput) error {
 	usrConns[user.Id] = m.connS.GetConnection(user.Id)
 
 	for userId, conn := range usrConns {
+		if conn == nil {
+			m.lgr.Log(fmt.Sprintf("connection is nil for userId %v!", userId))
+			continue
+		}
 		if err := m.BroadcastMessage(userId, conn, *msg); err != nil {
 			return err
 		}
@@ -97,9 +107,8 @@ func (m *MessageService) HandleNewMessage(mi dto.NewMessageInput) error {
 
 func (m *MessageService) BroadcastMessage(userId typ.UserId, conn i.Socket, msg entities.Message) error {
 	m.lgr.LogFunctionInfo()
+	log.Println(":: braoadcast message ", msg)
 	messages := []entities.Message{msg}
-
-	log.Println("BROADCASTMSG ", messages)
 
 	payload := struct {
 		Type     int
@@ -111,10 +120,14 @@ func (m *MessageService) BroadcastMessage(userId typ.UserId, conn i.Socket, msg 
 		Messages: messages,
 	}
 
+	log.Println(":: paylaod ", payload)
+
 	err := conn.WriteJSON(payload)
 	if err != nil {
-		return fmt.Errorf("failed to write to websockt connection: %w", err)
+		m.lgr.LogError(fmt.Errorf("failed to write to websocket connection: %w", err))
+		return err
 	}
+	log.Println(":: json writing sucessful")
 
 	return nil
 }
@@ -122,4 +135,9 @@ func (m *MessageService) BroadcastMessage(userId typ.UserId, conn i.Socket, msg 
 func (m *MessageService) GetChatMessages(chatId typ.ChatId) ([]entities.Message, error) {
 	m.lgr.LogFunctionInfo()
 	return m.msgR.GetChatMessages(chatId)
+}
+
+func (m *MessageService) GetContactMessages(chatId typ.ChatId) ([]entities.Message, error) {
+	m.lgr.LogFunctionInfo()
+	return m.msgR.GetContactMessages(chatId)
 }

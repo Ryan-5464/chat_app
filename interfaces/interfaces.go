@@ -2,6 +2,7 @@ package interfaces
 
 import (
 	dto "server/data/DTOs"
+	"server/data/entities"
 	ent "server/data/entities"
 	cred "server/services/authService/credentials"
 	sess "server/services/authService/session"
@@ -29,6 +30,7 @@ type ChatRepository interface {
 
 type MessageRepository interface {
 	GetChatMessages(chatId typ.ChatId) ([]ent.Message, error)
+	GetContactMessages(chatId typ.ChatId) ([]entities.Message, error)
 	NewContactMessage(userId typ.UserId, chatId typ.ChatId, replyId *typ.MessageId, text string) (*ent.Message, error)
 	NewMessage(userId typ.UserId, chatId typ.ChatId, replyId *typ.MessageId, text string) (*ent.Message, error)
 }
@@ -53,6 +55,7 @@ type DbService interface {
 	CreateMessage(userId typ.UserId, chatId typ.ChatId, replyId *typ.MessageId, text string) (typ.LastInsertId, error)
 	GetChatMessages(chatId typ.ChatId) ([]model.Message, error)
 	GetContactMessage(messageId typ.MessageId) (*model.Message, error)
+	GetContactMessages(chatId typ.ChatId) ([]model.Message, error)
 	GetMessage(msgId typ.MessageId) (*model.Message, error)
 	GetMessages(msgIds []typ.MessageId) ([]model.Message, error)
 
@@ -75,6 +78,7 @@ type ChatService interface {
 
 type MessageService interface {
 	GetChatMessages(chatId typ.ChatId) ([]ent.Message, error)
+	GetContactMessages(chatId typ.ChatId) ([]entities.Message, error)
 	HandleNewContactMessage(mi dto.NewMessageInput) error
 	HandleNewMessage(mi dto.NewMessageInput) error
 }

@@ -26,9 +26,12 @@ const (
 type MessageType = string
 
 const (
-	NewMessage    MessageType = "1"
-	EditMessage   MessageType = "2"
-	DeleteMessage MessageType = "3"
+	NewMessage           MessageType = "1"
+	EditMessage          MessageType = "2"
+	DeleteMessage        MessageType = "3"
+	NewContactMessage    MessageType = "4"
+	EditContactMessage   MessageType = "5"
+	DeleteContactMessage MessageType = "6"
 )
 
 func NewChatHandler(lgr i.Logger, a i.AuthService, c i.ChatService, m i.MessageService, cnx i.ConnectionService, u i.UserService) *ChatHandler {
@@ -150,6 +153,24 @@ func (h *ChatHandler) ChatWebsocket(w http.ResponseWriter, r *http.Request) {
 				break
 			}
 
+		case NewContactMessage:
+			h.lgr.DLog("Handling new contact message...")
+
+			newMessageRequest, err := payload.ParseNewMessageRequest()
+			if err != nil {
+				h.lgr.LogError(fmt.Errorf("Failed to parse message request %v", err))
+				http.Error(w, InternalServerError, http.StatusInternalServerError)
+				break
+			}
+
+			if err = h.handleNewContactMessageRequest(newMessageRequest, userId); err != nil {
+				log.Println("?????? test 1")
+				h.lgr.LogError(fmt.Errorf("Failed to handle message request %v", err))
+				http.Error(w, InternalServerError, http.StatusInternalServerError)
+				break
+			}
+			log.Println("?????? test 2")
+
 		}
 		h.lgr.DLog("->>>> RESPONSE SENT")
 
@@ -179,6 +200,8 @@ func (h *ChatHandler) handleNewMessageRequest(mr dto.NewMessageRequest, userId t
 		return err
 	}
 
+	log.Println(mr.ReplyId)
+
 	var rid int64
 	if mr.ReplyId != "" {
 		rid, err = lib.ConvertStringToInt64(mr.ReplyId)
@@ -198,6 +221,43 @@ func (h *ChatHandler) handleNewMessageRequest(mr dto.NewMessageRequest, userId t
 	}
 
 	err = h.msgS.HandleNewMessage(newMsgInput)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (h *ChatHandler) handleNewContactMessageRequest(mr dto.NewMessageRequest, userId typ.UserId) error {
+	h.lgr.LogFunctionInfo()
+
+	h.lgr.DLog(fmt.Sprintf("chatId %v: replyId %v", mr.ChatId, mr.ReplyId))
+	cid, err := lib.ConvertStringToInt64(mr.ChatId)
+	if err != nil {
+		return err
+	}
+
+	log.Println(mr.ReplyId)
+
+	var rid int64
+	if mr.ReplyId != "" {
+		rid, err = lib.ConvertStringToInt64(mr.ReplyId)
+		if err != nil {
+			return err
+		}
+	}
+
+	chatId := typ.ChatId(cid)
+	replyId := typ.MessageId(rid)
+
+	newMsgInput := dto.NewMessageInput{
+		UserId:  userId,
+		ChatId:  chatId,
+		ReplyId: &replyId,
+		Text:    mr.MsgText,
+	}
+
+	err = h.msgS.HandleNewContactMessage(newMsgInput)
 	if err != nil {
 		return err
 	}
@@ -383,7 +443,7 @@ func (h *ChatHandler) handleAddContactRequest(addContactRequest dto.AddContactRe
 	return addContactResponse, nil
 }
 
-func (h *ChatHandler) SwitchPrivateChat(w http.ResponseWriter, r *http.Request) {
+func (h *ChatHandler) SwitchContactChat(w http.ResponseWriter, r *http.Request) {
 	h.lgr.LogFunctionInfo()
 
 	if r.Method != http.MethodPost {
@@ -405,7 +465,7 @@ func (h *ChatHandler) SwitchPrivateChat(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	switchChatResponse, err := h.handlePrivateChatSwitchRequest(switchChatRequest)
+	switchChatResponse, err := h.handleContactChatSwitchRequest(switchChatRequest)
 	if err != nil {
 		http.Error(w, InternalServerError, http.StatusInternalServerError)
 		return
@@ -416,7 +476,7 @@ func (h *ChatHandler) SwitchPrivateChat(w http.ResponseWriter, r *http.Request) 
 	h.lgr.DLog("->>>> RESPONSE SENT")
 }
 
-func (h *ChatHandler) handlePrivateChatSwitchRequest(switchChatRequest dto.SwitchChatRequest) (dto.SwitchChatResponse, error) {
+func (h *ChatHandler) handleContactChatSwitchRequest(switchChatRequest dto.SwitchChatRequest) (dto.SwitchChatResponse, error) {
 	h.lgr.LogFunctionInfo()
 
 	chatId, err := switchChatRequest.GetChatId()
@@ -424,13 +484,9 @@ func (h *ChatHandler) handlePrivateChatSwitchRequest(switchChatRequest dto.Switc
 		return dto.SwitchChatResponse{}, err
 	}
 
-	messages, err := h.msgS.GetChatMessages(chatId)
+	messages, err := h.msgS.GetContactMessages(chatId)
 	if err != nil {
 		return dto.SwitchChatResponse{}, err
-	}
-	// move this check close to the database
-	if messages == nil {
-		messages = []entities.Message{}
 	}
 
 	switchChatResponse := dto.SwitchChatResponse{

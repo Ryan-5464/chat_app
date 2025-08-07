@@ -295,6 +295,26 @@ func (dbs *DbService) CreateContactMessage(userId typ.UserId, chatId typ.ChatId,
 	return typ.LastInsertId(lastInsertId), nil
 }
 
+func (dbs *DbService) GetContactMessages(chatId typ.ChatId) ([]model.Message, error) {
+	dbs.lgr.LogFunctionInfo()
+
+	dbs.lgr.DLog(fmt.Sprintf("chatId %v", chatId))
+
+	query := selectAllFromWhereEqualTo(schema.ContactMessageTable, schema.ChatId)
+
+	dbs.lgr.DLog(fmt.Sprintf("query %v", query))
+
+	rows, err := dbs.db.Read(query, chatId)
+	if err != nil {
+		return nil, err
+	}
+
+	dbs.lgr.DLog(fmt.Sprintf("rows %v", rows))
+
+	return populateMessageModels(rows), nil
+
+}
+
 func (dbs *DbService) GetContactMessage(messageId typ.MessageId) (*model.Message, error) {
 	dbs.lgr.LogFunctionInfo()
 
