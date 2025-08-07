@@ -61,6 +61,7 @@ type ResponsePayload struct {
 }
 
 type RenderChatPayload struct {
+	UserId   typ.UserId         `json:"UserId"`
 	Chats    []entities.Chat    `json:"Chats"`
 	Messages []entities.Message `json:"Messages"`
 	Contacts []entities.Contact `json:"Contacts"`

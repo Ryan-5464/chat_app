@@ -56,7 +56,7 @@ type DbService interface {
 	GetMessage(msgId typ.MessageId) (*model.Message, error)
 	GetMessages(msgIds []typ.MessageId) ([]model.Message, error)
 
-	CreateContact(id1 typ.UserId, id2 typ.ContactId) (*model.Contact, error)
+	CreateContact(id1 typ.UserId, id2 typ.ContactId) (typ.LastInsertId, error)
 	GetContact(chatId typ.ChatId) (*model.Contact, error)
 	GetContacts(userId typ.UserId) ([]model.Contact, error)
 

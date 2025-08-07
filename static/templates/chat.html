@@ -102,6 +102,15 @@
 <div id="footer-container"></div>
 
 </body>
+<script>
+  const serverData = {
+    user: {{ toJSON .UserId }},
+    chats: {{ toJSON .Chats }},
+    messages: {{ toJSON .Messages }},
+    contacts: {{ toJSON .Contacts }}
+  };
+  console.log("Server data:", serverData);
+</script>
 <script src="/static/scripts/config.js" defer></script>
 <script src="/static/scripts/chat.js" defer></script>
 </html>

@@ -25,7 +25,7 @@ func main() {
 		return
 	}
 
-	dbPath := cwd + "/data/database/sqldb.db"
+	dbPath := cwd + "/data/database/app.db"
 	log.Println(dbPath)
 
 	config := prov.DbConfig{}

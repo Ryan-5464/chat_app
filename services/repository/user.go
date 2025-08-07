@@ -102,7 +102,12 @@ func (u *UserRepository) FindUsers(emails []cred.Email) ([]ent.User, error) {
 func (u *UserRepository) AddContact(contactId typ.ContactId, contactName string, contactEmail cred.Email, userId typ.UserId) (*ent.Contact, error) {
 	u.lgr.LogFunctionInfo()
 
-	contactModel, err := u.dbS.CreateContact(userId, typ.ContactId(contactId))
+	lastInsertId, err := u.dbS.CreateContact(userId, typ.ContactId(contactId))
+	if err != nil {
+		return nil, err
+	}
+
+	contactModel, err := u.dbS.GetContact(typ.ChatId(lastInsertId))
 	if err != nil {
 		return nil, err
 	}

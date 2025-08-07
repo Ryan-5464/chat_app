@@ -118,7 +118,7 @@ func (dbs *DbService) GetUsers(userIds []typ.UserId) ([]model.User, error) {
 	dbs.lgr.DLog(fmt.Sprintf("userIds %v", userIds))
 
 	ids := ToAnySlice(userIds)
-	query := selectAllFromWhereIn(schema.UserTable, schema.UserId, ids)
+	query := selectAllFromWhereIn(schema.UserTable, schema.UserId, ids...)
 
 	dbs.lgr.DLog(fmt.Sprintf("query %v", query))
 
@@ -372,31 +372,26 @@ func (dbs *DbService) FindUsers(e []cred.Email) ([]model.User, error) {
 	return populateUserModels(rows), nil
 }
 
-func (dbs *DbService) CreateContact(id1 typ.UserId, id2 typ.ContactId) (*model.Contact, error) {
+func (dbs *DbService) CreateContact(id1 typ.UserId, id2 typ.ContactId) (typ.LastInsertId, error) {
 	dbs.lgr.LogFunctionInfo()
 
-	dbs.lgr.DLog(fmt.Sprintf("id1: %v - id2: %v", id1, id2))
+	dbs.lgr.DLog(fmt.Sprintf("id1 %v: id2 %v", id1, id2))
 
-	qb := qbuilder.NewQueryBuilder()
-
-	contactTable := qb.Table(schema.ContactTable)
-	id1F := qb.Field(schema.Id1)
-	id2F := qb.Field(schema.Id2)
-
-	query := qb.INSERT_INTO(contactTable, id1F, id2F).
-		VALUES(id1, id2).Build()
+	query := insertIntoValues(schema.ContactTable, schema.Id1, schema.Id2)
 
 	dbs.lgr.DLog(fmt.Sprintf("query %s", query))
 
-	values := []any{id1, id2}
-	rows, err := dbs.db.Read(query, values...)
+	res, err := dbs.db.Create(query, id1, id2)
 	if err != nil {
-		return nil, err
+		return 0, err
 	}
 
-	dbs.lgr.DLog(fmt.Sprintf("rows: %v", rows))
+	lastInsertId, err := res.LastInsertId()
+	if err != nil {
+		return 0, err
+	}
 
-	return populateContactModel(rows), nil
+	return typ.LastInsertId(lastInsertId), nil
 }
 
 func (dbs *DbService) GetContact(chatId typ.ChatId) (*model.Contact, error) {

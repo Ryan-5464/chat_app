@@ -3,6 +3,8 @@ package handler
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
+	"html/template"
 	"log"
 	"net/http"
 	dto "server/data/DTOs"
@@ -12,7 +14,6 @@ import (
 	"server/lib"
 	cred "server/services/authService/credentials"
 	typ "server/types"
-	"text/template"
 )
 
 const (
@@ -85,13 +86,13 @@ func (cr *ChatHandler) RenderChatPage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	tmpl, err := template.ParseFiles("./static/templates/chat.html")
-	if err != nil {
-		http.Error(w, InternalServerError, http.StatusInternalServerError)
-		return
-	}
+	tmpl := template.Must(template.New("chat.html").Funcs(template.FuncMap{
+		"toJSON": toJSON,
+	}).ParseFiles("./static/templates/chat.html"))
 
+	log.Println("session userID : ", session.UserId())
 	renderChatpayload := dto.RenderChatPayload{
+		UserId:   session.UserId(),
 		Chats:    chats,
 		Messages: messages,
 		Contacts: contacts,
@@ -100,6 +101,8 @@ func (cr *ChatHandler) RenderChatPage(w http.ResponseWriter, r *http.Request) {
 	if err = tmpl.Execute(w, renderChatpayload); err != nil {
 		http.Error(w, InternalServerError, http.StatusInternalServerError)
 	}
+
+	cr.lgr.DLog("->>>> RESPONSE SENT")
 }
 
 /* MESSAGING ================================================================ */
@@ -136,16 +139,19 @@ func (h *ChatHandler) ChatWebsocket(w http.ResponseWriter, r *http.Request) {
 
 			newMessageRequest, err := payload.ParseNewMessageRequest()
 			if err != nil {
+				h.lgr.LogError(fmt.Errorf("Failed to parse message request %v", err))
 				http.Error(w, InternalServerError, http.StatusInternalServerError)
 				break
 			}
 
 			if err = h.handleNewMessageRequest(newMessageRequest, userId); err != nil {
+				h.lgr.LogError(fmt.Errorf("Failed to handle message request %v", err))
 				http.Error(w, InternalServerError, http.StatusInternalServerError)
 				break
 			}
 
 		}
+		h.lgr.DLog("->>>> RESPONSE SENT")
 
 	}
 
@@ -165,14 +171,20 @@ func (h *ChatHandler) readIncomingMessage(conn i.Socket) (dto.WebsocketPayload, 
 }
 
 func (h *ChatHandler) handleNewMessageRequest(mr dto.NewMessageRequest, userId typ.UserId) error {
+	h.lgr.LogFunctionInfo()
+
+	h.lgr.DLog(fmt.Sprintf("chatId %v: replyId %v", mr.ChatId, mr.ReplyId))
 	cid, err := lib.ConvertStringToInt64(mr.ChatId)
 	if err != nil {
 		return err
 	}
 
-	rid, err := lib.ConvertStringToInt64(mr.ReplyId)
-	if err != nil {
-		return err
+	var rid int64
+	if mr.ReplyId != "" {
+		rid, err = lib.ConvertStringToInt64(mr.ReplyId)
+		if err != nil {
+			return err
+		}
 	}
 
 	chatId := typ.ChatId(cid)
@@ -225,6 +237,7 @@ func (h *ChatHandler) SwitchChat(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(switchChatResponse)
+	h.lgr.DLog("->>>> RESPONSE SENT")
 }
 
 func (h *ChatHandler) handleChatSwitchRequest(switchChatRequest dto.SwitchChatRequest) (dto.SwitchChatResponse, error) {
@@ -283,6 +296,7 @@ func (h *ChatHandler) NewChat(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(newChatResponse)
+	h.lgr.DLog("->>>> RESPONSE SENT")
 }
 
 func (h *ChatHandler) handleNewChatRequest(cr dto.NewChatRequest, userId typ.UserId) (dto.NewChatResponse, error) {
@@ -333,6 +347,7 @@ func (h *ChatHandler) AddContact(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(addContactResponse)
+	h.lgr.DLog("->>>> RESPONSE SENT")
 }
 
 func (h *ChatHandler) handleAddContactRequest(addContactRequest dto.AddContactRequest, userId typ.UserId) (dto.AddContactResponse, error) {
@@ -398,6 +413,7 @@ func (h *ChatHandler) SwitchPrivateChat(w http.ResponseWriter, r *http.Request) 
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(switchChatResponse)
+	h.lgr.DLog("->>>> RESPONSE SENT")
 }
 
 func (h *ChatHandler) handlePrivateChatSwitchRequest(switchChatRequest dto.SwitchChatRequest) (dto.SwitchChatResponse, error) {
@@ -423,4 +439,12 @@ func (h *ChatHandler) handlePrivateChatSwitchRequest(switchChatRequest dto.Switc
 	}
 
 	return switchChatResponse, nil
+}
+
+func toJSON(v interface{}) template.JS {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return template.JS("null") // fallback
+	}
+	return template.JS(b) // injects valid JS object into the script
 }

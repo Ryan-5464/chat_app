@@ -89,6 +89,7 @@ func (m *MessageService) HandleNewMessage(mi dto.NewMessageInput) error {
 		if err := m.BroadcastMessage(userId, conn, *msg); err != nil {
 			return err
 		}
+		m.lgr.DLog("->>>> RESPONSE SENT")
 	}
 
 	return nil

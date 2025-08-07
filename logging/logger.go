@@ -24,7 +24,7 @@ func (l *Logger) DLog(message string) {
 
 	timestamp := time.Now().UTC().Format(time.RFC3339)
 
-	log.Printf("[MESSAGE] %s : %s", timestamp, message)
+	log.Printf("[DEBUG] %s : %s", timestamp, message)
 }
 
 func (l *Logger) Log(message string) {
