@@ -1,0 +1,26 @@
+.input-elem {
+    background-color: var(--bg);
+    border: 1px solid var(--bdr-col);  
+    border-radius: 4px;
+    color: var(--font-col-snd);                    
+    box-shadow: none;
+    transition: border 0.3s ease, background-color 0.3s ease;
+    flex-grow: 1;
+    padding: 10px 12px;
+    font-size: 14px;
+    outline: none;
+}
+
+.input-elem::placeholder {
+    color: var(--font-col-snd);
+}
+
+.input-elem:hover {
+    background-color: var(--snd-col);
+}
+
+.input-elem:focus {
+    background-color: var(--snd-col);
+    border-color: var(--bdr-col-hgl); 
+}
+

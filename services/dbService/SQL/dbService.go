@@ -36,6 +36,16 @@ func (dbs *DbService) Close() {
 	dbs.db.Close()
 }
 
+func (dbs *DbService) UpdateUserEmail(newEmail cred.Email, userId typ.UserId) error {
+	dbs.lgr.LogFunctionInfo()
+
+	dbs.lgr.DLog(fmt.Sprintf("newEmail %v", newEmail))
+
+	query := updateWhereEqualTo(schema.UserTable, schema.UserId, schema.Email)
+
+	return dbs.db.Update(query, newEmail, userId)
+}
+
 func (dbs *DbService) GetChat(chatId typ.ChatId) (*model.Chat, error) {
 	dbs.lgr.LogFunctionInfo()
 
@@ -708,4 +718,18 @@ func ToAnySlice[T any](input []T) []any {
 		result[i] = v
 	}
 	return result
+}
+
+func updateWhereEqualTo(table string, conditionField string, updateFields ...string) string {
+	qb := qbuilder.NewQueryBuilder()
+
+	t := qb.Table(table)
+	cond := qb.Field(conditionField)
+
+	var setFields []qbuilder.Set
+	for _, field := range updateFields {
+		setFields = append(setFields, qb.SET(qb.Field(field)))
+	}
+
+	return qb.UPDATE(t, setFields...).WHERE(cond, qb.EqualTo()).Build()
 }

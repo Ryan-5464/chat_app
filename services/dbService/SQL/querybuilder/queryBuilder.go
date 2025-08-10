@@ -19,6 +19,7 @@ type queryBuilder struct {
 
 // type field string
 type on string
+type Set string
 type placeholders string
 type values string
 
@@ -124,6 +125,16 @@ func (q *queryBuilder) INSERT_INTO(t table, fields ...Field) *queryBuilder {
 	return q
 }
 
+func (q *queryBuilder) UPDATE(t table, setParams ...Set) *queryBuilder {
+	q.WriteString("UPDATE ")
+	q.WriteString(t.String())
+	q.WriteString(" ")
+	for _, s := range setParams {
+		q.WriteString(string(s))
+	}
+	return q
+}
+
 func (q *queryBuilder) FROM(t table) *queryBuilder {
 	q.WriteString(" FROM ")
 	q.WriteString(t.String())
@@ -192,6 +203,16 @@ func (q *queryBuilder) IN(v ...any) placeholders {
 	b.WriteString(q.generatePlaceholdersString(lenValues))
 	b.WriteString(")")
 	return placeholders(b.String())
+}
+
+func (q *queryBuilder) SET(f Field) Set {
+	var b strings.Builder
+	b.WriteString(" SET ")
+	b.WriteString(f.String())
+	b.WriteString(" = ")
+	b.WriteString("?")
+	b.WriteString(",")
+	return Set(b.String())
 }
 
 // =============================================================================

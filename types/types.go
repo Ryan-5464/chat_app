@@ -27,5 +27,6 @@ func (u UserId) String() string {
 type Rows []map[string]any
 
 type LastInsertId int64
+type RowUpdateId int64
 
 type ContactId int64

@@ -1,0 +1,35 @@
+.chat-name {
+    font-size: 18px;
+    color: var(--font-col-snd);
+    text-shadow: 0 0 3px rgba(0,0,0,0.3);
+    transition: color 0.3s ease;
+}
+
+.chat-admin-name {
+    font-size: 14px;
+    color: var(--font-col-snd);
+    margin-top: 4px;
+    transition: color 0.3s ease;
+}
+
+.chat-unread-message-count {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--font-col-snd);
+    font-size: 14px;
+    font-weight: bold;
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.chat:hover .chat-name,
+.chat:hover .chat-admin-name,
+.chat:hover .chat-member-count{
+    color: #a8c7ff;
+}
