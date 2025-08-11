@@ -161,6 +161,26 @@ func (dbs *DbService) GetMembers(chatId typ.ChatId) ([]model.Member, error) {
 	return populateMemberModels(rows), nil
 }
 
+func (dbs *DbService) GetMemberChats(userId typ.UserId) ([]model.Member, error) {
+	dbs.lgr.LogFunctionInfo()
+
+	dbs.lgr.DLog(fmt.Sprintf("userId: %v", userId))
+
+	query := selectAllFromWhereEqualTo(schema.MemberTable, schema.UserId)
+
+	dbs.lgr.DLog(fmt.Sprintf("query: %v", query))
+
+	rows, err := dbs.db.Read(query, userId)
+	if err != nil {
+		return []model.Member{}, err
+	}
+
+	dbs.lgr.DLog(fmt.Sprintf("rows: %v", rows))
+
+	return populateMemberModels(rows), nil
+
+}
+
 func (dbs *DbService) GetChatMessages(chatId typ.ChatId) ([]model.Message, error) {
 	dbs.lgr.LogFunctionInfo()
 
@@ -237,6 +257,42 @@ func (dbs *DbService) CreateMember(chatId typ.ChatId, userId typ.UserId) error {
 	}
 
 	return nil
+}
+
+func (dbs *DbService) GetMemberships(userId typ.UserId) ([]model.Member, error) {
+	dbs.lgr.LogFunctionInfo()
+
+	dbs.lgr.DLog(fmt.Sprintf("userId %v", userId))
+
+	query := selectAllFromWhereIn(schema.MemberTable, schema.UserId, userId)
+
+	dbs.lgr.DLog(fmt.Sprintf("query: %v", query))
+
+	rows, err := dbs.db.Read(query, userId)
+	if err != nil {
+		return []model.Member{}, err
+	}
+
+	dbs.lgr.DLog(fmt.Sprintf("rows: %v", rows))
+
+	return populateMemberModels(rows), nil
+}
+
+func (dbs *DbService) DeleteMember(chatId typ.ChatId, userId typ.UserId) error {
+	dbs.lgr.LogFunctionInfo()
+
+	dbs.lgr.DLog(fmt.Sprintf("chatId %v: userId %v", chatId, userId))
+
+	qb := qbuilder.NewQueryBuilder()
+
+	memberTable := qb.Table(schema.MemberTable)
+
+	userIdF := qb.Field(schema.UserId)
+	chatIdF := qb.Field(schema.ChatId)
+
+	query := qb.DELETE_FROM(memberTable).WHERE(chatIdF, qb.EqualTo()).AND(userIdF, qb.EqualTo()).Build()
+
+	return dbs.db.Delete(query, chatId, userId)
 }
 
 func (dbs *DbService) CreateUser(userName string, email cred.Email, pwdHash cred.PwdHash) (typ.LastInsertId, error) {

@@ -17,7 +17,8 @@
     <link rel="stylesheet" href="/static/styles/chat/right-sidebar.css">
     <link rel="stylesheet" href="/static/styles/chat/message.css">
     <link rel="stylesheet" href="/static/styles/chat/sidebar-elem.css">
-    <script src="https://unpkg.com/htmx.org@1.9.2"></script>
+    <!-- <script src="https://unpkg.com/htmx.org@1.9.2"></script> -->
+     <script src="https://unpkg.com/htmx.org@1.9.2/dist/htmx.min.js" defer></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&display=swap" rel="stylesheet">
@@ -38,8 +39,18 @@
 
             <div id="chats-header">
                 <div id="new-chat-input-container">
-                    <input id="chat-name-input" class="input-elem" type="text" placeholder="Type chat name..." />
-                    <button id="new-chat-button" class="button-elem" >+</button>
+                    <form hx-post="/api/chat/new" 
+                        hx-trigger="submit" 
+                        hx-swap="none"
+                        hx-on="htmx:afterRequest: this.reset()"
+                    >
+                        <input id="chat-name-input" 
+                                class="input-elem" 
+                                type="text" 
+                                name="chatName"
+                                placeholder="Type chat name..."
+                        />
+                    </form>
                 </div>
             </div>
 
@@ -102,7 +113,6 @@
 <script src="/static/scripts/config.js" defer></script>
 <script src="/static/scripts/chat.js" defer></script>
 <script src="/static/scripts/modals.js" defer></script>
-
 </html>
 
 {{ end }}

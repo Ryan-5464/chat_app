@@ -21,6 +21,7 @@ const (
 	msgConnectUserFail  StatusCodeMessage = "Unable to connect user"
 	msgMalformedJSON    StatusCodeMessage = "Invalid JSON received"
 	MethodNotAllowed    StatusCodeMessage = "request method not allowed"
+	ParseFormFail       StatusCodeMessage = "Failed to parse form"
 )
 
 type MessageType = string
@@ -37,14 +38,18 @@ const (
 type HTMLPath = string
 
 const (
-	chatViewHTML HTMLPath = "./static/templates/chat/chat-view.html"
-	messagesHTML HTMLPath = "./static/templates/chat/messages.html"
-	messageHTML  HTMLPath = "./static/templates/chat/message.html"
-	chatHTML     HTMLPath = "./static/templates/chat/chat.html"
-	chatsHTML    HTMLPath = "./static/templates/chat/chats.html"
-	newChatHTML  HTMLPath = "./static/templates/chat/new-chat.html"
-	contactHTML  HTMLPath = "./static/templates/chat/contact.html"
-	contactsHTML HTMLPath = "./static/templates/chat/contacts.html"
+	chatViewHTML     HTMLPath = "./static/templates/chat/chat-view.html"
+	messagesHTML     HTMLPath = "./static/templates/chat/messages.html"
+	messageHTML      HTMLPath = "./static/templates/chat/message.html"
+	chatHTML         HTMLPath = "./static/templates/chat/chat.html"
+	chatsHTML        HTMLPath = "./static/templates/chat/chats.html"
+	newChatHTML      HTMLPath = "./static/templates/chat/new-chat.html"
+	LeaveChatHTML    HTMLPath = "./static/templates/chat/leave-chat.html"
+	contactHTML      HTMLPath = "./static/templates/chat/contact.html"
+	contactsHTML     HTMLPath = "./static/templates/chat/contacts.html"
+	contactModalHTML HTMLPath = "./static/templates/chat/contact-modal.html"
+	chatModalHTML    HTMLPath = "./static/templates/chat/chat-modal.html"
+	messageModalHTML HTMLPath = "./static/templates/chat/message-modal.html"
 )
 
 var (
@@ -60,8 +65,12 @@ func init() {
 			chatHTML,
 			chatsHTML,
 			newChatHTML,
+			LeaveChatHTML,
 			contactHTML,
 			contactsHTML,
+			contactModalHTML,
+			chatModalHTML,
+			messageModalHTML,
 		),
 	)
 }
@@ -306,7 +315,7 @@ func (h *ChatHandler) handleNewContactMessageRequest(mr dto.NewMessageRequest, u
 func (h *ChatHandler) SwitchChat(w http.ResponseWriter, r *http.Request) {
 	h.lgr.LogFunctionInfo()
 
-	if r.Method != http.MethodPost {
+	if r.Method != http.MethodGet {
 		h.lgr.LogError(errors.New("request method not allowed"))
 		http.Error(w, MethodNotAllowed, http.StatusMethodNotAllowed)
 		return
@@ -378,10 +387,16 @@ func (h *ChatHandler) NewChat(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	query := r.URL.Query()
-	newChatRequest := dto.NewChatRequest{
-		Name: query.Get("name"),
+	if err := r.ParseForm(); err != nil {
+		h.lgr.Log("faield to parse POST request data...")
+		http.Error(w, ParseFormFail, http.StatusBadRequest)
+		return
 	}
+
+	newChatRequest := dto.NewChatRequest{
+		Name: r.FormValue("chatName"),
+	}
+	h.lgr.DLog(fmt.Sprintf("New chat request name: %v", newChatRequest.Name))
 
 	newChatResponse, err := h.handleNewChatRequest(newChatRequest, session.UserId())
 	if err != nil {
@@ -408,8 +423,76 @@ func (h *ChatHandler) handleNewChatRequest(cr dto.NewChatRequest, userId typ.Use
 	}
 
 	newChatResponse := dto.NewChatResponse{
-		Chats:    []entities.Chat{*chat},
-		Messages: []entities.Message{},
+		Chats: []entities.Chat{*chat},
+	}
+
+	return newChatResponse, nil
+}
+
+/* LEAVE CHAT REQUEST ========================================================================== */
+
+func (h *ChatHandler) LeaveChat(w http.ResponseWriter, r *http.Request) {
+	h.lgr.LogFunctionInfo()
+
+	if r.Method != http.MethodDelete {
+		h.lgr.LogError(errors.New("request method not allowed"))
+		http.Error(w, MethodNotAllowed, http.StatusMethodNotAllowed)
+		return
+	}
+
+	session, userAuthenticated := checkAuthenticationStatus(r)
+	if !userAuthenticated {
+		h.lgr.Log("user not authenticated, redirecting to landing page...")
+		http.Redirect(w, r, "/", http.StatusSeeOther)
+		return
+	}
+
+	query := r.URL.Query()
+	leaveChatRequest := dto.LeaveChatRequest{
+		ChatId: query.Get("chatid"),
+	}
+
+	leaveChatResponse, err := h.handleLeaveChatRequest(leaveChatRequest, session.UserId())
+	if err != nil {
+		h.lgr.LogError(fmt.Errorf("failed to handle add contact request, Error: %v", err))
+		http.Error(w, InternalServerError, http.StatusInternalServerError)
+		return
+	}
+
+	if err := chatViewTmpl.ExecuteTemplate(w, "leave-chat", leaveChatResponse); err != nil {
+		h.lgr.LogError(fmt.Errorf("failed to execute leave chat template for chat view, Error: %v", err))
+		http.Error(w, InternalServerError, http.StatusInternalServerError)
+		return
+	}
+
+	h.lgr.DLog("->>>> RESPONSE SENT")
+}
+
+func (h *ChatHandler) handleLeaveChatRequest(cr dto.LeaveChatRequest, userId typ.UserId) (dto.LeaveChatResponse, error) {
+	h.lgr.LogFunctionInfo()
+
+	chatId, err := lib.ConvertStringToInt64(cr.ChatId)
+	if err != nil {
+		return dto.LeaveChatResponse{}, err
+	}
+
+	chats, err := h.chatS.LeaveChat(typ.ChatId(chatId), userId)
+	if err != nil {
+		return dto.LeaveChatResponse{}, err
+	}
+
+	var messages []entities.Message
+	if len(chats) != 0 {
+		chatId := chats[0].Id
+		messages, err = h.msgS.GetChatMessages(chatId)
+		if err != nil {
+			return dto.LeaveChatResponse{}, err
+		}
+	}
+
+	newChatResponse := dto.LeaveChatResponse{
+		Chats:    chats,
+		Messages: messages,
 	}
 
 	return newChatResponse, nil
@@ -490,7 +573,7 @@ func (h *ChatHandler) handleAddContactRequest(addContactRequest dto.AddContactRe
 func (h *ChatHandler) SwitchContactChat(w http.ResponseWriter, r *http.Request) {
 	h.lgr.LogFunctionInfo()
 
-	if r.Method != http.MethodPost {
+	if r.Method != http.MethodGet {
 		h.lgr.LogError(errors.New("request method not allowed"))
 		http.Error(w, MethodNotAllowed, http.StatusMethodNotAllowed)
 		return

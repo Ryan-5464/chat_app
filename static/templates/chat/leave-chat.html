@@ -1,0 +1,13 @@
+{{ define "leave-chat" }}
+<div id="chats-container" hx-swap-oob="innerHTML">
+    {{ range .Chats }}
+        {{ template "chat" . }}
+    {{ end }}
+</div>
+
+<div id="messages-container" hx-swap-oob="innerHTML">
+    {{ range .Messages }}
+        {{ template "message" . }}
+    {{ end }}
+</div>
+{{ end }}

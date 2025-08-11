@@ -27,3 +27,14 @@ func (c *ChatService) GetChats(userId typ.UserId) ([]ent.Chat, error) {
 	c.lgr.LogFunctionInfo()
 	return c.chatR.GetChats(userId)
 }
+
+func (c *ChatService) LeaveChat(chatId typ.ChatId, userId typ.UserId) ([]ent.Chat, error) {
+	c.lgr.LogFunctionInfo()
+
+	if err := c.chatR.RemoveChatMember(chatId, userId); err != nil {
+		c.lgr.LogFunctionInfo()
+		return []ent.Chat{}, err
+	}
+
+	return c.chatR.GetChats(userId)
+}

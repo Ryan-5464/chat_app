@@ -59,12 +59,28 @@ func (c *ChatRepository) NewChat(chatName string, adminId typ.UserId) (*ent.Chat
 func (c *ChatRepository) GetChats(userId typ.UserId) ([]ent.Chat, error) {
 	c.lgr.LogFunctionInfo()
 
-	chats, err := c.dbS.GetUserChats(userId)
+	memberships, err := c.dbS.GetMemberships(userId)
 	if err != nil {
 		return []ent.Chat{}, err
 	}
 
+	c.lgr.DLog(fmt.Sprintf("memberships: %v", memberships))
+
+	chatIds := getMembershipIds(memberships)
+
+	chats, err := c.dbS.GetChats(chatIds)
+	if err != nil {
+		return []ent.Chat{}, err
+	}
+
+	c.lgr.DLog(fmt.Sprintf("chat models: %v", chats))
+
 	return chatModelsToEntities(chats), nil
+}
+
+func (c *ChatRepository) RemoveChatMember(chatId typ.ChatId, userId typ.UserId) error {
+	c.lgr.LogFunctionInfo()
+	return c.dbS.DeleteMember(chatId, userId)
 }
 
 func chatModelsToEntities(chats []model.Chat) []ent.Chat {
@@ -96,4 +112,12 @@ func chatModelToEntity(chat *model.Chat) *ent.Chat {
 		AdminId:   chat.AdminId,
 		CreatedAt: chat.CreatedAt,
 	}
+}
+
+func getMembershipIds(members []model.Member) []typ.ChatId {
+	var chatIds []typ.ChatId
+	for _, member := range members {
+		chatIds = append(chatIds, member.ChatId)
+	}
+	return chatIds
 }

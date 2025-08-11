@@ -15,8 +15,9 @@
             return;
         }
         document.querySelectorAll('.chat.sidebar-elem.active').forEach(el => el.classList.remove('active'));
-        this.classList.add('active');
-">
+        document.querySelectorAll('.contact.sidebar-elem.active').forEach(el => el.classList.remove('active'));
+        this.classList.add('active');"
+>
     <div class="chat-header">
         <div id="chat-name" class="chat-name">{{ .Name }}</div>
         <div class="chat-admin-name">Admin Name{{ .AdminName }}</div>

@@ -1,9 +1,10 @@
 {{ define "new-chat" }}
 <div id="chats-container" hx-swap-oob="beforeend">
-    {{ template "chat" .Chats }}
+    {{ range .Chats }}
+        {{ template "chat" . }}
+    {{ end }}
 </div>
 
 <div id="messages-container" hx-swap-oob="innerHTML">
-    {{ template "messages" .Messages }}
 </div>
 {{ end }}

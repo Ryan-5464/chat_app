@@ -29,8 +29,7 @@ type NewChatRequest struct {
 }
 
 type NewChatResponse struct {
-	Chats    []entities.Chat    `json:"Chats"`
-	Messages []entities.Message `json:"Messages"`
+	Chats []entities.Chat `json:"Chats"`
 }
 
 type NewMessageRequest struct {
@@ -99,4 +98,13 @@ type NewMessageInput struct {
 	ChatId  typ.ChatId
 	Text    string
 	ReplyId *typ.MessageId
+}
+
+type LeaveChatRequest struct {
+	ChatId string `json:"ChatId"`
+}
+
+type LeaveChatResponse struct {
+	Chats    []entities.Chat
+	Messages []entities.Message
 }

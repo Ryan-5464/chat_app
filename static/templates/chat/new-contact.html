@@ -1,9 +1,10 @@
 {{ define "new-contact" }}
 <div id="contacts-container" hx-swap-oob="beforeend">
-    {{ template "chat" .Contacts }}
+    {{ range .Contacts }}
+        {{ template "contact" . }}
+    {{ end }}
 </div>
 
 <div id="messages-container" hx-swap-oob="innerHTML">
-    {{ template "messages" .Messages }}
 </div>
 {{ end }}
