@@ -236,7 +236,7 @@ function renderChats(chatData, overwrite) {
 function renderContactList(contactListData, overwrite) {
     console.log(":: rendering contact list")
     console.log(":: contact list data, ", contactListData)
-    const contactListContainer = document.getElementById('contact-list-container')
+    const contactListContainer = document.getElementById('contacts-container')
     if (overwrite == true) {
         console.log(":: overwriting contact list")
         contactListContainer.innerHTML = ''; 
@@ -407,54 +407,54 @@ function newChatRequestBody(chatName) {
 
 /* SWITCH CHAT REQUEST ================================================== */
 
-function switchChat(chatId) {
-    console.log(":: Switching chat")
-    fetch(BASEURL + '/api/chat/switch', switchChatRequestBody(chatId))
-    .then(response => {
-        if (!response.ok) {
-            throw new Error(`Server error: ${response.status}`);
-        }
-        return response.json(); 
-    })
-    .then(responsePayload => {
-        console.log('[Switch Chat]Received:', responsePayload);
-        console.log(":: payload, ", responsePayload)
-        renderMessages(responsePayload.Messages, true);
-        console.log(":: new active chat id, ", responsePayload.NewActiveChatId)
-        const newActiveChatId = responsePayload.NewActiveChatId 
-        switchActiveChat(newActiveChatId)
-    })
-    .catch(error => {
-        console.error('Fetch error:', error);
-    });
-}
+// function switchChat(chatId) {
+//     console.log(":: Switching chat")
+//     fetch(BASEURL + '/api/chat/switch', switchChatRequestBody(chatId))
+//     .then(response => {
+//         if (!response.ok) {
+//             throw new Error(`Server error: ${response.status}`);
+//         }
+//         return response.json(); 
+//     })
+//     .then(responsePayload => {
+//         console.log('[Switch Chat]Received:', responsePayload);
+//         console.log(":: payload, ", responsePayload)
+//         renderMessages(responsePayload.Messages, true);
+//         console.log(":: new active chat id, ", responsePayload.NewActiveChatId)
+//         const newActiveChatId = responsePayload.NewActiveChatId 
+//         switchActiveChat(newActiveChatId)
+//     })
+//     .catch(error => {
+//         console.error('Fetch error:', error);
+//     });
+// }
 
-function switchChatRequestBody(chatId) {
-    request = {
-        method: 'POST',
-        headers: { 
-            'Content-Type': 'application/json' 
-        },
-        body: JSON.stringify({
-            ChatId: String(chatId),
-        })
-    }
-    console.log(":: switch contact chat request details, ", request)
-    return request
-}
+// function switchChatRequestBody(chatId) {
+//     request = {
+//         method: 'POST',
+//         headers: { 
+//             'Content-Type': 'application/json' 
+//         },
+//         body: JSON.stringify({
+//             ChatId: String(chatId),
+//         })
+//     }
+//     console.log(":: switch contact chat request details, ", request)
+//     return request
+// }
 
-function switchActiveChat(newActiveChatId) {
-    console.log(":: highlighting new active chat")
-     document.querySelectorAll(`.chat`).forEach(chat => {
-        chat.classList.remove(`active`)
-    })
-     document.querySelectorAll(`.contact`).forEach(chat => {
-        chat.classList.remove(`active`)
-    })
+// function switchActiveChat(newActiveChatId) {
+//     console.log(":: highlighting new active chat")
+//      document.querySelectorAll(`.chat`).forEach(chat => {
+//         chat.classList.remove(`active`)
+//     })
+//      document.querySelectorAll(`.contact`).forEach(chat => {
+//         chat.classList.remove(`active`)
+//     })
 
-    const newChat = document.querySelector(`[data-chatid="${newActiveChatId}"]`)
-    newChat.classList.add(`active`)
-}
+//     const newChat = document.querySelector(`[data-chatid="${newActiveChatId}"]`)
+//     newChat.classList.add(`active`)
+// }
 
 /* SWITCH CONTACT CHAT REQUEST ================================================== */
 

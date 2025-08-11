@@ -1,0 +1,8 @@
+{{ define "contact" }}
+    <div class="contact sidebar-elem" data-contactid="{{ .Id }}" data-contactchatid="{{ .ContactChatId }}">
+        <div class="contact-name">{{ .Name }}</div>
+        <div class="contact-email">{{ .Email }}</div>
+        <div class="contact-since">{{ .KnownSince }}</div>
+        <div class="contact-status">{{ .OnlineStatus }}</div>
+    </div>
+{{ end }}

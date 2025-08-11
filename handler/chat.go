@@ -1,11 +1,9 @@
 package handler
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
 	"html/template"
-	"log"
 	"net/http"
 	dto "server/data/DTOs"
 	"server/data/entities"
@@ -16,11 +14,13 @@ import (
 	typ "server/types"
 )
 
+type StatusCodeMessage = string
+
 const (
-	InternalServerError string = "Internal Server Error"
-	msgConnectUserFail  string = "Unable to connect user"
-	msgMalformedJSON    string = "Invalid JSON received"
-	MethodNotAllowed    string = "request method not allowed"
+	InternalServerError StatusCodeMessage = "Internal Server Error"
+	msgConnectUserFail  StatusCodeMessage = "Unable to connect user"
+	msgMalformedJSON    StatusCodeMessage = "Invalid JSON received"
+	MethodNotAllowed    StatusCodeMessage = "request method not allowed"
 )
 
 type MessageType = string
@@ -33,6 +33,38 @@ const (
 	EditContactMessage   MessageType = "5"
 	DeleteContactMessage MessageType = "6"
 )
+
+type HTMLPath = string
+
+const (
+	chatViewHTML HTMLPath = "./static/templates/chat/chat-view.html"
+	messagesHTML HTMLPath = "./static/templates/chat/messages.html"
+	messageHTML  HTMLPath = "./static/templates/chat/message.html"
+	chatHTML     HTMLPath = "./static/templates/chat/chat.html"
+	chatsHTML    HTMLPath = "./static/templates/chat/chats.html"
+	newChatHTML  HTMLPath = "./static/templates/chat/new-chat.html"
+	contactHTML  HTMLPath = "./static/templates/chat/contact.html"
+	contactsHTML HTMLPath = "./static/templates/chat/contacts.html"
+)
+
+var (
+	chatViewTmpl *template.Template
+)
+
+func init() {
+	chatViewTmpl = template.Must(
+		template.ParseFiles(
+			chatViewHTML,
+			messagesHTML,
+			messageHTML,
+			chatHTML,
+			chatsHTML,
+			newChatHTML,
+			contactHTML,
+			contactsHTML,
+		),
+	)
+}
 
 func NewChatHandler(lgr i.Logger, a i.AuthService, c i.ChatService, m i.MessageService, cnx i.ConnectionService, u i.UserService) *ChatHandler {
 	return &ChatHandler{
@@ -54,58 +86,63 @@ type ChatHandler struct {
 	userS i.UserService
 }
 
-func (cr *ChatHandler) RenderChatPage(w http.ResponseWriter, r *http.Request) {
-	cr.lgr.LogFunctionInfo()
+func (h *ChatHandler) RenderChatPage(w http.ResponseWriter, r *http.Request) {
+	h.lgr.LogFunctionInfo()
 
 	if r.Method != http.MethodGet {
+		h.lgr.LogError(errors.New("request method not allowed"))
 		http.Error(w, MethodNotAllowed, http.StatusMethodNotAllowed)
 		return
 	}
 
 	session, userAuthenticated := checkAuthenticationStatus(r)
 	if !userAuthenticated {
+		h.lgr.Log("user not authenticated, redirecting to landing page...")
 		http.Redirect(w, r, "/", http.StatusSeeOther)
 		return
 	}
+	userId := session.UserId()
 
-	chats, err := cr.chatS.GetChats(session.UserId())
+	chats, err := h.chatS.GetChats(userId)
 	if err != nil {
+		h.lgr.LogError(fmt.Errorf("failed to get chats for userId: %v, Error: %v", userId, err))
 		http.Error(w, InternalServerError, http.StatusInternalServerError)
 		return
 	}
 
 	var messages []entities.Message
 	if len(chats) != 0 {
-		messages, err = cr.msgS.GetChatMessages(chats[0].Id)
+		chatId := chats[0].Id
+		messages, err = h.msgS.GetChatMessages(chatId)
 		if err != nil {
+			h.lgr.LogError(fmt.Errorf("failed to get chat messages for chatId: %v, Error: %v", chatId, err))
 			http.Error(w, InternalServerError, http.StatusInternalServerError)
 			return
 		}
 	}
 
-	contacts, err := cr.userS.GetContacts(session.UserId())
+	contacts, err := h.userS.GetContacts(userId)
 	if err != nil {
+		h.lgr.LogError(fmt.Errorf("failed to get contacts for userId: %v, Error: %v", userId, err))
 		http.Error(w, InternalServerError, http.StatusInternalServerError)
 		return
 	}
 
-	tmpl := template.Must(template.New("chat.html").Funcs(template.FuncMap{
-		"toJSON": toJSON,
-	}).ParseFiles("./static/templates/chat.html"))
-
-	log.Println("session userID : ", session.UserId())
+	h.lgr.DLog(fmt.Sprintf("session userId: %v", userId))
 	renderChatpayload := dto.RenderChatPayload{
-		UserId:   session.UserId(),
+		UserId:   userId,
 		Chats:    chats,
 		Messages: messages,
 		Contacts: contacts,
 	}
 
-	if err = tmpl.Execute(w, renderChatpayload); err != nil {
+	if err = chatViewTmpl.ExecuteTemplate(w, "chatView", renderChatpayload); err != nil {
+		h.lgr.LogError(fmt.Errorf("failed to execute chatView template, Error: %v", err))
 		http.Error(w, InternalServerError, http.StatusInternalServerError)
+		return
 	}
 
-	cr.lgr.DLog("->>>> RESPONSE SENT")
+	h.lgr.DLog("->>>> RESPONSE SENT")
 }
 
 /* MESSAGING ================================================================ */
@@ -113,12 +150,14 @@ func (cr *ChatHandler) RenderChatPage(w http.ResponseWriter, r *http.Request) {
 func (h *ChatHandler) ChatWebsocket(w http.ResponseWriter, r *http.Request) {
 	conn := socket.New(w, r)
 	if conn == nil {
+		h.lgr.LogError(errors.New("failed to connect user"))
 		http.Error(w, msgConnectUserFail, http.StatusInternalServerError)
 		return
 	}
 
 	session, userAuthenticated := checkAuthenticationStatus(r)
 	if !userAuthenticated {
+		h.lgr.Log("user not authenticated, redirecting to landing page...")
 		http.Redirect(w, r, "/", http.StatusSeeOther)
 		conn.Close()
 		return
@@ -128,12 +167,13 @@ func (h *ChatHandler) ChatWebsocket(w http.ResponseWriter, r *http.Request) {
 	h.connS.StoreConnection(conn, userId)
 	defer h.connS.DisconnectUser(userId)
 
-	log.Println("&&&&& active connections :", h.connS.GetActiveConnections())
+	h.lgr.DLog(fmt.Sprintf("active connections : %v", h.connS.GetActiveConnections()))
 
 	for {
 
 		payload, err := h.readIncomingMessage(conn)
 		if err != nil {
+			h.lgr.LogError(fmt.Errorf("failed to read incoming websocket message, Error: %v", err))
 			http.Error(w, msgMalformedJSON, http.StatusBadRequest)
 			break
 		}
@@ -166,12 +206,10 @@ func (h *ChatHandler) ChatWebsocket(w http.ResponseWriter, r *http.Request) {
 			}
 
 			if err = h.handleNewContactMessageRequest(newMessageRequest, userId); err != nil {
-				log.Println("?????? test 1")
 				h.lgr.LogError(fmt.Errorf("Failed to handle message request %v", err))
 				http.Error(w, InternalServerError, http.StatusInternalServerError)
 				break
 			}
-			log.Println("?????? test 2")
 
 		}
 		h.lgr.DLog("->>>> RESPONSE SENT")
@@ -201,8 +239,6 @@ func (h *ChatHandler) handleNewMessageRequest(mr dto.NewMessageRequest, userId t
 	if err != nil {
 		return err
 	}
-
-	log.Println(mr.ReplyId)
 
 	var rid int64
 	if mr.ReplyId != "" {
@@ -239,8 +275,6 @@ func (h *ChatHandler) handleNewContactMessageRequest(mr dto.NewMessageRequest, u
 		return err
 	}
 
-	log.Println(mr.ReplyId)
-
 	var rid int64
 	if mr.ReplyId != "" {
 		rid, err = lib.ConvertStringToInt64(mr.ReplyId)
@@ -273,32 +307,36 @@ func (h *ChatHandler) SwitchChat(w http.ResponseWriter, r *http.Request) {
 	h.lgr.LogFunctionInfo()
 
 	if r.Method != http.MethodPost {
+		h.lgr.LogError(errors.New("request method not allowed"))
 		http.Error(w, MethodNotAllowed, http.StatusMethodNotAllowed)
 		return
 	}
 
 	_, userAuthenticated := checkAuthenticationStatus(r)
 	if !userAuthenticated {
+		h.lgr.Log("user not authenticated, redirecting to landing page...")
 		http.Redirect(w, r, "/", http.StatusSeeOther)
 		return
 	}
 
-	var switchChatRequest dto.SwitchChatRequest
-	decoder := json.NewDecoder(r.Body)
-	if err := decoder.Decode(&switchChatRequest); err != nil {
-		log.Println("MALFORMEDJSON:::::")
-		http.Error(w, msgMalformedJSON, http.StatusBadRequest)
-		return
+	query := r.URL.Query()
+	switchChatRequest := dto.SwitchChatRequest{
+		ChatId: query.Get("chatid"),
 	}
 
 	switchChatResponse, err := h.handleChatSwitchRequest(switchChatRequest)
 	if err != nil {
+		h.lgr.LogError(fmt.Errorf("failed to handle switch chat request, Error: %v", err))
 		http.Error(w, InternalServerError, http.StatusInternalServerError)
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(switchChatResponse)
+	if err := chatViewTmpl.ExecuteTemplate(w, "messages", switchChatResponse); err != nil {
+		h.lgr.LogError(fmt.Errorf("failed to execute messages template for chat view, Error: %v", err))
+		http.Error(w, InternalServerError, http.StatusInternalServerError)
+		return
+	}
+
 	h.lgr.DLog("->>>> RESPONSE SENT")
 }
 
@@ -314,14 +352,9 @@ func (h *ChatHandler) handleChatSwitchRequest(switchChatRequest dto.SwitchChatRe
 	if err != nil {
 		return dto.SwitchChatResponse{}, err
 	}
-	// move this check close to the database
-	if messages == nil {
-		messages = []entities.Message{}
-	}
 
 	switchChatResponse := dto.SwitchChatResponse{
-		Messages:        messages,
-		NewActiveChatId: chatId,
+		Messages: messages,
 	}
 
 	return switchChatResponse, nil
@@ -333,31 +366,36 @@ func (h *ChatHandler) NewChat(w http.ResponseWriter, r *http.Request) {
 	h.lgr.LogFunctionInfo()
 
 	if r.Method != http.MethodPost {
+		h.lgr.LogError(errors.New("request method not allowed"))
 		http.Error(w, MethodNotAllowed, http.StatusMethodNotAllowed)
 		return
 	}
 
 	session, userAuthenticated := checkAuthenticationStatus(r)
 	if !userAuthenticated {
+		h.lgr.Log("user not authenticated, redirecting to landing page...")
 		http.Redirect(w, r, "/", http.StatusSeeOther)
 		return
 	}
 
-	var newChatRequest dto.NewChatRequest
-	decoder := json.NewDecoder(r.Body)
-	if err := decoder.Decode(&newChatRequest); err != nil {
-		http.Error(w, msgMalformedJSON, http.StatusBadRequest)
-		return
+	query := r.URL.Query()
+	newChatRequest := dto.NewChatRequest{
+		Name: query.Get("name"),
 	}
 
 	newChatResponse, err := h.handleNewChatRequest(newChatRequest, session.UserId())
 	if err != nil {
+		h.lgr.LogError(fmt.Errorf("failed to handle new chat request, Error: %v", err))
 		http.Error(w, InternalServerError, http.StatusInternalServerError)
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(newChatResponse)
+	if err := chatViewTmpl.ExecuteTemplate(w, "new-chat", newChatResponse); err != nil {
+		h.lgr.LogError(fmt.Errorf("failed to execute new-chat template for chat view, Error: %v", err))
+		http.Error(w, InternalServerError, http.StatusInternalServerError)
+		return
+	}
+
 	h.lgr.DLog("->>>> RESPONSE SENT")
 }
 
@@ -370,9 +408,8 @@ func (h *ChatHandler) handleNewChatRequest(cr dto.NewChatRequest, userId typ.Use
 	}
 
 	newChatResponse := dto.NewChatResponse{
-		Chats:           []entities.Chat{*chat},
-		Messages:        []entities.Message{},
-		NewActiveChatId: chat.Id,
+		Chats:    []entities.Chat{*chat},
+		Messages: []entities.Message{},
 	}
 
 	return newChatResponse, nil
@@ -384,31 +421,36 @@ func (h *ChatHandler) AddContact(w http.ResponseWriter, r *http.Request) {
 	h.lgr.LogFunctionInfo()
 
 	if r.Method != http.MethodPost {
+		h.lgr.LogError(errors.New("request method not allowed"))
 		http.Error(w, MethodNotAllowed, http.StatusMethodNotAllowed)
 		return
 	}
 
 	session, userAuthenticated := checkAuthenticationStatus(r)
 	if !userAuthenticated {
+		h.lgr.Log("user not authenticated, redirecting to landing page...")
 		http.Redirect(w, r, "/", http.StatusSeeOther)
 		return
 	}
 
-	var addContactRequest dto.AddContactRequest
-	decoder := json.NewDecoder(r.Body)
-	if err := decoder.Decode(&addContactRequest); err != nil {
-		http.Error(w, msgMalformedJSON, http.StatusBadRequest)
-		return
+	query := r.URL.Query()
+	addContactRequest := dto.AddContactRequest{
+		Email: query.Get("email"),
 	}
 
 	addContactResponse, err := h.handleAddContactRequest(addContactRequest, session.UserId())
 	if err != nil {
+		h.lgr.LogError(fmt.Errorf("failed to handle add contact request, Error: %v", err))
 		http.Error(w, InternalServerError, http.StatusInternalServerError)
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(addContactResponse)
+	if err := chatViewTmpl.ExecuteTemplate(w, "new-contact", addContactResponse); err != nil {
+		h.lgr.LogError(fmt.Errorf("failed to execute new-contact template for chat view, Error: %v", err))
+		http.Error(w, InternalServerError, http.StatusInternalServerError)
+		return
+	}
+
 	h.lgr.DLog("->>>> RESPONSE SENT")
 }
 
@@ -449,32 +491,36 @@ func (h *ChatHandler) SwitchContactChat(w http.ResponseWriter, r *http.Request) 
 	h.lgr.LogFunctionInfo()
 
 	if r.Method != http.MethodPost {
+		h.lgr.LogError(errors.New("request method not allowed"))
 		http.Error(w, MethodNotAllowed, http.StatusMethodNotAllowed)
 		return
 	}
 
 	_, userAuthenticated := checkAuthenticationStatus(r)
 	if !userAuthenticated {
+		h.lgr.Log("user not authenticated, redirecting to landing page...")
 		http.Redirect(w, r, "/", http.StatusSeeOther)
 		return
 	}
 
-	var switchChatRequest dto.SwitchChatRequest
-	decoder := json.NewDecoder(r.Body)
-	if err := decoder.Decode(&switchChatRequest); err != nil {
-		log.Println("MALFORMEDJSON:::::")
-		http.Error(w, msgMalformedJSON, http.StatusBadRequest)
-		return
+	query := r.URL.Query()
+	switchChatRequest := dto.SwitchChatRequest{
+		ChatId: query.Get("chatid"),
 	}
 
 	switchChatResponse, err := h.handleContactChatSwitchRequest(switchChatRequest)
 	if err != nil {
+		h.lgr.LogError(fmt.Errorf("failed to handle contact chat switch request, Error: %v", err))
 		http.Error(w, InternalServerError, http.StatusInternalServerError)
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(switchChatResponse)
+	if err := chatViewTmpl.ExecuteTemplate(w, "messages", switchChatResponse); err != nil {
+		h.lgr.LogError(fmt.Errorf("failed to execute messages template for chat view, Error: %v", err))
+		http.Error(w, InternalServerError, http.StatusInternalServerError)
+		return
+	}
+
 	h.lgr.DLog("->>>> RESPONSE SENT")
 }
 
@@ -492,17 +538,8 @@ func (h *ChatHandler) handleContactChatSwitchRequest(switchChatRequest dto.Switc
 	}
 
 	switchChatResponse := dto.SwitchChatResponse{
-		Messages:        messages,
-		NewActiveChatId: chatId,
+		Messages: messages,
 	}
 
 	return switchChatResponse, nil
-}
-
-func toJSON(v interface{}) template.JS {
-	b, err := json.Marshal(v)
-	if err != nil {
-		return template.JS("null") // fallback
-	}
-	return template.JS(b) // injects valid JS object into the script
 }

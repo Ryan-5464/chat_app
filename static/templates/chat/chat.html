@@ -1,0 +1,28 @@
+{{ define "chat" }}
+<div 
+    class="chat sidebar-elem" 
+    data-chatid="{{ .Id }}" 
+    data-adminid="{{ .AdminId }}" 
+    data-createdat="{{ .CreatedAt }}"
+    hx-get="/api/chat/switch?chatid={{ .Id }}"
+    hx-trigger="click"
+    hx-target="#messages-container"
+    hx-swap="innerHTML"
+    hx-on="click:
+        if (this.classList.contains('active')) {
+            event.preventDefault();
+            event.stopImmediatePropagation();
+            return;
+        }
+        document.querySelectorAll('.chat.sidebar-elem.active').forEach(el => el.classList.remove('active'));
+        this.classList.add('active');
+">
+    <div class="chat-header">
+        <div id="chat-name" class="chat-name">{{ .Name }}</div>
+        <div class="chat-admin-name">Admin Name{{ .AdminName }}</div>
+        <div class="chat-unread-message-count">{{ .UnreadMessageCount }}</div>
+    </div>
+    <div class="chat-footer">
+    </div>
+</div>
+{{ end }}

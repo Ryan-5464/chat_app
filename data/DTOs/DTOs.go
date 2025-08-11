@@ -21,8 +21,7 @@ func (s *SwitchChatRequest) GetChatId() (typ.ChatId, error) {
 }
 
 type SwitchChatResponse struct {
-	NewActiveChatId typ.ChatId
-	Messages        []entities.Message `json:"Messages"`
+	Messages []entities.Message `json:"Messages"`
 }
 
 type NewChatRequest struct {
@@ -30,9 +29,8 @@ type NewChatRequest struct {
 }
 
 type NewChatResponse struct {
-	Chats           []entities.Chat    `json:"Chats"`
-	Messages        []entities.Message `json:"Messages"`
-	NewActiveChatId typ.ChatId         `json:"NewActiveChatId"`
+	Chats    []entities.Chat    `json:"Chats"`
+	Messages []entities.Message `json:"Messages"`
 }
 
 type NewMessageRequest struct {

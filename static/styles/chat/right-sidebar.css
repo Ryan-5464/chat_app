@@ -7,11 +7,11 @@
     transition: background-color 0.5s ease;
 }
 
-#right-siderbar-container {
+#right-sidebar-container {
     padding: 0 16px;
 }
 
-#contact-list-header {
+#contacts-header {
     padding: 12px 0;
     background-color: var(--bg);
     border-bottom: 1px solid var(--bdr-col);
@@ -39,6 +39,6 @@
     cursor: pointer;
 }
 
-#contact-list-container {
+#contacts-container {
     margin-top: 12px;
 }

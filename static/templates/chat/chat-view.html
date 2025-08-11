@@ -1,0 +1,108 @@
+{{ define "chatView" }}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <link rel="stylesheet" href="/static/styles/base/base.css">
+    <link rel="stylesheet" href="/static/styles/base/button-elem.css">
+    <link rel="stylesheet" href="/static/styles/base/input-elem.css">
+    <link rel="stylesheet" href="/static/styles/base/modal-elem.css">
+    <link rel="stylesheet" href="/static/styles/chat/base.css">
+    <link rel="stylesheet" href="/static/styles/chat/chat.css">
+    <link rel="stylesheet" href="/static/styles/chat/contact.css">
+    <link rel="stylesheet" href="/static/styles/chat/left-sidebar.css">
+    <link rel="stylesheet" href="/static/styles/chat/main-content.css">
+    <link rel="stylesheet" href="/static/styles/chat/right-sidebar.css">
+    <link rel="stylesheet" href="/static/styles/chat/message.css">
+    <link rel="stylesheet" href="/static/styles/chat/sidebar-elem.css">
+    <script src="https://unpkg.com/htmx.org@1.9.2"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&display=swap" rel="stylesheet">
+  <title>Chat Window</title>
+</head>
+
+<body class="jura">
+
+<div id="header-container">
+    <nav></nav>
+</div>
+
+<div id="main-container">
+
+    <div id="left-sidebar">
+
+        <div id="sidebar-container">
+
+            <div id="chats-header">
+                <div id="new-chat-input-container">
+                    <input id="chat-name-input" class="input-elem" type="text" placeholder="Type chat name..." />
+                    <button id="new-chat-button" class="button-elem" >+</button>
+                </div>
+            </div>
+
+            <div id="chats-container">
+                {{ template "chats" . }}
+            </div>
+
+            {{ template "chat-modal" }}
+
+        </div>
+
+    </div>
+    
+    <div id="content-container">
+
+        <div id="messages-container">
+            {{ template "messages" . }}
+        </div>
+
+        {{ template "message-modal" }}
+
+        <div id="message-input-container">
+            <input id="input" class="input-elem" type="text" placeholder="Type your message..." />
+            <button id="send-message-button" class="button-elem">Send</button> 
+        </div>
+
+    </div>
+
+    <div id="right-sidebar">
+
+        <div id="right-siderbar-container">
+
+            <div id="contacts-header">
+
+            <div id="add-contact-input-container">
+                <input id="contact-email-input" class="input-elem" type="text" placeholder="Type contact email..." />
+                <button id="add-contact-button" class="button-elem">+</button>
+            </div>
+
+            </div>
+
+            <div id="contacts-container">
+                {{ template "contacts" . }}
+            </div>
+
+            {{ template "contact-modal" }}
+
+        </div>
+
+
+    </div>
+
+</div>
+
+
+<div id="footer-container"></div>
+
+</body>
+
+<script src="/static/scripts/config.js" defer></script>
+<script src="/static/scripts/chat.js" defer></script>
+<script src="/static/scripts/modals.js" defer></script>
+
+</html>
+
+{{ end }}

@@ -1,0 +1,12 @@
+{{ define "message" }}
+<div class="message {{ if eq .UserId $.UserId }}me{{ end }}" 
+     data-userid="{{ .UserId }}" 
+     data-chatid="{{ .ChatId }}" 
+     data-messageid="{{ .Id }}" 
+     data-replyid="{{ .ReplyId }}">
+    <div class="message-author">{{ .Author }}</div>
+    <div class="message-createdat">{{ .CreatedAt }}</div>
+    <div class="message-lasteditat">{{ .LastEditAt }}</div>
+    <div class="message-text">{{ .Text }}</div>
+</div>
+{{ end }}
