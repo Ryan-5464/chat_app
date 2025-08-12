@@ -23,10 +23,14 @@ type UserRepository interface {
 }
 
 type ChatRepository interface {
+	DeleteChat(chatId typ.ChatId) error
+	GetChat(chatId typ.ChatId) (*ent.Chat, error)
 	GetChats(userId typ.UserId) ([]ent.Chat, error)
 	NewChat(chatName string, adminId typ.UserId) (*ent.Chat, error)
 	NewMember(chatId typ.ChatId, userId typ.UserId) error
+	GetMembers(chatId typ.ChatId) ([]ent.Member, error)
 	RemoveChatMember(chatId typ.ChatId, userId typ.UserId) error
+	NewChatAdmin(chatId typ.ChatId, newAdminId typ.UserId) error
 }
 
 type MessageRepository interface {
@@ -50,9 +54,11 @@ type DbService interface {
 	GetMemberships(userId typ.UserId) ([]model.Member, error)
 
 	CreateChat(chatName string, adminId typ.UserId) (typ.LastInsertId, error)
+	DeleteChat(chatId typ.ChatId) error
 	GetChat(chatId typ.ChatId) (*model.Chat, error)
 	GetChats(chatId []typ.ChatId) ([]model.Chat, error)
 	GetUserChats(userId typ.UserId) ([]model.Chat, error)
+	UpdateChatAdmin(chatId typ.ChatId, userId typ.UserId) error
 
 	CreateContactMessage(userId typ.UserId, chatId typ.ChatId, replyId *typ.MessageId, text string) (typ.LastInsertId, error)
 	CreateMessage(userId typ.UserId, chatId typ.ChatId, replyId *typ.MessageId, text string) (typ.LastInsertId, error)

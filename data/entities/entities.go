@@ -45,3 +45,8 @@ type Contact struct {
 	OnlineStatus  bool
 	ContactChatId typ.ChatId
 }
+
+type Member struct {
+	ChatId typ.ChatId
+	UserId typ.UserId
+}

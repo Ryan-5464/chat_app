@@ -93,6 +93,8 @@ func (dbs *DbService) GetUserChats(userId typ.UserId) ([]model.Chat, error) {
 
 	query := selectAllFromWhereEqualTo(schema.ChatTable, schema.AdminId)
 
+	dbs.lgr.DLog(fmt.Sprintf("query: %v", query))
+
 	rows, err := dbs.db.Read(query, userId)
 	if err != nil {
 		return []model.Chat{}, err
@@ -101,6 +103,31 @@ func (dbs *DbService) GetUserChats(userId typ.UserId) ([]model.Chat, error) {
 	dbs.lgr.DLog(fmt.Sprintf("rows %v", rows))
 
 	return populateChatModels(rows), nil
+}
+
+func (dbs *DbService) DeleteChat(chatId typ.ChatId) error {
+	dbs.lgr.LogFunctionInfo()
+
+	dbs.lgr.DLog(fmt.Sprintf("chatId %v", chatId))
+
+	query := deleteFromWhere(schema.ChatTable, schema.ChatId)
+
+	dbs.lgr.DLog(fmt.Sprintf("query: %v", query))
+
+	return dbs.db.Delete(query, chatId)
+
+}
+
+func (dbs *DbService) UpdateChatAdmin(chatId typ.ChatId, newAdminId typ.UserId) error {
+	dbs.lgr.LogFunctionInfo()
+
+	dbs.lgr.DLog(fmt.Sprintf("chatId %v, newAdminId: %v", chatId, newAdminId))
+
+	query := updateWhereEqualTo(schema.ChatTable, schema.ChatId, schema.AdminId)
+
+	dbs.lgr.DLog(fmt.Sprintf("query: %v", query))
+
+	return dbs.db.Update(query, newAdminId, chatId)
 }
 
 func (dbs *DbService) GetUser(userId typ.UserId) (*model.User, error) {
@@ -557,6 +584,15 @@ func insertIntoValues(table string, fields ...string) string {
 	vals := ToAnySlice(fs)
 
 	return qb.INSERT_INTO(t, fs...).VALUES(vals...).Build()
+}
+
+func deleteFromWhere(table string, field string) string {
+	qb := qbuilder.NewQueryBuilder()
+
+	t := qb.Table(table)
+	f := qb.Field(field)
+
+	return qb.DELETE_FROM(t).WHERE(f, qb.EqualTo()).Build()
 }
 
 func populateContactModel(rows typ.Rows) *model.Contact {

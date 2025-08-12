@@ -36,5 +36,29 @@ func (c *ChatService) LeaveChat(chatId typ.ChatId, userId typ.UserId) ([]ent.Cha
 		return []ent.Chat{}, err
 	}
 
+	chat, err := c.chatR.GetChat(chatId)
+	if err != nil {
+		return []ent.Chat{}, err
+	}
+
+	if chat.AdminId != userId {
+		return c.chatR.GetChats(userId)
+	}
+
+	members, err := c.chatR.GetMembers(chatId)
+	if err != nil {
+		return []ent.Chat{}, err
+	}
+
+	if len(members) == 0 {
+		if err := c.chatR.DeleteChat(chatId); err != nil {
+			return []ent.Chat{}, err
+		}
+	}
+
+	if err := c.chatR.NewChatAdmin(chatId, members[0].UserId); err != nil {
+		return []ent.Chat{}, err
+	}
+
 	return c.chatR.GetChats(userId)
 }

@@ -56,6 +56,17 @@ func (c *ChatRepository) NewChat(chatName string, adminId typ.UserId) (*ent.Chat
 	return chatModelToEntity(chat), nil
 }
 
+func (c *ChatRepository) GetChat(chatId typ.ChatId) (*ent.Chat, error) {
+	c.lgr.LogFunctionInfo()
+
+	chat, err := c.dbS.GetChat(chatId)
+	if err != nil {
+		return nil, err
+	}
+
+	return chatModelToEntity(chat), nil
+}
+
 func (c *ChatRepository) GetChats(userId typ.UserId) ([]ent.Chat, error) {
 	c.lgr.LogFunctionInfo()
 
@@ -78,9 +89,30 @@ func (c *ChatRepository) GetChats(userId typ.UserId) ([]ent.Chat, error) {
 	return chatModelsToEntities(chats), nil
 }
 
+func (c *ChatRepository) DeleteChat(chatId typ.ChatId) error {
+	c.lgr.LogFunctionInfo()
+	return c.dbS.DeleteChat(chatId)
+}
+
+func (c *ChatRepository) GetMembers(chatId typ.ChatId) ([]ent.Member, error) {
+	c.lgr.LogFunctionInfo()
+
+	members, err := c.dbS.GetMembers(chatId)
+	if err != nil {
+		return []ent.Member{}, err
+	}
+
+	return memberModelsToEntities(members), nil
+}
+
 func (c *ChatRepository) RemoveChatMember(chatId typ.ChatId, userId typ.UserId) error {
 	c.lgr.LogFunctionInfo()
 	return c.dbS.DeleteMember(chatId, userId)
+}
+
+func (c *ChatRepository) NewChatAdmin(chatId typ.ChatId, newAdminId typ.UserId) error {
+	c.lgr.LogFunctionInfo()
+	return c.dbS.UpdateChatAdmin(chatId, newAdminId)
 }
 
 func chatModelsToEntities(chats []model.Chat) []ent.Chat {
@@ -120,4 +152,16 @@ func getMembershipIds(members []model.Member) []typ.ChatId {
 		chatIds = append(chatIds, member.ChatId)
 	}
 	return chatIds
+}
+
+func memberModelsToEntities(models []model.Member) []ent.Member {
+	var members []ent.Member
+	for _, model := range models {
+		ent := ent.Member{
+			ChatId: model.ChatId,
+			UserId: model.UserId,
+		}
+		members = append(members, ent)
+	}
+	return members
 }
