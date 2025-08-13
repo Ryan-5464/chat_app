@@ -31,6 +31,8 @@ type ChatRepository interface {
 	GetMembers(chatId typ.ChatId) ([]ent.Member, error)
 	RemoveChatMember(chatId typ.ChatId, userId typ.UserId) error
 	NewChatAdmin(chatId typ.ChatId, newAdminId typ.UserId) error
+	VerifyChatAdmin(chatId typ.ChatId, userId typ.UserId) (bool, error)
+	EditChatName(newName string, chatId typ.ChatId) error
 }
 
 type MessageRepository interface {
@@ -59,6 +61,7 @@ type DbService interface {
 	GetChats(chatId []typ.ChatId) ([]model.Chat, error)
 	GetUserChats(userId typ.UserId) ([]model.Chat, error)
 	UpdateChatAdmin(chatId typ.ChatId, userId typ.UserId) error
+	UpdateChatName(newName string, chatId typ.ChatId) error
 
 	CreateContactMessage(userId typ.UserId, chatId typ.ChatId, replyId *typ.MessageId, text string) (typ.LastInsertId, error)
 	CreateMessage(userId typ.UserId, chatId typ.ChatId, replyId *typ.MessageId, text string) (typ.LastInsertId, error)
@@ -84,6 +87,7 @@ type ChatService interface {
 	GetChats(userId typ.UserId) ([]ent.Chat, error)
 	NewChat(chatName string, adminId typ.UserId) (*ent.Chat, error)
 	LeaveChat(chatId typ.ChatId, userId typ.UserId) ([]ent.Chat, error)
+	EditChatName(newName string, chatId typ.ChatId, userId typ.UserId) error
 }
 
 type MessageService interface {

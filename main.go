@@ -62,6 +62,7 @@ func main() {
 	http.Handle("/api/register", authMW.AttachTo(http.HandlerFunc(registerHandler.RegisterUser)))
 	http.Handle("/api/login", authMW.AttachTo(http.HandlerFunc(loginHandler.LoginUser)))
 	http.Handle("/api/chat/new", authMW.AttachTo(http.HandlerFunc(chatHandler.NewChat)))
+	http.Handle("/api/chat/edit", authMW.AttachTo(http.HandlerFunc(chatHandler.EditChatName)))
 	http.Handle("/api/chat/leave", authMW.AttachTo(http.HandlerFunc(chatHandler.LeaveChat)))
 	http.Handle("/api/chat/switch", authMW.AttachTo(http.HandlerFunc(chatHandler.SwitchChat)))
 	http.Handle("/api/chat/contact/switch", authMW.AttachTo(http.HandlerFunc(chatHandler.SwitchContactChat)))

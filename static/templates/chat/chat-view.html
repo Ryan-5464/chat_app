@@ -42,14 +42,15 @@
                     <form hx-post="/api/chat/new" 
                         hx-trigger="submit" 
                         hx-swap="none"
-                        hx-on="htmx:afterRequest: this.reset()"
+                        hx-on="
+                            htmx:afterRequest: this.reset()"
                     >
                         <input id="chat-name-input" 
                                 class="input-elem" 
                                 type="text" 
                                 name="chatName"
                                 placeholder="Type chat name..."
-                        />
+                        required />
                     </form>
                 </div>
             </div>

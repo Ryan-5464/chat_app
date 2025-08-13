@@ -118,6 +118,18 @@ func (dbs *DbService) DeleteChat(chatId typ.ChatId) error {
 
 }
 
+func (dbs *DbService) UpdateChatName(name string, chatId typ.ChatId) error {
+	dbs.lgr.LogFunctionInfo()
+
+	dbs.lgr.DLog(fmt.Sprintf("name: %v, chatId %v", name, chatId))
+
+	query := updateWhereEqualTo(schema.ChatTable, schema.ChatId, schema.Name)
+
+	dbs.lgr.DLog(fmt.Sprintf("query: %v", query))
+
+	return dbs.db.Update(query, name, chatId)
+}
+
 func (dbs *DbService) UpdateChatAdmin(chatId typ.ChatId, newAdminId typ.UserId) error {
 	dbs.lgr.LogFunctionInfo()
 

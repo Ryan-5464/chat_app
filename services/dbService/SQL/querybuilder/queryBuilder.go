@@ -128,9 +128,12 @@ func (q *queryBuilder) INSERT_INTO(t table, fields ...Field) *queryBuilder {
 func (q *queryBuilder) UPDATE(t table, setParams ...Set) *queryBuilder {
 	q.WriteString("UPDATE ")
 	q.WriteString(t.String())
-	q.WriteString(" ")
-	for _, s := range setParams {
+	q.WriteString(" SET ")
+	for i, s := range setParams {
 		q.WriteString(string(s))
+		if len(setParams) > 1 && i < len(setParams)-1 {
+			q.WriteString(",")
+		}
 	}
 	return q
 }
@@ -207,11 +210,9 @@ func (q *queryBuilder) IN(v ...any) placeholders {
 
 func (q *queryBuilder) SET(f Field) Set {
 	var b strings.Builder
-	b.WriteString(" SET ")
 	b.WriteString(f.String())
 	b.WriteString(" = ")
 	b.WriteString("?")
-	b.WriteString(",")
 	return Set(b.String())
 }
 
@@ -222,7 +223,7 @@ func (q *queryBuilder) concatFields(fields ...Field) string {
 	var b strings.Builder
 	for i, f := range fields {
 		b.WriteString(f.String())
-		if i < len(fields)-1 {
+		if len(fields) > 1 && i < len(fields)-1 {
 			b.WriteString(", ")
 		}
 	}

@@ -108,3 +108,21 @@ type LeaveChatResponse struct {
 	Chats    []entities.Chat
 	Messages []entities.Message
 }
+
+type EditChatNameRequest struct {
+	Name   string `json:"Name"`
+	ChatId string `json:"ChatId"`
+	UserId typ.UserId
+}
+
+func (s EditChatNameRequest) GetChatId() (typ.ChatId, error) {
+	cid, err := lib.ConvertStringToInt64(s.ChatId)
+	if err != nil {
+		return 0, err
+	}
+	return typ.ChatId(cid), nil
+}
+
+type EditChatNameResponse struct {
+	Name string `json:"Name"`
+}

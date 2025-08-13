@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"errors"
 	"fmt"
 	ent "server/data/entities"
 	i "server/interfaces"
@@ -113,6 +114,26 @@ func (c *ChatRepository) RemoveChatMember(chatId typ.ChatId, userId typ.UserId) 
 func (c *ChatRepository) NewChatAdmin(chatId typ.ChatId, newAdminId typ.UserId) error {
 	c.lgr.LogFunctionInfo()
 	return c.dbS.UpdateChatAdmin(chatId, newAdminId)
+}
+
+func (c *ChatRepository) VerifyChatAdmin(chatId typ.ChatId, userId typ.UserId) (bool, error) {
+	c.lgr.LogFunctionInfo()
+
+	chat, err := c.dbS.GetChat(chatId)
+	if err != nil {
+		return false, err
+	}
+
+	if chat == nil {
+		return false, errors.New("Failed to find chat")
+	}
+
+	return chat.AdminId == userId, nil
+}
+
+func (c *ChatRepository) EditChatName(newName string, chatId typ.ChatId) error {
+	c.lgr.LogFunctionInfo()
+	return c.dbS.UpdateChatName(newName, chatId)
 }
 
 func chatModelsToEntities(chats []model.Chat) []ent.Chat {

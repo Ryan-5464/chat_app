@@ -1,9 +1,11 @@
 package handler
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"html/template"
+	"log"
 	"net/http"
 	dto "server/data/DTOs"
 	"server/data/entities"
@@ -44,6 +46,7 @@ const (
 	chatHTML         HTMLPath = "./static/templates/chat/chat.html"
 	chatsHTML        HTMLPath = "./static/templates/chat/chats.html"
 	newChatHTML      HTMLPath = "./static/templates/chat/new-chat.html"
+	newChatNameHTML  HTMLPath = "./static/templates/chat/new-chat-name.html"
 	LeaveChatHTML    HTMLPath = "./static/templates/chat/leave-chat.html"
 	contactHTML      HTMLPath = "./static/templates/chat/contact.html"
 	contactsHTML     HTMLPath = "./static/templates/chat/contacts.html"
@@ -65,6 +68,7 @@ func init() {
 			chatHTML,
 			chatsHTML,
 			newChatHTML,
+			newChatNameHTML,
 			LeaveChatHTML,
 			contactHTML,
 			contactsHTML,
@@ -625,4 +629,65 @@ func (h *ChatHandler) handleContactChatSwitchRequest(switchChatRequest dto.Switc
 	}
 
 	return switchChatResponse, nil
+}
+
+// EDIT CHAT NAME ==================================================================
+
+func (h *ChatHandler) EditChatName(w http.ResponseWriter, r *http.Request) {
+	h.lgr.LogFunctionInfo()
+
+	log.Println("::::: TEST MESSAGE :::::")
+
+	if r.Method != http.MethodPost {
+		h.lgr.LogError(errors.New("request method not allowed"))
+		http.Error(w, MethodNotAllowed, http.StatusMethodNotAllowed)
+		return
+	}
+
+	session, userAuthenticated := checkAuthenticationStatus(r)
+	if !userAuthenticated {
+		h.lgr.Log("user not authenticated, redirecting to landing page...")
+		http.Redirect(w, r, "/", http.StatusSeeOther)
+		return
+	}
+
+	var editChatNameRequest dto.EditChatNameRequest
+	if err := json.NewDecoder(r.Body).Decode(&editChatNameRequest); err != nil {
+		h.lgr.LogError(fmt.Errorf("failed to decode JSON request body: ", err))
+		http.Error(w, ParseFormFail, http.StatusBadRequest)
+		return
+	}
+	editChatNameRequest.UserId = session.UserId()
+
+	editChatNameResponse, err := h.handleEditChatNameRequest(editChatNameRequest)
+	if err != nil {
+		h.lgr.LogError(fmt.Errorf("failed to handle contact edit chat name request, Error: %v", err))
+		http.Error(w, InternalServerError, http.StatusInternalServerError)
+		return
+	}
+
+	if err := chatViewTmpl.ExecuteTemplate(w, "new-chat-name", editChatNameResponse); err != nil {
+		h.lgr.LogError(fmt.Errorf("failed to execute new-chat-name template for chat view, Error: %v", err))
+		http.Error(w, InternalServerError, http.StatusInternalServerError)
+		return
+	}
+
+	h.lgr.DLog("->>>> RESPONSE SENT")
+
+}
+
+func (h *ChatHandler) handleEditChatNameRequest(req dto.EditChatNameRequest) (dto.EditChatNameResponse, error) {
+	h.lgr.LogFunctionInfo()
+
+	chatId, err := req.GetChatId()
+	if err != nil {
+		return dto.EditChatNameResponse{}, err
+	}
+
+	err = h.chatS.EditChatName(req.Name, chatId, req.UserId)
+	if err != nil {
+		return dto.EditChatNameResponse{}, err
+	}
+
+	return dto.EditChatNameResponse{Name: req.Name}, nil
 }

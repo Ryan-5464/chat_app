@@ -107,6 +107,7 @@ function addDelegatedEventListeners() {
             openModalAt(e.clientX, e.clientY, chatModal, chatModalContent);
             const chatId = elem.getAttribute("data-chatid")
             setChatModalData(chatId)
+            setupChatModalEditButton(chatId, chatModal, chatModalContent)
         }
     });
   }
@@ -135,6 +136,69 @@ function addDelegatedEventListeners() {
     });
   }
 }
+
+function setupChatModalEditButton(chatId, modal, modalContent) {
+  const chatEditBtn = document.getElementById('chat-edit-btn');
+  chatEditBtn.addEventListener('click', () => {
+    const chat = document.querySelector(`[data-chatid="${chatId}"]`);
+    if (!chat) return;
+
+    const chatName = chat.querySelector('.chat-name');
+    chatName.innerHTML = ''; // clear existing content
+
+    const form = document.createElement('form');
+    form.classList.add('edit-chat-name-form');
+
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.name = 'Name';
+    input.placeholder = 'Enter new name';
+    input.required = true;
+    input.className = 'input-elem';
+    form.appendChild(input);
+
+    // hidden input to send chatId
+    const hiddenChatId = document.createElement('input');
+    hiddenChatId.type = 'hidden';
+    hiddenChatId.name = 'ChatId';
+    hiddenChatId.value = chatId;
+    form.appendChild(hiddenChatId);
+
+    chatName.appendChild(form);
+
+    input.focus();
+
+    closeModal(modal, modalContent);
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const name = form.elements['Name'].value;
+      const chatId = form.elements['ChatId'].value;
+
+      try {
+        const response = await fetch('/api/chat/edit', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'same-origin',
+          body: JSON.stringify({ Name: name, ChatId: chatId }),
+        });
+
+        if (!response.ok) {
+          alert('Failed to update chat name.');
+          return;
+        }
+
+        const text = await response.text();
+        chatName.innerHTML = text;
+
+      } catch (err) {
+        alert('Network error while updating chat name.');
+      }
+    });
+  });
+}
+
 
 function setChatModalData(chatId) {
   document.getElementById('chat-leave-btn').dataset.chatid = chatId;
