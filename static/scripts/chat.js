@@ -27,7 +27,13 @@ document.addEventListener("DOMContentLoaded", function() {
     addNewMsgListenerToSendMsgButton()
     addAddContactEventListenerToButton()
     addAddContactEventListenerToInput()
+    setActiveChat()
 })
+
+function setActiveChat() {
+    const chat = document.querySelector('.chat')
+    chat.classList.add('active')
+}
 
 function addAddContactEventListenerToButton() {
     elem = document.getElementById("add-contact-button")
