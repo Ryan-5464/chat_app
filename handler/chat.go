@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"html/template"
-	"log"
 	"net/http"
 	dto "server/data/DTOs"
 	"server/data/entities"
@@ -126,7 +125,7 @@ func (h *ChatHandler) RenderChatPage(w http.ResponseWriter, r *http.Request) {
 	var messages []entities.Message
 	if len(chats) != 0 {
 		chatId := chats[0].Id
-		messages, err = h.msgS.GetChatMessages(chatId)
+		messages, err = h.msgS.GetChatMessages(chatId, userId)
 		if err != nil {
 			h.lgr.LogError(fmt.Errorf("failed to get chat messages for chatId: %v, Error: %v", chatId, err))
 			http.Error(w, InternalServerError, http.StatusInternalServerError)
@@ -325,7 +324,7 @@ func (h *ChatHandler) SwitchChat(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, userAuthenticated := checkAuthenticationStatus(r)
+	session, userAuthenticated := checkAuthenticationStatus(r)
 	if !userAuthenticated {
 		h.lgr.Log("user not authenticated, redirecting to landing page...")
 		http.Redirect(w, r, "/", http.StatusSeeOther)
@@ -337,7 +336,7 @@ func (h *ChatHandler) SwitchChat(w http.ResponseWriter, r *http.Request) {
 		ChatId: query.Get("chatid"),
 	}
 
-	switchChatResponse, err := h.handleChatSwitchRequest(switchChatRequest)
+	switchChatResponse, err := h.handleChatSwitchRequest(switchChatRequest, session.UserId())
 	if err != nil {
 		h.lgr.LogError(fmt.Errorf("failed to handle switch chat request, Error: %v", err))
 		http.Error(w, InternalServerError, http.StatusInternalServerError)
@@ -353,7 +352,7 @@ func (h *ChatHandler) SwitchChat(w http.ResponseWriter, r *http.Request) {
 	h.lgr.DLog("->>>> RESPONSE SENT")
 }
 
-func (h *ChatHandler) handleChatSwitchRequest(switchChatRequest dto.SwitchChatRequest) (dto.SwitchChatResponse, error) {
+func (h *ChatHandler) handleChatSwitchRequest(switchChatRequest dto.SwitchChatRequest, userId typ.UserId) (dto.SwitchChatResponse, error) {
 	h.lgr.LogFunctionInfo()
 
 	chatId, err := switchChatRequest.GetChatId()
@@ -361,7 +360,7 @@ func (h *ChatHandler) handleChatSwitchRequest(switchChatRequest dto.SwitchChatRe
 		return dto.SwitchChatResponse{}, err
 	}
 
-	messages, err := h.msgS.GetChatMessages(chatId)
+	messages, err := h.msgS.GetChatMessages(chatId, userId)
 	if err != nil {
 		return dto.SwitchChatResponse{}, err
 	}
@@ -488,7 +487,7 @@ func (h *ChatHandler) handleLeaveChatRequest(cr dto.LeaveChatRequest, userId typ
 	var messages []entities.Message
 	if len(chats) != 0 {
 		chatId := chats[0].Id
-		messages, err = h.msgS.GetChatMessages(chatId)
+		messages, err = h.msgS.GetChatMessages(chatId, userId)
 		if err != nil {
 			return dto.LeaveChatResponse{}, err
 		}
@@ -583,7 +582,7 @@ func (h *ChatHandler) SwitchContactChat(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	_, userAuthenticated := checkAuthenticationStatus(r)
+	session, userAuthenticated := checkAuthenticationStatus(r)
 	if !userAuthenticated {
 		h.lgr.Log("user not authenticated, redirecting to landing page...")
 		http.Redirect(w, r, "/", http.StatusSeeOther)
@@ -595,7 +594,7 @@ func (h *ChatHandler) SwitchContactChat(w http.ResponseWriter, r *http.Request) 
 		ChatId: query.Get("chatid"),
 	}
 
-	switchChatResponse, err := h.handleContactChatSwitchRequest(switchChatRequest)
+	switchChatResponse, err := h.handleContactChatSwitchRequest(switchChatRequest, session.UserId())
 	if err != nil {
 		h.lgr.LogError(fmt.Errorf("failed to handle contact chat switch request, Error: %v", err))
 		http.Error(w, InternalServerError, http.StatusInternalServerError)
@@ -611,7 +610,7 @@ func (h *ChatHandler) SwitchContactChat(w http.ResponseWriter, r *http.Request) 
 	h.lgr.DLog("->>>> RESPONSE SENT")
 }
 
-func (h *ChatHandler) handleContactChatSwitchRequest(switchChatRequest dto.SwitchChatRequest) (dto.SwitchChatResponse, error) {
+func (h *ChatHandler) handleContactChatSwitchRequest(switchChatRequest dto.SwitchChatRequest, userId typ.UserId) (dto.SwitchChatResponse, error) {
 	h.lgr.LogFunctionInfo()
 
 	chatId, err := switchChatRequest.GetChatId()
@@ -619,7 +618,7 @@ func (h *ChatHandler) handleContactChatSwitchRequest(switchChatRequest dto.Switc
 		return dto.SwitchChatResponse{}, err
 	}
 
-	messages, err := h.msgS.GetContactMessages(chatId)
+	messages, err := h.msgS.GetContactMessages(chatId, userId)
 	if err != nil {
 		return dto.SwitchChatResponse{}, err
 	}
@@ -635,8 +634,6 @@ func (h *ChatHandler) handleContactChatSwitchRequest(switchChatRequest dto.Switc
 
 func (h *ChatHandler) EditChatName(w http.ResponseWriter, r *http.Request) {
 	h.lgr.LogFunctionInfo()
-
-	log.Println("::::: TEST MESSAGE :::::")
 
 	if r.Method != http.MethodPost {
 		h.lgr.LogError(errors.New("request method not allowed"))
@@ -690,4 +687,82 @@ func (h *ChatHandler) handleEditChatNameRequest(req dto.EditChatNameRequest) (dt
 	}
 
 	return dto.EditChatNameResponse{Name: req.Name}, nil
+}
+
+func (h *ChatHandler) DeleteMessage(w http.ResponseWriter, r *http.Request) {
+	h.lgr.LogFunctionInfo()
+
+	if r.Method != http.MethodDelete {
+		h.lgr.LogError(errors.New("request method not allowed"))
+		http.Error(w, MethodNotAllowed, http.StatusMethodNotAllowed)
+		return
+	}
+
+	session, userAuthenticated := checkAuthenticationStatus(r)
+	if !userAuthenticated {
+		h.lgr.Log("user not authenticated, redirecting to landing page...")
+		http.Redirect(w, r, "/", http.StatusSeeOther)
+		return
+	}
+
+	query := r.URL.Query()
+	userId, err := lib.ConvertStringToInt64(query.Get("userid"))
+	if err != nil {
+		h.lgr.LogError(fmt.Errorf("failed to parse userId: %v", err))
+		http.Error(w, InternalServerError, http.StatusInternalServerError)
+		return
+	}
+
+	if session.UserId() != typ.UserId(userId) {
+		h.lgr.Log("user unauthorized to delete message")
+		return
+	}
+
+	deleteMessageRequest := dto.DeleteMessageRequest{
+		MessageId: query.Get("messageid"),
+		UserId:    query.Get("userid"),
+		ChatId:    query.Get("chatid"),
+	}
+
+	deleteMessageResponse, err := h.handleDeleteMessageRequest(deleteMessageRequest, session.UserId())
+	if err != nil {
+		h.lgr.LogError(fmt.Errorf("failed to delete message: %v", err))
+		http.Error(w, InternalServerError, http.StatusInternalServerError)
+		return
+	}
+
+	if err := chatViewTmpl.ExecuteTemplate(w, "messages", deleteMessageResponse); err != nil {
+		h.lgr.LogError(fmt.Errorf("failed to execute messages template for chat view, Error: %v", err))
+		http.Error(w, InternalServerError, http.StatusInternalServerError)
+		return
+	}
+
+	h.lgr.DLog("->>>> RESPONSE SENT")
+}
+
+func (h *ChatHandler) handleDeleteMessageRequest(dr dto.DeleteMessageRequest, userId typ.UserId) (dto.DeleteMessageResponse, error) {
+	h.lgr.LogFunctionInfo()
+
+	messageId, err := lib.ConvertStringToInt64(dr.MessageId)
+	if err != nil {
+		return dto.DeleteMessageResponse{}, err
+	}
+
+	if err := h.msgS.DeleteMessage(typ.MessageId(messageId)); err != nil {
+		return dto.DeleteMessageResponse{}, err
+	}
+
+	chatId, err := lib.ConvertStringToInt64(dr.ChatId)
+	if err != nil {
+		return dto.DeleteMessageResponse{}, err
+	}
+
+	messages, err := h.msgS.GetChatMessages(typ.ChatId(chatId), userId)
+	if err != nil {
+		return dto.DeleteMessageResponse{}, err
+	}
+
+	return dto.DeleteMessageResponse{
+		Messages: messages,
+	}, nil
 }

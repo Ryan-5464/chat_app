@@ -84,6 +84,11 @@ func (m *MessageRepository) GetChatMessages(chatId typ.ChatId) ([]entities.Messa
 	return messageEntitiesFromModels(messages), nil
 }
 
+func (m *MessageRepository) DeleteMessage(messageId typ.MessageId) error {
+	m.lgr.LogFunctionInfo()
+	return m.dbS.DeleteMessage(messageId)
+}
+
 func messageEntitiesFromModels(messages []model.Message) []entities.Message {
 	if len(messages) == 0 {
 		return []entities.Message{}

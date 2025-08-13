@@ -25,7 +25,6 @@ socket.onmessage = function (event) {
 document.addEventListener("DOMContentLoaded", function() {
     addNewMsgListenerToMsgInput()
     addNewMsgListenerToSendMsgButton()
-    addAddContactEventListenerToButton()
     addAddContactEventListenerToInput()
     setActiveChat()
 })
@@ -35,16 +34,6 @@ function setActiveChat() {
     chat.classList.add('active')
 }
 
-function addAddContactEventListenerToButton() {
-    elem = document.getElementById("add-contact-button")
-    elem.addEventListener('click', function () {
-        const contactEmailInput = document.getElementById("contact-email-input")
-        const email = contactEmailInput.value.trim()
-        console.log("contactEmail: ", email)
-        contactEmailInput.value = '';
-        addContact(email)
-    })
-}
 
 function addAddContactEventListenerToInput() {
     elem = document.getElementById("contact-email-input")
@@ -59,29 +48,6 @@ function addAddContactEventListenerToInput() {
     })
 }
 
-// function addNewChatEventListenerToButton() {
-//     elem = document.getElementById("new-chat-button")
-//     elem.addEventListener('click', function () {
-//         const chatNameInput = document.getElementById("chat-name-input")
-//         const chatName = chatNameInput.value.trim()
-//         console.log("newChatName: ", chatName)
-//         chatNameInput.value = '';
-//         // newChat(chatName)
-//     })
-// }
-
-// function addNewChatEventListenerToInput() {
-//     elem = document.getElementById("chat-name-input")
-//     elem.addEventListener('keydown', function (event) {
-//         if (event.key == "Enter") {
-//             const chatNameInput = document.getElementById("chat-name-input")
-//             const chatName = chatNameInput.value.trim()
-//             console.log("newChatName: ", chatName)
-//             chatNameInput.value = '';
-//             newChat(chatName)
-//         }
-//     })
-// }
 function addNewMsgListenerToMsgInput() {
     const input = document.getElementById("input")
     input.addEventListener('keydown', function (event) {
@@ -247,6 +213,11 @@ function renderMessages(messageData, overwrite) {
             "data-messageid": message.Id,
             "data-replyid": message.ReplyId,
         };
+
+        if (message.IsUserMessage) {
+            messageElement.classList.add("me")
+        }
+
         for (const [key, value] of Object.entries(attributes)) {
             messageElement.setAttribute(key, value);
         }

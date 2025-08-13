@@ -40,6 +40,7 @@ type MessageRepository interface {
 	GetContactMessages(chatId typ.ChatId) ([]entities.Message, error)
 	NewContactMessage(userId typ.UserId, chatId typ.ChatId, replyId *typ.MessageId, text string) (*ent.Message, error)
 	NewMessage(userId typ.UserId, chatId typ.ChatId, replyId *typ.MessageId, text string) (*ent.Message, error)
+	DeleteMessage(messageId typ.MessageId) error
 }
 
 type DbService interface {
@@ -65,6 +66,7 @@ type DbService interface {
 
 	CreateContactMessage(userId typ.UserId, chatId typ.ChatId, replyId *typ.MessageId, text string) (typ.LastInsertId, error)
 	CreateMessage(userId typ.UserId, chatId typ.ChatId, replyId *typ.MessageId, text string) (typ.LastInsertId, error)
+	DeleteMessage(messageId typ.MessageId) error
 	GetChatMessages(chatId typ.ChatId) ([]model.Message, error)
 	GetContactMessage(messageId typ.MessageId) (*model.Message, error)
 	GetContactMessages(chatId typ.ChatId) ([]model.Message, error)
@@ -91,10 +93,11 @@ type ChatService interface {
 }
 
 type MessageService interface {
-	GetChatMessages(chatId typ.ChatId) ([]ent.Message, error)
-	GetContactMessages(chatId typ.ChatId) ([]entities.Message, error)
+	GetChatMessages(chatId typ.ChatId, userId typ.UserId) ([]ent.Message, error)
+	GetContactMessages(chatId typ.ChatId, userId typ.UserId) ([]entities.Message, error)
 	HandleNewContactMessage(mi dto.NewMessageInput) error
 	HandleNewMessage(mi dto.NewMessageInput) error
+	DeleteMessage(messageId typ.MessageId) error
 }
 
 type UserService interface {

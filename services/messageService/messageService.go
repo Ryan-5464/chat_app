@@ -108,6 +108,9 @@ func (m *MessageService) HandleNewMessage(mi dto.NewMessageInput) error {
 func (m *MessageService) BroadcastMessage(userId typ.UserId, conn i.Socket, msg entities.Message) error {
 	m.lgr.LogFunctionInfo()
 	log.Println(":: braoadcast message ", msg)
+
+	msg.IsUserMessage = msg.UserId == userId
+
 	messages := []entities.Message{msg}
 
 	payload := struct {
@@ -120,7 +123,7 @@ func (m *MessageService) BroadcastMessage(userId typ.UserId, conn i.Socket, msg 
 		Messages: messages,
 	}
 
-	log.Println(":: paylaod ", payload)
+	log.Println(":: payload ", payload)
 
 	err := conn.WriteJSON(payload)
 	if err != nil {
@@ -132,12 +135,36 @@ func (m *MessageService) BroadcastMessage(userId typ.UserId, conn i.Socket, msg 
 	return nil
 }
 
-func (m *MessageService) GetChatMessages(chatId typ.ChatId) ([]entities.Message, error) {
+func (m *MessageService) GetChatMessages(chatId typ.ChatId, userId typ.UserId) ([]entities.Message, error) {
 	m.lgr.LogFunctionInfo()
-	return m.msgR.GetChatMessages(chatId)
+	messages, err := m.msgR.GetChatMessages(chatId)
+	if err != nil {
+		return []entities.Message{}, err
+	}
+
+	for i := range messages {
+		messages[i].IsUserMessage = messages[i].UserId == userId
+	}
+
+	return messages, nil
+
 }
 
-func (m *MessageService) GetContactMessages(chatId typ.ChatId) ([]entities.Message, error) {
+func (m *MessageService) GetContactMessages(chatId typ.ChatId, userId typ.UserId) ([]entities.Message, error) {
 	m.lgr.LogFunctionInfo()
-	return m.msgR.GetContactMessages(chatId)
+	messages, err := m.msgR.GetContactMessages(chatId)
+	if err != nil {
+		return []entities.Message{}, err
+	}
+
+	for i := range messages {
+		messages[i].IsUserMessage = messages[i].UserId == userId
+	}
+
+	return messages, nil
+}
+
+func (m *MessageService) DeleteMessage(messageId typ.MessageId) error {
+	m.lgr.LogFunctionInfo()
+	return m.msgR.DeleteMessage(messageId)
 }

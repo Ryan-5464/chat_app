@@ -8,14 +8,15 @@ import (
 )
 
 type Message struct {
-	Id         typ.MessageId
-	UserId     typ.UserId
-	ChatId     typ.ChatId
-	ReplyId    typ.MessageId
-	Author     string
-	Text       string
-	CreatedAt  time.Time
-	LastEditAt time.Time
+	Id            typ.MessageId
+	UserId        typ.UserId
+	ChatId        typ.ChatId
+	ReplyId       typ.MessageId
+	Author        string
+	Text          string
+	CreatedAt     time.Time
+	LastEditAt    time.Time
+	IsUserMessage bool
 }
 
 type Chat struct {

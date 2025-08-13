@@ -117,9 +117,14 @@ function addDelegatedEventListeners() {
     const messageModalContent = messageModal.querySelector(".modal-content");
 
     messageContainer.addEventListener("contextmenu", function (e) {
+      const elem = e.target.closest('.message')
       if (e.target.closest(".message")) {
         e.preventDefault();
         openModalAt(e.clientX, e.clientY, messageModal, messageModalContent);
+        const chatId = elem.getAttribute("data-chatid")
+        const userId = elem.getAttribute("data-userid")
+        const messageId = elem.getAttribute("data-messageid")
+        setMessageModalData(messageId, chatId, userId)
       }
     });
   }
@@ -202,6 +207,12 @@ function setupChatModalEditButton(chatId, modal, modalContent) {
 
 function setChatModalData(chatId) {
   document.getElementById('chat-leave-btn').dataset.chatid = chatId;
+}
+
+function setMessageModalData(messageId, chatId, userId) {
+  document.getElementById('msg-del-btn').dataset.chatid = chatId;
+  document.getElementById('msg-del-btn').dataset.userid = userId;
+  document.getElementById('msg-del-btn').dataset.messageid = messageId;
 }
 
 function openModalAt(x, y, modal, modalContent) {

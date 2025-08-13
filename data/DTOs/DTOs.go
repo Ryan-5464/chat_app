@@ -126,3 +126,12 @@ func (s EditChatNameRequest) GetChatId() (typ.ChatId, error) {
 type EditChatNameResponse struct {
 	Name string `json:"Name"`
 }
+type DeleteMessageRequest struct {
+	MessageId string
+	UserId    string
+	ChatId    string
+}
+
+type DeleteMessageResponse struct {
+	Messages []entities.Message
+}

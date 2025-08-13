@@ -259,6 +259,18 @@ func (dbs *DbService) GetMessages(messageIds []typ.MessageId) ([]model.Message, 
 	return populateMessageModels(rows), nil
 }
 
+func (dbs *DbService) DeleteMessage(messageId typ.MessageId) error {
+	dbs.lgr.LogFunctionInfo()
+
+	dbs.lgr.DLog(fmt.Sprintf("messageId: %v", messageId))
+
+	query := deleteFromWhere(schema.MessageTable, schema.MessageId)
+
+	dbs.lgr.DLog(fmt.Sprintf("query: %v", query))
+
+	return dbs.db.Delete(query, messageId)
+}
+
 func (dbs *DbService) CreateChat(chatName string, adminId typ.UserId) (typ.LastInsertId, error) {
 	dbs.lgr.LogFunctionInfo()
 

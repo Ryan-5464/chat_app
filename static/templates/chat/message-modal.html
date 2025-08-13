@@ -3,9 +3,30 @@
         <div id="messageModal-content" class="modal-content">
             <div id="message-modal-options" class="modal-options">
             <button id="edit-btn" class="modal-button">Edit</button>
-            <button id="delete-btn" class="modal-button">Delete</button>
+            <button
+                id="msg-del-btn"
+                class="modal-button"
+                hx-delete="/api/message/delete"
+                hx-target="#messages-container"
+                hx-swap="innerHTML"
+                hx-on="
+                    htmx:configRequest: 
+                        event.detail.path = 
+                            '/api/message/delete?' + 
+                            'messageid=' + this.dataset.messageid + 
+                            '&chatid=' + this.dataset.chatid + 
+                            '&userid=' + this.dataset.userid;
+                    htmx:beforeRequest:
+                        closeModal(
+                            document.getElementById('messageModal'),
+                            document.getElementById('messageModal-content')
+                        );
+                "
+            >
+                Delete
+            </button>
             <button id="reply-btn" class="modal-button">Reply</button>
             </div>
         </div>
     </div>
-{{ end }}
+{{ end }}   
