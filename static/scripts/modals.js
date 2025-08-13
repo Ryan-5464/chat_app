@@ -88,58 +88,117 @@
 // });
 
 document.addEventListener("DOMContentLoaded", function () {
-  addDelegatedEventListeners();
+    addDelegatedEventListeners();
+    AttachMsgModalToMsgContainer()
 });
 
-function addDelegatedEventListeners() {
-  const chatContainer = document.querySelector("#chats-container");
-  const messageContainer = document.querySelector("#messages-container");
-  const contactContainer = document.querySelector("#contacts-container");
-
-  if (chatContainer) {
-    const chatModal = document.getElementById("chatModal");
-    const chatModalContent = chatModal.querySelector(".modal-content");
-
-    chatContainer.addEventListener("contextmenu", function (e) {
-        const elem = e.target.closest(".chat")
-        if (e.target.closest(".chat")) {
-            e.preventDefault();
-            openModalAt(e.clientX, e.clientY, chatModal, chatModalContent);
-            const chatId = elem.getAttribute("data-chatid")
-            setChatModalData(chatId)
-            setupChatModalEditButton(chatId, chatModal, chatModalContent)
-        }
-    });
-  }
-
-  if (messageContainer) {
-    const messageModal = document.getElementById("messageModal");
-    const messageModalContent = messageModal.querySelector(".modal-content");
+function AttachMsgModalToMsgContainer() {
+    const messageContainer = document.querySelector("#messages-container");
 
     messageContainer.addEventListener("contextmenu", function (e) {
-      const elem = e.target.closest('.message')
-      if (e.target.closest(".message")) {
-        e.preventDefault();
-        openModalAt(e.clientX, e.clientY, messageModal, messageModalContent);
-        const chatId = elem.getAttribute("data-chatid")
-        const userId = elem.getAttribute("data-userid")
-        const messageId = elem.getAttribute("data-messageid")
-        setMessageModalData(messageId, chatId, userId)
-      }
-    });
-  }
 
-  if (contactContainer) {
-    const contactModal = document.getElementById("contactModal");
-    const contactModalContent = contactModal.querySelector(".modal-content");
+        const elem = e.target.closest('.message')
 
-    contactContainer.addEventListener("contextmenu", function (e) {
-      if (e.target.closest(".contact")) {
-        e.preventDefault();
-        openModalAt(e.clientX, e.clientY, contactModal, contactModalContent);
-      }
+        if (elem) {
+            e.preventDefault();
+            ConfigureMessageModal()
+        }
+    
     });
-  }
+}
+
+function ConfigureMessageModal() {
+    const messageModal = document.getElementById("messageModal");
+    
+    const data = {
+        ChatId: elem.getAttribute("data-chatid"),
+        UserId: elem.getAttribute("data-userid"),
+        MessageId: elem.getAttribute("data-messageid"),
+    }
+
+    messageModal = ConfigureModal(messageModal, data)
+    messageModal.openAt(e.clientX, e.clientY)
+}
+
+function ConfigureChatModal() {
+    const chatContainer = document.querySelector("#chats-container");
+
+    chatContainer.addEventListener("contextmenu", function (e) {
+        
+        const elem = e.target.closest(".chat")
+    
+        if (elem) {
+            e.preventDefault();
+            const chatModal = document.getElementById("chatModal");
+
+            const data = {
+                ChatId: elem.getAttribute("data-chatid")
+            }
+
+            chatModal = ConfigureModal(chatModal, data)
+            chatModal.openAt(e.clientX, e.clientY)
+            setupChatModalEditButton(chatModal.dataset.ChatId, chatModal, chatModal.modalContent)
+        }
+
+    });
+}
+
+function ConfigureContactModal() {
+    const contactsContainer = document.querySelector('#contacts-container')
+
+    contactsContainer.addEventListener("contextmenu", function (e) {
+
+        const elem = e.target.closest(".contact")
+
+        if (elem) {
+            e.preventDefault();
+            const contactModal = document.getElementById("contactModal");
+            
+            contactModal = ConfigureModal(contactModal)
+            contactModal.openAt(e.clientX, e.clientY)
+        }
+    })
+}
+
+function ConfigureModal(modal, data={}) {
+    const newModal = {
+        modal: modal,
+        modalContent: modal.querySelector('.modal-content'),
+        data: data,
+
+        close() {
+            this.modalContent.classList.remove("opening");
+            this.modalContent.classList.add("closing");
+
+            setTimeout(() => {
+                this.modal.classList.remove("open");
+                this.modalContent.classList.remove("closing");
+            }, 300);
+        },
+
+        openAt(clientX, clientY) {
+            document.querySelectorAll(".modal.open").forEach(openModal => {
+                if (openModal !== this.modal) {
+                    ConfigureModal(openModal).close();
+                }
+            });
+
+            const padding = 10;
+            const maxLeft = window.innerWidth - this.modalContent.offsetWidth - padding;
+            const maxTop = window.innerHeight - this.modalContent.offsetHeight - padding;
+
+            this.modalContent.style.left = Math.min(clientX, maxLeft) + "px";
+            this.modalContent.style.top = Math.min(clientY, maxTop) + "px";
+
+            this.modalContent.classList.remove("opening", "closing");
+            void this.modalContent.offsetWidth;
+
+            this.modal.classList.add("open");
+            this.modalContent.classList.add("opening");
+        }
+    };
+
+    return newModal;
 }
 
 function setupChatModalEditButton(chatId, modal, modalContent) {
@@ -202,52 +261,6 @@ function setupChatModalEditButton(chatId, modal, modalContent) {
       }
     });
   });
-}
-
-
-function setChatModalData(chatId) {
-  document.getElementById('chat-leave-btn').dataset.chatid = chatId;
-}
-
-function setMessageModalData(messageId, chatId, userId) {
-  document.getElementById('msg-del-btn').dataset.chatid = chatId;
-  document.getElementById('msg-del-btn').dataset.userid = userId;
-  document.getElementById('msg-del-btn').dataset.messageid = messageId;
-}
-
-function openModalAt(x, y, modal, modalContent) {
-  document.querySelectorAll(".modal.open").forEach(openModal => {
-    const openContent = openModal.querySelector(".modal-content");
-    if (openModal !== modal) {
-      closeModal(openModal, openContent);
-    }
-  });
-
-  const padding = 10;
-  const maxLeft = window.innerWidth - modalContent.offsetWidth - padding;
-  const maxTop = window.innerHeight - modalContent.offsetHeight - padding;
-
-  const left = Math.min(x, maxLeft);
-  const top = Math.min(y, maxTop);
-
-  modalContent.style.left = left + "px";
-  modalContent.style.top = top + "px";
-
-  modalContent.classList.remove("opening", "closing");
-  void modalContent.offsetWidth;
-
-  modal.classList.add("open");
-  modalContent.classList.add("opening");
-}
-
-function closeModal(modal, modalContent) {
-  modalContent.classList.remove("opening");
-  modalContent.classList.add("closing");
-
-  setTimeout(() => {
-    modal.classList.remove("open");
-    modalContent.classList.remove("closing");
-  }, 300);
 }
 
 window.addEventListener("click", function (e) {
