@@ -12,7 +12,7 @@ function DeleteMessageRequest() {
         }
     const url = BuildURLWithParams(DEL_MSG_ENDPOINT, params)
     
-    fetch(url, { method: "DELETE" })
+    fetch(url, DELETE())
     .then(response => {
         if (!response.ok) throw new Error("Network response was not ok");
         return response.json();
