@@ -2,8 +2,13 @@
     <div id="chatModal" class="modal">
         <div id="chatModal-content" class="modal-content">
             <div id="chatMdl-opt" class="modal-options">
-            <button id="chat-edit-btn" class="modal-button">Edit</button>
+            <button id="chat-edit-btn" 
+                data-action="editName"
+                class="modal-button"
+                
+                >Edit</button>
             <button id="chat-leave-btn"
+                data-action="leaveChat"
                 class="modal-button"
                 hx-delete="/api/chat/leave?"
                 hx-swap="none"

@@ -7,176 +7,168 @@ window.addEventListener("click", function (e) {
   });
 });
 
+const modalRegistry = {
+    message: {
+        modalId: 'messageModal',
+        controller: MessageModalController,
+        dataKeys: {ChatId: 'chatid', UserId: 'userid', MessageId: 'messageid'},
+        modalOpenOn: '.message',
+        attachListenerTo: '#messages-container'
+    },
+    chat: {
+        modalId: 'chatModal',
+        controller: ChatModalController,
+        dataKeys: {ChatId: 'chatid'},
+        modalOpenOn: '.chat',
+        attachListenerTo: '#chats-container'
+    },
+    contact: {
+        modalId: 'contactModal',
+        controller: ContactsModalController,
+        dataKeys: {},
+        modalOpenOn: '.contact',
+        attachListenerTo: '#contacts-container'
+    }
+}
+
 document.addEventListener("DOMContentLoaded", function () {
-    const messageContainer = document.querySelector("#messages-container");
-    AttachDelegatedContextModal(messageContainer, ConfigureMessageModal, '.message')
-
-    const chatsContainer = document.querySelector("#chats-container");
-    AttachDelegatedContextModal(chatsContainer, ConfigureChatsModal, '.chats')
-
-    const contactsContainer = document.querySelector("#contacts-container");
-    AttachDelegatedContextModal(contactsContainer, ConfigureContactsModal, '.contacts')
-
+    Object.values(modalRegistry).forEach(config => {
+        AttachDelegatedContextModal(config)
+    })
 });
 
-function AttachDelegatedContextModal(container, modalConfig, targetSelector) {
+function AttachDelegatedContextModal(config) {
+    const container = document.querySelector(config.attachListenerTo)
     container.addEventListener("contextmenu", function (e) {
         
-        const elem = e.target.closest(targetSelector)
+        const elem = e.target.closest(config.modalOpenOn)
 
         if (elem) {
             e.preventDefault()
-            const modal = modalConfig(elem)
+            const modal = ConfigureModal(elem, config)
             modal.openAt(e.clientX, e.clientY)
         }
     })
 }
 
-function ConfigureMessageModal(elem) {
-    const messageModal = document.getElementById("messageModal");
-    
-    const data = {
-        ChatId: elem.getAttribute("data-chatid"),
-        UserId: elem.getAttribute("data-userid"),
-        MessageId: elem.getAttribute("data-messageid"),
+function ConfigureModal(elem, config) {
+    const modal = document.getElementById(config.modalId)
+
+    let buttonData = {}
+    Object.entries(config.dataKeys).forEach(([key, value]) => {
+        buttonData[key] = elem.getAttribute(`data-${value}`)
+    });
+
+    return AttachModalController(modal, config.controller, buttonData)
+}
+
+function AttachModalController(modal, controllerClass, buttonData={}) {
+    if (!modal.__controller) {
+        modal.__controller = new controllerClass(modal);
+    }
+    modal.__controller.configureButtons(buttonData)
+    return modal.__controller;
     }
 
-    return ConfigureModal(messageModal, data)
-}
-
-function ConfigureChatsModal(elem) {
-    const chatModal = document.getElementById("chatModal");
-
-    const data = {
-        ChatId: elem.getAttribute("data-chatid")
-    }
-
-    let buttonConfig = function(modal) {
-        editNameButton(modal, this.ChatId)
-    }
-    buttonConfig = buttonConfig.bind(data)
-
-    return ConfigureModal(chatModal, buttonConfig)
-}
-
-function ConfigureContactsModal() {
-    const contactModal = document.getElementById("contactModal");
-    return ConfigureModal(contactModal)
-}
-
-function ConfigureModal(modal, buttonConfig) {
-  if (!modal.__controller) {
-    modal.__controller = new ModalController(modal);
-  }
-
-  if (typeof buttonConfig === "function") {
-    buttonConfig(modal);
-  }
-
-  return modal.__controller;
-}
-
-function editNameButton(modal, chatId) {
-    const chatEditBtn = document.getElementById('chat-edit-btn');
-    const chat = document.querySelector(`[data-chatid="${chatId}"]`);
-    
-    chatEditBtn.addEventListener('click', () => {
-
-        const chatName = chat.querySelector('.chat-name');
-        const replaceNameWithInput = replaceWithInput.bind(chatName)
-        const input = replaceNameWithInput("Enter new name")
-        input.focus();
-        modal.close()
-
-        input.addEventListener('keydown', (e) => {
-            e.preventDefault();
-            if (e.key === ENTER) {
-                chatName.innerHTML = EditChatNameRequest(input.value, chatId)
-            }
-        }, { once: true })   
-    })
-}
-
-function replaceWithInput(placeholder) {
-    this.innerHTML = ''
+function replaceWithInput(elem, placeholder) {
+    elem.innerHTML = ''
     const input = document.createElement('input');
     input.type = 'text';
     input.name = 'Name';
     input.placeholder = placeholder;
     input.required = true;
     input.className = 'input-elem';
-    this.appendChild(input);
+    elem.appendChild(input);
     return input
 }
 
 class ModalController {
-  constructor(modal) {
-    this.modal = modal;
-    this.modalContent = modal.querySelector('.modal-content');
-  }
+    constructor(modal) {
+        this.modal = modal;
+        this.modalContent = modal.querySelector('.modal-content');
+    }
 
-  close() {
-    this.modalContent.classList.remove("opening");
-    this.modalContent.classList.add("closing");
+    close() {
+        this.modalContent.classList.remove("opening");
+        this.modalContent.classList.add("closing");
 
-    setTimeout(() => {
-      this.modal.classList.remove("open");
-      this.modalContent.classList.remove("closing");
-    }, 300);
-  }
+        setTimeout(() => {
+        this.modal.classList.remove("open");
+        this.modalContent.classList.remove("closing");
+        }, MODAL_CLOSE_DELAY);
+    }
 
-  openAt(clientX, clientY) {
-    document.querySelectorAll(".modal.open").forEach(openModal => {
-      if (openModal !== this.modal) {
-        if (openModal.__controller) {
-          openModal.__controller.close();
-        }
-      }
-    });
+    openAt(clientX, clientY) {
+        document.querySelectorAll(".modal.open").forEach(openModal => {
+            if (openModal !== this.modal && openModal.__controller) {
+                openModal.__controller.close();
+            }
+        });
 
-    const padding = 10;
-    const maxLeft = window.innerWidth - this.modalContent.offsetWidth - padding;
-    const maxTop = window.innerHeight - this.modalContent.offsetHeight - padding;
+        const padding = 10;
+        const maxLeft = window.innerWidth - this.modalContent.offsetWidth - padding;
+        const maxTop = window.innerHeight - this.modalContent.offsetHeight - padding;
 
-    this.modalContent.style.left = Math.min(clientX, maxLeft) + "px";
-    this.modalContent.style.top = Math.min(clientY, maxTop) + "px";
+        this.modalContent.style.left = Math.min(clientX, maxLeft) + "px";
+        this.modalContent.style.top = Math.min(clientY, maxTop) + "px";
 
-    this.modalContent.classList.remove("opening", "closing");
-    void this.modalContent.offsetWidth;
+        this.modalContent.classList.remove("opening", "closing");
+        void this.modalContent.offsetWidth;
 
-    this.modal.classList.add("open");
-    this.modalContent.classList.add("opening");
-  }
+        this.modal.classList.add("open");
+        this.modalContent.classList.add("opening");
+    }
+
+    configureButtons(buttonData = {}) {
+        const buttons = this.modalContent.querySelectorAll('[data-action]');
+
+        buttons.forEach(button => {
+            const actionName = button.dataset.action;
+            button = RemoveAllListeners(button)
+
+            button.addEventListener('click', (e) => {
+                this[actionName](e, buttonData)
+            });
+        })
+    }
 }
 
 class ChatModalController extends ModalController {
-    constructor(modal, chatId) {
+    constructor(modal) {
         super(modal)
-        buttonConfig(chatId)
     }
 
-    buttonConfig(chatId) {
-        editNameButton(chatId)
-    }
+    editName(e, { ChatId }) {
+        const chat = document.querySelector(`[data-chatid="${ChatId}"]`);
+        const chatName = chat.querySelector('.chat-name');
+        const input = replaceWithInput(chatName, "Enter new name");
+        input.focus();
+        this.close();
 
-    editNameButton(chatId) {
-        const chatEditBtn = document.getElementById('chat-edit-btn');
-        const chat = document.querySelector(`[data-chatid="${chatId}"]`);
-        
-        chatEditBtn.addEventListener('click', () => {
-
-            const chatName = chat.querySelector('.chat-name');
-            const replaceNameWithInput = replaceWithInput.bind(chatName)
-            const input = replaceNameWithInput("Enter new name")
-            input.focus();
-            this.modal.close()
-
-            input.addEventListener('keydown', (e) => {
-                e.preventDefault();
-                if (e.key === ENTER) {
-                    chatName.innerHTML = EditChatNameRequest(input.value, chatId)
-                }
-            }, { once: true })   
+        input.addEventListener('keydown', (e) => {
+            if (e.key === "Enter") {
+                chatName.innerHTML = EditChatNameRequest(input.value, ChatId);
+            }
         })
+    }
+}
+
+class MessageModalController extends ModalController {
+    constructor(modal) {
+        super(modal)
+    }
+
+    _deleteMessage(e, { ChatId, MessageId, UserId }) {
+        return ChatId, MessageId, UserId
+    }
+}
+
+class ContactsModalController extends ModalController {
+    constructor(modal) {
+        super(modal)
+    }
+
+    configureButtons() {
+        return
     }
 }
