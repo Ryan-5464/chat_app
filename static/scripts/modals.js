@@ -8,122 +8,30 @@ window.addEventListener("click", function (e) {
 });
 
 
-class ModalController {
-    constructor(modal) {
-        this.modal = modal;
-        this.modalContent = modal.querySelector('.modal-content');
-    }
-
-    close() {
-        this.modalContent.classList.remove("opening");
-        this.modalContent.classList.add("closing");
-
-        setTimeout(() => {
-        this.modal.classList.remove("open");
-        this.modalContent.classList.remove("closing");
-        }, MODAL_CLOSE_DELAY);
-    }
-
-    openAt(clientX, clientY) {
-        document.querySelectorAll(".modal.open").forEach(openModal => {
-            if (openModal !== this.modal && openModal.__controller) {
-                openModal.__controller.close();
-            }
-        });
-
-        const padding = 10;
-        const maxLeft = window.innerWidth - this.modalContent.offsetWidth - padding;
-        const maxTop = window.innerHeight - this.modalContent.offsetHeight - padding;
-
-        this.modalContent.style.left = Math.min(clientX, maxLeft) + "px";
-        this.modalContent.style.top = Math.min(clientY, maxTop) + "px";
-
-        this.modalContent.classList.remove("opening", "closing");
-        void this.modalContent.offsetWidth;
-
-        this.modal.classList.add("open");
-        this.modalContent.classList.add("opening");
-    }
-
-    configureButtons(buttonData = {}) {
-        const buttons = this.modalContent.querySelectorAll('[data-action]');
-
-        buttons.forEach(button => {
-            const actionName = button.dataset.action;
-            button = RemoveAllListeners(button)
-
-            button.addEventListener('click', (e) => {
-                this[actionName](e, buttonData)
-            });
-        })
-    }
-}
-
-class ChatModalController extends ModalController {
-    constructor(modal) {
-        super(modal)
-    }
-
-    editName(e, { ChatId }) {
-        const chat = document.querySelector(`[data-chatid="${ChatId}"]`);
-        const chatName = chat.querySelector('.chat-name');
-        const input = replaceWithInput(chatName, "Enter new name");
-        input.focus();
-        this.close();
-
-        input.addEventListener('keydown', (e) => {
-            if (e.key === "Enter") {
-                EditChatNameRequest(input.value, ChatId).then(newName => {
-                    if (newName) {
-                        chatName.innerHTML = newName;
-                    }
-                });
-            }
-        })
-    }
-}
-
-class MessageModalController extends ModalController {
-    constructor(modal) {
-        super(modal)
-    }
-
-    _deleteMessage(e, { ChatId, MessageId, UserId }) {
-        return ChatId, MessageId, UserId
-    }
-}
-
-class ContactsModalController extends ModalController {
-    constructor(modal) {
-        super(modal)
-    }
-
-    configureButtons() {
-        return
-    }
-}
-
 const modalRegistry = {
     message: {
         modalId: 'messageModal',
         controller: MessageModalController,
         dataKeys: {ChatId: 'chatid', UserId: 'userid', MessageId: 'messageid'},
         modalOpenOn: '.message',
-        attachListenerTo: '#messages-container'
+        attachListenerTo: '#messages-container',
+        renderer: ChatMessageRenderer
     },
     chat: {
         modalId: 'chatModal',
         controller: ChatModalController,
         dataKeys: {ChatId: 'chatid'},
         modalOpenOn: '.chat',
-        attachListenerTo: '#chats-container'
+        attachListenerTo: '#chats-container',
+        renderer: GroupChatRenderer,
     },
     contact: {
         modalId: 'contactModal',
         controller: ContactsModalController,
         dataKeys: {},
         modalOpenOn: '.contact',
-        attachListenerTo: '#contacts-container'
+        attachListenerTo: '#contacts-container',
+        renderer: ContactChatRenderer,
     }
 }
 
@@ -155,12 +63,12 @@ function ConfigureModal(elem, config) {
         buttonData[key] = elem.getAttribute(`data-${value}`)
     });
 
-    return AttachModalController(modal, config.controller, buttonData)
+    return AttachModalController(modal, config, buttonData)
 }
 
-function AttachModalController(modal, controllerClass, buttonData={}) {
+function AttachModalController(modal, config, buttonData={}) {
     if (!modal.__controller) {
-        modal.__controller = new controllerClass(modal);
+        modal.__controller = new config.controller(modal, config.renderer);
     }
     modal.__controller.configureButtons(buttonData)
     return modal.__controller;

@@ -105,8 +105,9 @@ type LeaveChatRequest struct {
 }
 
 type LeaveChatResponse struct {
-	Chats    []entities.Chat
-	Messages []entities.Message
+	NewActiveChatId typ.ChatId
+	Chats           []entities.Chat
+	Messages        []entities.Message
 }
 
 type EditChatNameRequest struct {

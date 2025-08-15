@@ -452,21 +452,17 @@ func (h *ChatHandler) LeaveChat(w http.ResponseWriter, r *http.Request) {
 
 	query := r.URL.Query()
 	leaveChatRequest := dto.LeaveChatRequest{
-		ChatId: query.Get("chatid"),
+		ChatId: query.Get("ChatId"),
 	}
 
 	leaveChatResponse, err := h.handleLeaveChatRequest(leaveChatRequest, session.UserId())
 	if err != nil {
-		h.lgr.LogError(fmt.Errorf("failed to handle add contact request, Error: %v", err))
+		h.lgr.LogError(fmt.Errorf("failed to handle leave chat request, Error: %v", err))
 		http.Error(w, InternalServerError, http.StatusInternalServerError)
 		return
 	}
 
-	if err := chatViewTmpl.ExecuteTemplate(w, "leave-chat", leaveChatResponse); err != nil {
-		h.lgr.LogError(fmt.Errorf("failed to execute leave chat template for chat view, Error: %v", err))
-		http.Error(w, InternalServerError, http.StatusInternalServerError)
-		return
-	}
+	h.sendJSONResponse(w, leaveChatResponse)
 
 	h.lgr.DLog("->>>> RESPONSE SENT")
 }
@@ -484,9 +480,10 @@ func (h *ChatHandler) handleLeaveChatRequest(cr dto.LeaveChatRequest, userId typ
 		return dto.LeaveChatResponse{}, err
 	}
 
+	newActiveChatId := chats[0].Id
 	var messages []entities.Message
 	if len(chats) != 0 {
-		chatId := chats[0].Id
+		chatId := newActiveChatId
 		messages, err = h.msgS.GetChatMessages(chatId, userId)
 		if err != nil {
 			return dto.LeaveChatResponse{}, err
@@ -494,8 +491,9 @@ func (h *ChatHandler) handleLeaveChatRequest(cr dto.LeaveChatRequest, userId typ
 	}
 
 	newChatResponse := dto.LeaveChatResponse{
-		Chats:    chats,
-		Messages: messages,
+		NewActiveChatId: newActiveChatId,
+		Chats:           chats,
+		Messages:        messages,
 	}
 
 	return newChatResponse, nil
@@ -663,18 +661,7 @@ func (h *ChatHandler) EditChatName(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-
-	resp := map[string]string{
-		"Name": editChatNameResponse.Name,
-	}
-
-	if err := json.NewEncoder(w).Encode(resp); err != nil {
-		h.lgr.LogError(fmt.Errorf("failed to encode JSON response for edit chat name, Error: %v", err))
-		http.Error(w, InternalServerError, http.StatusInternalServerError)
-		return
-	}
+	h.sendJSONResponse(w, editChatNameResponse)
 
 	h.lgr.DLog(fmt.Sprintf("->>>> RESPONSE SENT:: %v", editChatNameResponse))
 
@@ -772,4 +759,15 @@ func (h *ChatHandler) handleDeleteMessageRequest(dr dto.DeleteMessageRequest, us
 	return dto.DeleteMessageResponse{
 		Messages: messages,
 	}, nil
+}
+
+func (h *ChatHandler) sendJSONResponse(w http.ResponseWriter, responseDTO any) {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+
+	if err := json.NewEncoder(w).Encode(responseDTO); err != nil {
+		h.lgr.LogError(fmt.Errorf("failed to encode JSON response for edit chat name, Error: %v", err))
+		http.Error(w, InternalServerError, http.StatusInternalServerError)
+		return
+	}
 }

@@ -10,16 +10,6 @@
             <button id="chat-leave-btn"
                 data-action="leaveChat"
                 class="modal-button"
-                hx-delete="/api/chat/leave?"
-                hx-swap="none"
-                hx-on="htmx:configRequest: 
-                        event.detail.path = '/api/chat/leave?chatid=' + this.dataset.chatid
-                    htmx:beforeRequest:
-                        closeModal(
-                            document.getElementById('chatModal'),
-                            document.getElementById('chatModal-content')
-                        )    
-                    "
             >Leave</button>
             <button id="chat-members-btn" class="modal-button">Members</button>
             </div>
