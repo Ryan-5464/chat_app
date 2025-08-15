@@ -1,4 +1,4 @@
-const BASEURL = 'http://localhost:8081'
+
 const DEL_MSG_ENDPOINT = '/api/message/delete'
 const EDIT_CHAT_NAME_ENDPOINT = '/api/chat/edit'
 

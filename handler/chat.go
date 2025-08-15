@@ -663,13 +663,20 @@ func (h *ChatHandler) EditChatName(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := chatViewTmpl.ExecuteTemplate(w, "new-chat-name", editChatNameResponse); err != nil {
-		h.lgr.LogError(fmt.Errorf("failed to execute new-chat-name template for chat view, Error: %v", err))
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+
+	resp := map[string]string{
+		"Name": editChatNameResponse.Name,
+	}
+
+	if err := json.NewEncoder(w).Encode(resp); err != nil {
+		h.lgr.LogError(fmt.Errorf("failed to encode JSON response for edit chat name, Error: %v", err))
 		http.Error(w, InternalServerError, http.StatusInternalServerError)
 		return
 	}
 
-	h.lgr.DLog("->>>> RESPONSE SENT")
+	h.lgr.DLog(fmt.Sprintf("->>>> RESPONSE SENT:: %v", editChatNameResponse))
 
 }
 
