@@ -53,7 +53,7 @@ class ModalController {
 class ChatModalController extends ModalController {
     constructor(modal) {
         super(modal)
-        this.renderer = new GroupChatRenderer()
+        this.renderer = new Renderer()
     }
 
     editName(e, { ChatId }) {
@@ -76,9 +76,18 @@ class ChatModalController extends ModalController {
 
     leaveChat(e, { ChatId }) {
         this.close()
+        
+        let isActive = false
+        if (e.target.classList.contains('active')) {
+            isActive = true
+        }
+
         LeaveChatRequest(ChatId).then(data => {
-            this.renderer.render(data.Chats, true)
-            renderMessages(data.Messages, true)  
+            if (!isActive) {
+                return
+            }
+            this.renderer.render('chats', data.Chats, true)
+            this.renderer.render('messages', data.Messages, true)  
             const chat = document.querySelector(`[data-chatid="${data.NewActiveChatId}"]`);
             chat.classList.add('active')
         })
@@ -102,5 +111,63 @@ class ContactsModalController extends ModalController {
 
     configureButtons() {
         return
+    }
+}
+
+const chatControllerRegistry = {
+    Chat: {
+        containerId: 'chats-container',
+        elemClass: '.chat',
+        dataId: 'data-chatid',   // lowercase
+        elemType: 'Chat'
+    },
+    Contact: {
+        containerId: 'contacts-container',
+        elemClass: '.contact',
+        dataId: 'data-contactchatid',
+        elemType: 'Contact'
+    }
+}
+
+const chatConfig = chatControllerRegistry.Chat
+const chatController = new ChatController(renderer, chatConfig)
+attachChatController(chatController)
+
+const contactConfig = chatControllerRegistry.Contact
+const contactChatController = new ChatController(renderer, contactConfig)
+attachChatController(contactChatController) // fixed
+
+function attachChatController(controller) {
+    controller.container.addEventListener('click', (e) => {
+        const chatElem = e.target.closest(controller.config.elemClass)
+        if (chatElem && controller.container.contains(chatElem)) {
+            controller.activateChat(chatElem)
+        }
+    })
+}
+
+class ChatController {
+    constructor(renderer, config) {
+        this.renderer = renderer
+        this.config = config
+        this.container = document.getElementById(config.containerId)
+    }
+
+    activateChat(target) {
+        const elems = this.container.querySelectorAll(this.config.elemClass)
+        const targetId = target.getAttribute(this.config.dataId)
+        if (!targetId) return  // clicked something irrelevant
+
+        for (const chat of elems) {
+            chat.classList.remove('active')
+            if (chat.getAttribute(this.config.dataId) === targetId) {
+                chat.classList.add('active')
+
+                SwitchChatRequest(this.config.elemType, targetId).then(data => {
+                    this.renderer.render(data.Messages, true)
+                })
+                break
+            }
+        }
     }
 }

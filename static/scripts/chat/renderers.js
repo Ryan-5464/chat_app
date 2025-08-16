@@ -1,9 +1,29 @@
-class Renderer {
-    activate() {
 
+const renderRegistry = {
+    chats: {
+        containerId: 'chats-container',
+        elemFactory: ChatElement,
+    },
+    messages: {
+        containerId: 'messages-container',
+        elemFactory: MessageElement,
+    },
+    contacts: {
+        containerId: 'contacts-container',
+        elemFactory: ContactElement,
     }
 
-    _render(container, elemFactory, data, overwrite) {
+
+}
+
+class Renderer {
+    constructor() {
+        this.config = renderRegistry 
+    }
+    
+    render(configSelector, data, overwrite) {
+        const config = this.config[configSelector]
+        const container = document.getElementById(config.containerId)
         if (overwrite == true) {
             container.innerHTML = ''
         }
@@ -13,25 +33,4 @@ class Renderer {
         })
     }
 
-}
-
-class GroupChatRenderer extends Renderer {
-    render(chats, overwrite) {
-        const chatContainer = document.getElementById('chats-container')
-        this._render(chatContainer, ChatElement, chats, overwrite)
-    }
-}
-
-class ContactChatRenderer extends Renderer {
-    render(contacts, overwrite) {
-        const contactsContainer = document.getElementById('contacts-container')
-        this._render(contactsContainer, ContactElement, contacts, overwrite)
-    }
-}
-
-class ChatMessageRenderer extends Renderer {
-    render(messages, overwrite) {
-        const messagesContainer = document.getElementById('messages-container')
-        this._render(messagesContainer, MessageElement, messages, overwrite)
-    }
 }

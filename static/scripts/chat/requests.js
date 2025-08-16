@@ -1,6 +1,13 @@
 const LEAVE_CHAT_ENDPOINT = '/api/chat/leave'
 const DEL_MSG_ENDPOINT = '/api/message/delete'
 const EDIT_CHAT_NAME_ENDPOINT = '/api/chat/edit'
+const CHAT_SWITCH_ENDPOINT = '/api/chat/switch'
+
+function GET() {
+    return {
+        method: 'GET',
+    }
+}
 
 function POST(json) {
     return {
@@ -56,6 +63,22 @@ async function EditChatNameRequest(name, chatId) {
 async function LeaveChatRequest(chatId) {
     const url = BuildURLWithParams(LEAVE_CHAT_ENDPOINT, { ChatId: chatId })
     return fetch(url, DELETE())
+        .then(response => {
+            if (!response.ok) throw new Error("Network response was not ok");
+            return response.json();
+        })
+        .then(data => {
+            console.log("leave chat response data: ", data)
+            return data
+        })
+        .catch(error => {
+            console.log('Error:', error);
+        });
+}
+
+async function SwitchChatRequest(chatType, chatId) {
+    const url = BuildURLWithParams(CHAT_SWITCH_ENDPOINT, { ChatType: chatType, ChatId: chatId })
+    return fetch(url, GET())
         .then(response => {
             if (!response.ok) throw new Error("Network response was not ok");
             return response.json();
