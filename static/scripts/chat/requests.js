@@ -107,3 +107,33 @@ async function NewChatRequest(name) {
             console.log('New chat request failed:', error);
         })
 }
+
+async function AddContactRequest(email) {
+    return fetch(ADD_CONTACT_ENDPOINT, POST({ Email: email}))
+        .then(response => {
+            if (!response.ok) throw new Error("Network response was not ok");
+            return response.json();
+        })
+        .then(data => {
+            console.log("add contact response data: ", data)
+            return data
+        })
+        .catch(error => {
+            console.log('add contact request failed:', error);
+        })
+}
+
+async function NewMessageRequest(chatId, replyId, msgText) {
+    return fetch(NEW_CHAT_ENDPOINT, POST({ ChatId: chatId, ReplyId: replyId, MsgText: msgText}))
+        .then(response => {
+            if (!response.ok) throw new Error("Network response was not ok");
+            return response.json();
+        })
+        .then(data => {
+            console.log("new message response data: ", data)
+            return data
+        })
+        .catch(error => {
+            console.log('New message request failed:', error);
+        })
+}

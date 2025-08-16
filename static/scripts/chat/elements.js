@@ -10,6 +10,7 @@ function ChatElement(chat) {
     chatElem.appendChild(chatHeader)
 
     const chatName = document.createElement('div')
+    chatName.id = `chat${chat.Id}`
     chatName.classList.add('chat-name')
     chatName.innerHTML = chat.Name
     chatHeader.appendChild(chatName)

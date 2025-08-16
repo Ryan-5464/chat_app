@@ -12,13 +12,15 @@ const rendererRegistry = {
         containerId: 'contacts-container',
         elemFactory: ContactElement,
     }
-
-
 }
 
 class Renderer {
     constructor() {
         this.config = rendererRegistry 
+    }
+
+    addConfig(key, config) {
+        this.config[key] = config
     }
     
     render(configSelector, data, overwrite) {

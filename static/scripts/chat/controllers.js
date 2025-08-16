@@ -178,9 +178,17 @@ class ChatController {
     }
 }
 
+// INPUT CONTROLLERS ===============================================================================
+
 function AttachNewChatInputController() {
     const input = document.getElementById('chat-name-input')
-    input.__controller = new NewChatInputController(config)
+    input.__controller = new NewChatInputController()
+    input.addEventListener('keydown', () => {
+        if ('keydown' !== 'Enter') {
+            return
+        }
+        input.controller.createChat(input.value)
+    })
 }
 
 class NewChatInputController {
@@ -189,12 +197,86 @@ class NewChatInputController {
         this.renderer = renderer
     }
 
-    createChat() {
-
+    createChat(name) {
+        this._newChatRequest(name)
     }
 
-    _newChatRequest() {
-
+    _newChatRequest(name) {
+        NewChatRequest(name).then(data => {
+            this.renderer.render('chats', data.Chats, false)
+            this.renderer.render('messages', [], true)
+        })
     }
 }
 
+function AttachNewContactInputController() {
+    const input = document.getElementById('add-contact-input-container')
+    input.__controller = new NewContactInputController()
+    input.addEventListener('keydown', () => {
+        if ('keydown' !== 'Enter') {
+            return
+        }
+        input.__controller.addContact(input.value)
+    })
+}
+
+class NewContactInputController {
+    constructor(config, renderer = new Renderer()) {
+        this.config = config
+        this.renderer = renderer
+    }
+
+    createChat(name) {
+        this._newChatRequest(name)
+    }
+
+    _newChatRequest(name) {
+        NewChatRequest(name).then(data => {
+            this.renderer.render('chats', data.Chats, false)
+            this.renderer.render('messages', [], true)
+        })
+    }
+}
+
+const inputControllerRegistry = {
+    newChat: {
+        request: NewChatRequest,
+        renderers: [
+            {config: 'chats', overwrite: false},
+            {config: 'messages', overwrite: true},
+        ]
+    },
+    addContact: {
+        request: AddContactRequest,
+        renderers: [
+            {config: 'contacts', overwrite: false},
+            {config: 'messages', overwrite: true},
+        ]
+    },
+    newMessage: {
+        request: NewMessageRequest,
+        renderers: [
+            {config: 'messages', overwrite: false},
+        ]
+    }
+}
+
+const chatInputController = new InputController(inputControllerRegistry.chat)
+chatInputController.send(input.value)
+
+class InputController {
+    constructor(config, renderer = new Renderer()) {
+        this.config = config
+        this.renderer = renderer
+    }
+
+    send(reqData) {
+        this.config.request(reqData).then(data => {
+            Object.entries(data).forEach((key, value) => {
+                Object.values(this.config.renderers).forEach(renderer => {
+                    this.renderer.render(renderer.config, value,  renderer.overwrite)
+                })
+            })
+        })
+    } 
+}
