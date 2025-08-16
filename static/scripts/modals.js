@@ -7,7 +7,7 @@ window.addEventListener("click", function (e) {
     });
 });
 
-
+// dataKeys are selectors for data needed to request required data from server.
 const modalRegistry = {
     message: {
         modalId: 'messageModal',
@@ -15,7 +15,6 @@ const modalRegistry = {
         dataKeys: {ChatId: 'chatid', UserId: 'userid', MessageId: 'messageid'},
         modalOpenOn: '.message',
         attachListenerTo: '#messages-container',
-        renderer: ChatMessageRenderer
     },
     chat: {
         modalId: 'chatModal',
@@ -23,7 +22,6 @@ const modalRegistry = {
         dataKeys: {ChatId: 'chatid'},
         modalOpenOn: '.chat',
         attachListenerTo: '#chats-container',
-        renderer: GroupChatRenderer,
     },
     contact: {
         modalId: 'contactModal',
@@ -31,7 +29,6 @@ const modalRegistry = {
         dataKeys: {},
         modalOpenOn: '.contact',
         attachListenerTo: '#contacts-container',
-        renderer: ContactChatRenderer,
     }
 }
 
@@ -68,7 +65,7 @@ function ConfigureModal(elem, config) {
 
 function AttachModalController(modal, config, buttonData={}) {
     if (!modal.__controller) {
-        modal.__controller = new config.controller(modal, config.renderer);
+        modal.__controller = new config.controller(modal);
     }
     modal.__controller.configureButtons(buttonData)
     return modal.__controller;

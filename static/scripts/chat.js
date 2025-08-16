@@ -26,13 +26,7 @@ document.addEventListener("DOMContentLoaded", function() {
     addNewMsgListenerToMsgInput()
     addNewMsgListenerToSendMsgButton()
     addAddContactEventListenerToInput()
-    setActiveChat()
 })
-
-function setActiveChat() {
-    const chat = document.querySelector('.chat')
-    chat.classList.add('active')
-}
 
 
 function addAddContactEventListenerToInput() {
@@ -117,45 +111,6 @@ function sendMessage(msgText, chatId, replyId) {
     }
 }
 
-function renderChats(chatData, overwrite) {
-    console.log(":: rendering chats")
-    console.log(":: chat data, ", chatData)
-    if (chatData == null) {
-        console.log(":: chat data is null")
-        return
-    }
-
-    const chatContainer = document.getElementById('chats-container');
-    if (overwrite == true) {
-        console.log(":: overwriting chats")
-        chatContainer.innerHTML = ''; 
-    }
-
-    chatData.forEach(chat => {
-        console.log("CHAT: ", chat)
-        const chatElement = document.createElement('div');
-        chatElement.className = "chat"
-        chatElement.setAttribute("data-chatid", chat.Id);
-        chatElement.setAttribute("data-adminid", chat.AdminId);
-        chatElement.setAttribute("data-createdat", chat.CreatedAt);
-        
-        chatContainer.appendChild(chatElement);
-
-        const data = {
-            "chat-name": `${chat.Name}`,
-            "chat-admin-name": `${chat.AdminName}`,
-            "chat-member-count": `${chat.MemberCount}`,
-            "chat-unread-message-count": `${chat.UnreadMsgCount}`,
-        }
-        for (const [key, value] of Object.entries(data)) {
-            const element = document.createElement('div')
-            element.className = key
-            element.textContent = `${value}`
-            chatElement.appendChild(element);
-        }
-    });
-}
-
 function renderContactList(contactListData, overwrite) {
     console.log(":: rendering contact list")
     console.log(":: contact list data, ", contactListData)
@@ -194,52 +149,6 @@ function renderContactList(contactListData, overwrite) {
     });
 }
 
-function renderMessages(messageData, overwrite) {
-    console.log(":: rendering messages")
-    console.log(":: message data, ", messageData)
-    const messageContainer = document.getElementById('messages-container');
-    if (overwrite == true) {
-        console.log(":: overwriting old messages")
-        messageContainer.innerHTML = ''
-    }
-
-    messageData.forEach(message => {
-        const messageElement = document.createElement('div');
-        messageElement.className = "message";
-
-        const attributes = {
-            "data-userid": message.UserId,
-            "data-chatid": message.ChatId,
-            "data-messageid": message.Id,
-            "data-replyid": message.ReplyId,
-        };
-
-        if (message.IsUserMessage) {
-            messageElement.classList.add("me")
-        }
-
-        for (const [key, value] of Object.entries(attributes)) {
-            messageElement.setAttribute(key, value);
-        }
-        messageContainer.appendChild(messageElement);
-
-        const data = {
-            "message-author": `${message.Author}`,
-            "message-createdat": `${message.CreatedAt}`,
-            "message-lasteditat": `${message.lastEditAt}`,
-            "message-text": `${message.Text}`,
-        }
-        for (const [key, value] of Object.entries(data)) {
-            const element = document.createElement('div')
-            element.className = key
-            element.textContent = `${value}`
-            messageElement.appendChild(element);
-        }
-
-        messageContainer.scrollTop = messageContainer.scrollHeight;
-    });
-}
-
 /* NEW Contact REQUEST =================================================== */
 
 function addContact(email) {
@@ -275,39 +184,3 @@ function addContactRequestBody(email) {
     return request
 }
 
-/* NEW CHAT REQUEST ===================================================== */
-
-// function newChat(chatName) {
-//     console.log(":: Creating new chat")
-//     fetch(BASEURL + '/api/chat/new', newChatRequestBody(chatName))
-//     .then(response => {
-//         if (!response.ok) {
-//             throw new Error(`Server error: ${response.status}`);
-//         }
-//         return response.json(); 
-//     })
-//     .then(responsePayload => {
-//         console.log('[NewChat]Received:', responsePayload);
-//         console.log(":: payload, ", responsePayload)
-//         renderChats(responsePayload.Chats, false);
-//         renderMessages(responsePayload.Messages, true);
-//         console.log(":: new active chat id, ", responsePayload.NewActiveChatId)
-//     })
-//     .catch(error => {
-//         console.error('Fetch error:', error);
-//     });
-// }
-
-// function newChatRequestBody(chatName) {
-//     request = {
-//         method: 'POST',
-//         headers: { 
-//             'Content-Type': 'application/json' 
-//         },
-//         body: JSON.stringify({
-//             Name: chatName,
-//         })
-//     }
-//     console.log(":: new chat request details, ", request)
-//     return request
-// }

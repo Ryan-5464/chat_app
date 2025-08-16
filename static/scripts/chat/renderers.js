@@ -1,5 +1,5 @@
 
-const renderRegistry = {
+const rendererRegistry = {
     chats: {
         containerId: 'chats-container',
         elemFactory: ChatElement,
@@ -18,7 +18,7 @@ const renderRegistry = {
 
 class Renderer {
     constructor() {
-        this.config = renderRegistry 
+        this.config = rendererRegistry 
     }
     
     render(configSelector, data, overwrite) {

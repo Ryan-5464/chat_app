@@ -2,6 +2,7 @@ const LEAVE_CHAT_ENDPOINT = '/api/chat/leave'
 const DEL_MSG_ENDPOINT = '/api/message/delete'
 const EDIT_CHAT_NAME_ENDPOINT = '/api/chat/edit'
 const CHAT_SWITCH_ENDPOINT = '/api/chat/switch'
+const NEW_CHAT_ENDPOINT = '/api/chat/new'
 
 function GET() {
     return {
@@ -90,4 +91,19 @@ async function SwitchChatRequest(chatType, chatId) {
         .catch(error => {
             console.log('Error:', error);
         });
+}
+
+async function NewChatRequest(name) {
+    return fetch(NEW_CHAT_ENDPOINT, POST({ Name: name}))
+        .then(response => {
+            if (!response.ok) throw new Error("Network response was not ok");
+            return response.json();
+        })
+        .then(data => {
+            console.log("new chat response data: ", data)
+            return data
+        })
+        .catch(error => {
+            console.log('New chat request failed:', error);
+        })
 }

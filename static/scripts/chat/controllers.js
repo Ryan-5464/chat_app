@@ -131,25 +131,22 @@ const chatControllerRegistry = {
     }
 }
 
-function InitializeChatControllers() {
+function AttachChatControllers() {
     for (const config of Object.values(chatControllerRegistry)) {
-        const controller = new ChatController(renderer, config)
-        attachChatController(controller)
+        const container = document.getElementById(config.containerId) 
+        container.__controller = new ChatController(config)
+        container.addEventListener('click', (e) => {
+            const chatElem = e.target.closest(container.__controller.config.elemClass)
+            if (chatElem) {
+                container.__controller.handleChatActivation(chatElem)
+            }
+        })
     }
 }
 
-function attachChatController(controller) {
-    controller.container.addEventListener('click', (e) => {
-        const chatElem = e.target.closest(controller.config.elemClass)
-        if (chatElem) {
-            controller.handleChatActivation(chatElem)
-        }
-    })
-}
-
 class ChatController {
-    constructor(renderer, config) {
-        this.renderer = renderer
+    constructor(config) {
+        this.renderer = new Renderer()
         this.config = config
         this.container = document.getElementById(config.containerId)
     }
@@ -158,14 +155,14 @@ class ChatController {
         const chatId = target.dataset[this.config.dataId]
         if (!chatId) {return}
 
-        this._setActiveElemenBytId(chatId)
+        this._setActiveElemenById(chatId)
         this._loadMessages(chatId)
     }
 
-    _setActiveElemenBytId(targetId) {
+    _setActiveElemenById(targetId) {
         const elems = this.container.querySelectorAll(this.config.elemClass)
         for (const chat of elems) {
-            isTarget = chat.dataset[this.config.dataId] === targetId
+            const isTarget = chat.dataset[this.config.dataId] === targetId
             chat.classList.toggle('active', isTarget)
         }
     }
@@ -178,6 +175,26 @@ class ChatController {
         .catch(err => {
             console.log("Failed to handle chat activation: ", err)
         })
+    }
+}
+
+function AttachNewChatInputController() {
+    const input = document.getElementById('chat-name-input')
+    input.__controller = new NewChatInputController(config)
+}
+
+class NewChatInputController {
+    constructor(config, renderer = new Renderer()) {
+        this.config = config
+        this.renderer = renderer
+    }
+
+    createChat() {
+
+    }
+
+    _newChatRequest() {
+
     }
 }
 
