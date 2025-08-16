@@ -114,34 +114,35 @@ class ContactsModalController extends ModalController {
     }
 }
 
+// CHAT CONTROLLERS ============================================================
+
 const chatControllerRegistry = {
     Chat: {
         containerId: 'chats-container',
         elemClass: '.chat',
-        dataId: 'data-chatid',   // lowercase
+        dataId: 'chatid',
         elemType: 'Chat'
     },
     Contact: {
         containerId: 'contacts-container',
         elemClass: '.contact',
-        dataId: 'data-contactchatid',
+        dataId: 'contactchatid',
         elemType: 'Contact'
     }
 }
 
-const chatConfig = chatControllerRegistry.Chat
-const chatController = new ChatController(renderer, chatConfig)
-attachChatController(chatController)
-
-const contactConfig = chatControllerRegistry.Contact
-const contactChatController = new ChatController(renderer, contactConfig)
-attachChatController(contactChatController) // fixed
+function InitializeChatControllers() {
+    for (const config of Object.values(chatControllerRegistry)) {
+        const controller = new ChatController(renderer, config)
+        attachChatController(controller)
+    }
+}
 
 function attachChatController(controller) {
     controller.container.addEventListener('click', (e) => {
         const chatElem = e.target.closest(controller.config.elemClass)
-        if (chatElem && controller.container.contains(chatElem)) {
-            controller.activateChat(chatElem)
+        if (chatElem) {
+            controller.handleChatActivation(chatElem)
         }
     })
 }
@@ -153,21 +154,30 @@ class ChatController {
         this.container = document.getElementById(config.containerId)
     }
 
-    activateChat(target) {
+    handleChatActivation(target) {
+        const chatId = target.dataset[this.config.dataId]
+        if (!chatId) {return}
+
+        this._setActiveElemenBytId(chatId)
+        this._loadMessages(chatId)
+    }
+
+    _setActiveElemenBytId(targetId) {
         const elems = this.container.querySelectorAll(this.config.elemClass)
-        const targetId = target.getAttribute(this.config.dataId)
-        if (!targetId) return  // clicked something irrelevant
-
         for (const chat of elems) {
-            chat.classList.remove('active')
-            if (chat.getAttribute(this.config.dataId) === targetId) {
-                chat.classList.add('active')
-
-                SwitchChatRequest(this.config.elemType, targetId).then(data => {
-                    this.renderer.render(data.Messages, true)
-                })
-                break
-            }
+            isTarget = chat.dataset[this.config.dataId] === targetId
+            chat.classList.toggle('active', isTarget)
         }
     }
+
+    _loadMessages(targetId) {
+        SwitchChatRequest(this.config.elemType, targetId)
+        .then(data => {
+            this.renderer.render(data.Messages, true)
+        })
+        .catch(err => {
+            console.log("Failed to handle chat activation: ", err)
+        })
+    }
 }
+
