@@ -94,7 +94,7 @@ async function SwitchChatRequest(chatType, chatId) {
 }
 
 async function NewChatRequest(name) {
-    return fetch(NEW_CHAT_ENDPOINT, POST({ Name: name}))
+    return fetch(NEW_CHAT_ENDPOINT, POST({ Name: name }))
         .then(response => {
             if (!response.ok) throw new Error("Network response was not ok");
             return response.json();

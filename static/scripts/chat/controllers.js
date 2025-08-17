@@ -271,12 +271,162 @@ class InputController {
     }
 
     send(reqData) {
-        this.config.request(reqData).then(data => {
-            Object.entries(data).forEach((key, value) => {
-                Object.values(this.config.renderers).forEach(renderer => {
-                    this.renderer.render(renderer.config, value,  renderer.overwrite)
-                })
-            })
+        this.config.request(reqData).then(resData => {
+            RenderResponse(resData, this.renderer)
         })
     } 
 }
+
+
+
+function CreateNewChat(chatName) {
+    const reqData = {
+        Name: chatName,
+    };
+
+    const chatRenderer = Render.bind({
+        containerId: 'chats-container',
+        elemFactory: ChatElement,
+        overwrite: true,
+    });
+
+    const messageRenderer = Render.bind({
+        containerId: 'messages-container',
+        elemFactory: MessageElement,
+        overwrite: true,
+    });
+
+    const request = () => NewChatRequest(reqData);
+    const responseCallbacks = {
+        Chats: value => RenderResponse(chatRenderer, value),
+        Messages: value => RenderResponse(messageRenderer, value),
+    };
+
+    HandleRequest(request, responseCallbacks);
+}
+
+function HandleRequest(req, callbacks) {
+    req()
+        .then(data => HandleResponse(data, callbacks))
+        .catch(err => console.error("Request failed:", err));
+}
+
+function HandleResponse(data, callbacks) {
+    Object.entries(data).forEach(([key, value]) => {
+        if (callbacks[key]) {
+            callbacks[key](value);
+        } else {
+            console.warn(`No callback found for key: ${key}`);
+        }
+    });
+}
+
+
+function Render(data) {
+    const container = document.getElementById(this.containerId);
+    if (this.overwrite) {
+        container.innerHTML = '';
+    }
+    data.forEach(obj => {
+        container.appendChild(this.elemFactory(obj))
+    });
+}
+
+class NewChatHandler extends RequestHandler {
+    constructor(chatElemFactory, messageElemFactory) {
+        super('api/chat/new', 'POST')
+
+        this.renderChats = Render.bind({
+            containerId: 'chats-container',
+            elemFactory: chatElemFactory,
+            overwrite: true,
+        });
+
+        this.renderMessages = Render.bind({
+            containerId: 'messages-container',
+            elemFactory: messageElemFactory,
+            overwrite: true,
+        });
+
+        this.responseHandlers = {
+            Chats: value => this.renderChats(value),
+            Messages: value => this.renderMessages(value),
+        }
+    }
+
+    Create(chatName) {
+        this._request({Name: chatName})
+        .then(resData => {
+            Object.entries(resData).forEach(([key, value]) => {
+                const handler = this.responseHandlers[key];
+                if (handler) {
+                    handler(value);
+                } else {
+                    console.warn(`No handler found for key: ${key}`, value);
+                }
+            })
+        })
+        .catch(error => {
+            console.log("Create failed => error: ", error)
+        })
+    }
+
+
+}
+
+class RequestHandler {
+    constructor(endpoint, method) {
+        this.endpoint = endpoint
+        this.method = methods[method]
+    }
+
+    methods = {
+        GET: () => this._GET(),
+        DELETE: () => this._DELETE(),
+        POST: json => this._POST(json)
+    }
+
+    _GET() {
+        return {
+            method: 'GET',
+        }
+    }
+
+    _POST(json) {
+        return {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(json),
+        }
+    }
+
+    _DELETE() {
+        return {
+            method: 'DELETE',
+        }
+    }
+
+    async _request(json={}) {
+        try {
+            let response
+            if (json == {}) {
+                response = await fetch(this.endpoint, this.method());
+            } else {
+                response = await fetch(this.endpoint, this.method(json));
+            }
+            if (!response.ok) throw new Error("Network response was not ok");
+
+            const data = await response.json();
+            console.log("new chat response data: ", data);
+            return data;
+        } catch(error) {
+            console.log("new chat request failed => error: ", error)
+            throw error
+        }
+
+    }
+
+}
+
+const newChatHandler = new NewChatHandler(POST, ChatElement, MessageElement)
+newChatHandler.Create("Test Chat")

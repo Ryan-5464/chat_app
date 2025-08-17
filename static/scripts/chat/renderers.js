@@ -1,30 +1,26 @@
 
-const rendererRegistry = {
-    chats: {
-        containerId: 'chats-container',
-        elemFactory: ChatElement,
-    },
-    messages: {
-        containerId: 'messages-container',
-        elemFactory: MessageElement,
-    },
-    contacts: {
-        containerId: 'contacts-container',
-        elemFactory: ContactElement,
-    }
-}
-
 class Renderer {
-    constructor() {
-        this.config = rendererRegistry 
+    configs = {
+        Chats: {
+            containerId: 'chats-container',
+            elemFactory: ChatElement,
+        },
+        Messages: {
+            containerId: 'messages-container',
+            elemFactory: MessageElement,
+        },
+        Contacts: {
+            containerId: 'contacts-container',
+            elemFactory: ContactElement,
+        }
     }
 
     addConfig(key, config) {
-        this.config[key] = config
+        configs[key] = config
     }
     
     render(configSelector, data, overwrite) {
-        const config = this.config[configSelector]
+        const config = configs[configSelector]
         const container = document.getElementById(config.containerId)
         if (overwrite == true) {
             container.innerHTML = ''
