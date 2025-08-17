@@ -110,3 +110,10 @@ function MessageElement(message) {
     return messageElem
 
 }
+
+function ChatNameElement(name) {
+    const chatNameElem = document.createElement('div');
+    chatNameElem.classList.add('chat-name');
+    chatNameElem.innerHTML = name;
+    return chatNameElem;
+};

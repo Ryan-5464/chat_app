@@ -74,6 +74,7 @@ function AttachModalController(modal, config, buttonData={}) {
 function replaceWithInput(elem, placeholder) {
     elem.innerHTML = ''
     const input = document.createElement('input');
+    input.id = 'chat-name-input'
     input.type = 'text';
     input.name = 'Name';
     input.placeholder = placeholder;

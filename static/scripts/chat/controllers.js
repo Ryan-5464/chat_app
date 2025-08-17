@@ -65,11 +65,7 @@ class ChatModalController extends ModalController {
 
         input.addEventListener('keydown', (e) => {
             if (e.key === "Enter") {
-                EditChatNameRequest(input.value, ChatId).then(data => {
-                    if (data) {
-                        chatName.innerHTML = data.Name;
-                    }
-                });
+                EditChatName(input.value)
             }
         })
     }
@@ -82,15 +78,7 @@ class ChatModalController extends ModalController {
             isActive = true
         }
 
-        LeaveChatRequest(ChatId).then(data => {
-            if (!isActive) {
-                return
-            }
-            this.renderer.render('chats', data.Chats, true)
-            this.renderer.render('messages', data.Messages, true)  
-            const chat = document.querySelector(`[data-chatid="${data.NewActiveChatId}"]`);
-            chat.classList.add('active')
-        })
+        LeaveChat(ChatId, isActive)
     }
 }
 
@@ -99,9 +87,11 @@ class MessageModalController extends ModalController {
         super(modal)
     }
 
-    _deleteMessage(e, { ChatId, MessageId, UserId }) {
-        return ChatId, MessageId, UserId
+    deleteMessage(e, { ChatId, MessageId, UserId }) {
+        DeleteMessage(ChatId, MessageId, UserId)
     }
+
+    editMessage() {}
 }
 
 class ContactsModalController extends ModalController {
@@ -109,9 +99,7 @@ class ContactsModalController extends ModalController {
         super(modal)
     }
 
-    configureButtons() {
-        return
-    }
+    removeContact() {}
 }
 
 // CHAT CONTROLLERS ============================================================
@@ -374,76 +362,6 @@ class NewChatHandler extends RequestHandler {
 
 }
 
-class GET
-
-class RequestHandler {
-    constructor(endpoint, method) {
-        this.endpoint = endpoint
-        this.method = methods[method]
-    }
-
-    methods = {
-        GET: () => this._GET(),
-        DELETE: () => this._DELETE(),
-        POST: json => this._POST(json)
-    }
-
-    _GET() { 
-        return {
-            method: 'GET',
-        }
-    }
-
-    _POST(json) {
-        return {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(json),
-        }
-    }
-
-    _DELETE() {
-        return {
-            method: 'DELETE',
-        }
-    }
-
-    async _request(json={}) {
-        try {
-            let response
-            if (json == {}) {
-                response = await fetch(this.endpoint, this.method());
-            } else {
-                response = await fetch(this.endpoint, this.method(json));
-            }
-            if (!response.ok) throw new Error("Network response was not ok");
-
-            const data = await response.json();
-            console.log("new chat response data: ", data);
-            return data;
-        } catch(error) {
-            console.log("new chat request failed => error: ", error)
-            throw error
-        }
-
-    }
-
-}
 
 
 
-async function NewChatRequest(newChatName) {
-    const endpoint = 'api/chat/new'
-    const json = { Name: newChatName }
-    let responseJSON
-    try {
-        responseJSON = await POST(endpoint, json)
-        if (!responseJSON || Object.keys(responseJSON).length === 0) {
-            throw new Error("No response data.")
-        }
-        return responseJSON
-    } catch(error) {
-        console.error("New chat request failed => error: ", error)
-        return null
-    }
-}

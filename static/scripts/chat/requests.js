@@ -6,19 +6,22 @@ const NEW_CHAT_ENDPOINT = '/api/chat/new';
 const ADD_CONTACT_ENDPOINT = '/api/contact/add';
 
 const AddContactRequest = (email) => safeRequest(() => POST(ADD_CONTACT_ENDPOINT, { Email: email }));
+const HandleAddContactResponse = (data) => HandleResponse(data, {Contacts: (data) => RenderContactElements(data, false), Messages: (data) => RenderMessageElements(data, true)});
 
 const DeleteMessageRequest = (chatId, messageId, userId) => safeRequest(() => DELETE(DEL_MSG_ENDPOINT, { ChatId: chatId, MessageId: messageId, UserId: userId }));
+const HandleDeleteMessageResponse = (data) => HandleResponse(data, { MessageId: DeleteMessageElement(data)});
 
 const EditChatNameRequest = (newName, chatId) => safeRequest(() => POST(EDIT_CHAT_NAME_ENDPOINT, { Name: newName, ChatId: chatId}));
+const HandleEditChatNameResponse = (data) => HandleResponse(data, { Name: RenderChatNameElement(data)});
 
 const LeaveChatRequest = (chatId) => safeRequest(() => DELETE(LEAVE_CHAT_ENDPOINT, { ChatId: chatId}));
+const HandleLeaveChatResponse = (data) => HandleResponse(data, { ChatId: DeleteChatElement(data)})
 
 const NewChatRequest = (newChatName) => safeRequest(() => POST(NEW_CHAT_ENDPOINT, { Name: newChatName }));
 const HandleNewChatResponse = (data) => HandleResponse(data, {Chats: (data) => RenderChatElements(data, false), Messages: (data) => RenderMessageElements(data, true)});
 
 const SwitchChatRequest = (chatType, chatId) => safeRequest(() => GET(CHAT_SWITCH_ENDPOINT, { ChatType: chatType, ChatId: chatId}));
 const HandleSwitchChatResponse = (data) => HandleResponse(data, {Messages: (data) => RenderMessageElements(data, true)});
-
 
 function HandleResponse(data, callbacks) {
     Object.entries(data).forEach(([key, value]) => {
