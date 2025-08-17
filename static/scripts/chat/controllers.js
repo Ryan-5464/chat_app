@@ -374,6 +374,8 @@ class NewChatHandler extends RequestHandler {
 
 }
 
+class GET
+
 class RequestHandler {
     constructor(endpoint, method) {
         this.endpoint = endpoint
@@ -386,7 +388,7 @@ class RequestHandler {
         POST: json => this._POST(json)
     }
 
-    _GET() {
+    _GET() { 
         return {
             method: 'GET',
         }
@@ -428,5 +430,20 @@ class RequestHandler {
 
 }
 
-const newChatHandler = new NewChatHandler(POST, ChatElement, MessageElement)
-newChatHandler.Create("Test Chat")
+
+
+async function NewChatRequest(newChatName) {
+    const endpoint = 'api/chat/new'
+    const json = { Name: newChatName }
+    let responseJSON
+    try {
+        responseJSON = await POST(endpoint, json)
+        if (!responseJSON || Object.keys(responseJSON).length === 0) {
+            throw new Error("No response data.")
+        }
+        return responseJSON
+    } catch(error) {
+        console.error("New chat request failed => error: ", error)
+        return null
+    }
+}

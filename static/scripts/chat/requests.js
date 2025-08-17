@@ -1,139 +1,95 @@
-const LEAVE_CHAT_ENDPOINT = '/api/chat/leave'
-const DEL_MSG_ENDPOINT = '/api/message/delete'
-const EDIT_CHAT_NAME_ENDPOINT = '/api/chat/edit'
-const CHAT_SWITCH_ENDPOINT = '/api/chat/switch'
-const NEW_CHAT_ENDPOINT = '/api/chat/new'
+const LEAVE_CHAT_ENDPOINT = '/api/chat/leave';
+const DEL_MSG_ENDPOINT = '/api/message/delete';
+const EDIT_CHAT_NAME_ENDPOINT = '/api/chat/edit';
+const CHAT_SWITCH_ENDPOINT = '/api/chat/switch';
+const NEW_CHAT_ENDPOINT = '/api/chat/new';
+const ADD_CONTACT_ENDPOINT = '/api/contact/add';
 
-function GET() {
-    return {
-        method: 'GET',
-    }
-}
+const AddContactRequest = (email) => safeRequest(() => POST(ADD_CONTACT_ENDPOINT, { Email: email }));
 
-function POST(json) {
-    return {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(json),
-    }
-}
+const DeleteMessageRequest = (chatId, messageId, userId) => safeRequest(() => DELETE(DEL_MSG_ENDPOINT, { ChatId: chatId, MessageId: messageId, UserId: userId }));
 
-function DELETE() {
-    return {
-        method: 'DELETE',
-    }
-}
+const EditChatNameRequest = (newName, chatId) => safeRequest(() => POST(EDIT_CHAT_NAME_ENDPOINT, { Name: newName, ChatId: chatId}));
 
-async function DeleteMessageRequest(chatId, messageId, userId) {
-    
-    const params = {
-            ChatId: chatId,
-            MessageId: messageId,
-            Userid: userId,
-        }
-    const url = BuildURLWithParams(DEL_MSG_ENDPOINT, params)
-    
-    return fetch(url, DELETE())
-        .then(response => {
-            if (!response.ok) throw new Error("Network response was not ok");
-            return response.json();
-        })
-        .then(data => {
-            console.log("Delete message response data: ", data)
-            return data
-        })
-        .catch(error => {
-            console.log('Error:', error);
-        });
-}
+const LeaveChatRequest = (chatId) => safeRequest(() => DELETE(LEAVE_CHAT_ENDPOINT, { ChatId: chatId}));
 
-async function EditChatNameRequest(name, chatId) {
-    return fetch(EDIT_CHAT_NAME_ENDPOINT, POST({ Name: name, ChatId: chatId }))
-        .then(response => {
-            if (!response.ok) throw new Error("Network response was not ok");
-            return response.json();
-        })
-        .then(data => {
-            return data
-        })
-        .catch(error => {
-            console.log('Error:', error);
-        });
-}
+const NewChatRequest = (newChatName) => safeRequest(() => POST(NEW_CHAT_ENDPOINT, { Name: newChatName }));
+const HandleNewChatResponse = (data) => HandleResponse(data, {Chats: (data) => RenderChatElements(data, false), Messages: (data) => RenderMessageElements(data, true)});
 
-async function LeaveChatRequest(chatId) {
-    const url = BuildURLWithParams(LEAVE_CHAT_ENDPOINT, { ChatId: chatId })
-    return fetch(url, DELETE())
-        .then(response => {
-            if (!response.ok) throw new Error("Network response was not ok");
-            return response.json();
-        })
-        .then(data => {
-            console.log("leave chat response data: ", data)
-            return data
-        })
-        .catch(error => {
-            console.log('Error:', error);
-        });
-}
+const SwitchChatRequest = (chatType, chatId) => safeRequest(() => GET(CHAT_SWITCH_ENDPOINT, { ChatType: chatType, ChatId: chatId}));
+const HandleSwitchChatResponse = (data) => HandleResponse(data, {Messages: (data) => RenderMessageElements(data, true)});
 
-async function SwitchChatRequest(chatType, chatId) {
-    const url = BuildURLWithParams(CHAT_SWITCH_ENDPOINT, { ChatType: chatType, ChatId: chatId })
-    return fetch(url, GET())
-        .then(response => {
-            if (!response.ok) throw new Error("Network response was not ok");
-            return response.json();
-        })
-        .then(data => {
-            console.log("leave chat response data: ", data)
-            return data
-        })
-        .catch(error => {
-            console.log('Error:', error);
-        });
-}
 
-async function NewChatRequest(name) {
-    return fetch(NEW_CHAT_ENDPOINT, POST({ Name: name }))
-        .then(response => {
-            if (!response.ok) throw new Error("Network response was not ok");
-            return response.json();
-        })
-        .then(data => {
-            console.log("new chat response data: ", data)
-            return data
-        })
-        .catch(error => {
-            console.log('New chat request failed:', error);
-        })
-}
+function HandleResponse(data, callbacks) {
+    Object.entries(data).forEach(([key, value]) => {
+        if (callbacks[key]) {
+            callbacks[key](value);
+        } else {
+            throw new Error(`No callback found for key: ${key}`);
+        };
+    });
+};
 
-async function AddContactRequest(email) {
-    return fetch(ADD_CONTACT_ENDPOINT, POST({ Email: email}))
-        .then(response => {
-            if (!response.ok) throw new Error("Network response was not ok");
-            return response.json();
-        })
-        .then(data => {
-            console.log("add contact response data: ", data)
-            return data
-        })
-        .catch(error => {
-            console.log('add contact request failed:', error);
-        })
-}
+async function safeRequest(reqFunc) {
+    try {
+        const responseJSON = await reqFunc();
+        if (!responseJSON || Object.keys(responseJSON).length === 0) {
+            throw new Error("No response data.");
+        };
+        return responseJSON;
+    } catch (error) {
+        console.error(`Request failed => error: `, error);
+        return null;
+    };
+};
 
-async function NewMessageRequest(chatId, replyId, msgText) {
-    return fetch(NEW_CHAT_ENDPOINT, POST({ ChatId: chatId, ReplyId: replyId, MsgText: msgText}))
-        .then(response => {
-            if (!response.ok) throw new Error("Network response was not ok");
-            return response.json();
-        })
-        .then(data => {
-            console.log("new message response data: ", data)
-            return data
-        })
-        .catch(error => {
-            console.log('New message request failed:', error);
-        })
-}
+async function request(endpoint, options) {
+    const response = await fetch(endpoint, options);
+    if (!response.ok) {
+        const text = await response.text();
+        throw new Error(`Network response was not ok: ${response.status} - ${text}`);
+    };
+    return response.json();
+};
+
+async function GET(endpoint, params) {
+    const paramsEndpoint = EndpointWithParams(endpoint, params);
+    return request(paramsEndpoint, { method: "GET" });
+};
+
+async function DELETE(endpoint, params) {
+    const paramsEndpoint = EndpointWithParams(endpoint, params);
+    return request(paramsEndpoint, { method: 'DELETE' });
+};
+
+async function POST(endpoint, payload) {
+    return request(endpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+    });
+};
+
+function EndpointWithParams(endpoint, params) {
+    const query = new URLSearchParams(params).toString();
+    return query ? `${endpoint}?${query}` : endpoint;
+};
+
+
+
+
+
+// async function NewMessageRequest(chatId, replyId, msgText) {
+//     return fetch(NEW_CHAT_ENDPOINT, POST({ ChatId: chatId, ReplyId: replyId, MsgText: msgText}))
+//         .then(response => {
+//             if (!response.ok) throw new Error("Network response was not ok");
+//             return response.json();
+//         })
+//         .then(data => {
+//             console.log("new message response data: ", data)
+//             return data
+//         })
+//         .catch(error => {
+//             console.log('New message request failed:', error);
+//         })
+// }

@@ -1,34 +1,18 @@
 
-class Renderer {
-    configs = {
-        Chats: {
-            containerId: 'chats-container',
-            elemFactory: ChatElement,
-        },
-        Messages: {
-            containerId: 'messages-container',
-            elemFactory: MessageElement,
-        },
-        Contacts: {
-            containerId: 'contacts-container',
-            elemFactory: ContactElement,
-        }
-    }
+const RenderChatElements = (data, overwrite) => RenderElements('chats-container', ChatElement, data, overwrite);
+const RenderMessageElements = (data, overwrite) => RenderElements('messages-container', MessageElement, data, overwrite);
+const RenderContactElements = (data, overwrite) => RenderElements('contacts-container', ContactElement, data, overwrite);
 
-    addConfig(key, config) {
-        configs[key] = config
-    }
-    
-    render(configSelector, data, overwrite) {
-        const config = configs[configSelector]
-        const container = document.getElementById(config.containerId)
-        if (overwrite == true) {
-            container.innerHTML = ''
-        }
-        
-        Object.values(data).forEach(obj => {
-            container.appendChild(elemFactory(obj))
-        })
-    }
+function RenderElements(containerId, elemFactory, data, overwrite) {
+    const container = document.getElementById(containerId);
+    if (!container) {
+        throw new Error(`Element with id=${containerId} not found!`);
+    };
+    if (overwrite == true) {
+        container.innerHTML = '';
+    };
+    Object.values(data).forEach(obj => {
+        container.appendChild(elemFactory(obj));
+    });
+};
 
-}
