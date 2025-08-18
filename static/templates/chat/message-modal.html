@@ -2,26 +2,15 @@
     <div id="messageModal" class="modal">
         <div id="messageModal-content" class="modal-content">
             <div id="message-modal-options" class="modal-options">
-            <button id="edit-btn" class="modal-button">Edit</button>
+            <button 
+                id="edit-btn" 
+                class="modal-button"
+                data-action="editMessage"
+            >Edit</button>
             <button
                 id="msg-del-btn"
                 class="modal-button"
-                hx-delete="/api/message/delete"
-                hx-target="#messages-container"
-                hx-swap="innerHTML"
-                hx-on="
-                    htmx:configRequest: 
-                        event.detail.path = 
-                            '/api/message/delete?' + 
-                            'messageid=' + this.dataset.messageid + 
-                            '&chatid=' + this.dataset.chatid + 
-                            '&userid=' + this.dataset.userid;
-                    htmx:beforeRequest:
-                        closeModal(
-                            document.getElementById('messageModal'),
-                            document.getElementById('messageModal-content')
-                        );
-                "
+                data-action="deleteMessage"
             >
                 Delete
             </button>
