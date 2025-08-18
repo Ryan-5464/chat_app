@@ -1,4 +1,4 @@
-function NewChat(newChatName) {
+function NewChatHandler(newChatName) {
     NewChatRequest(newChatName).then(data => {
         HandleNewChatResponse(data);
     }).catch(error => {
@@ -6,7 +6,7 @@ function NewChat(newChatName) {
     });
 };
 
-function AddContact(email) {
+function AddContactHandler(email) {
     AddContactRequest(email).then(data => {
         HandleAddContactResponse(data);
     }).catch(error => {
@@ -14,7 +14,7 @@ function AddContact(email) {
     });
 };
 
-function DeleteMessage(chatId, messageId, userId) {
+function DeleteMessageHandler(chatId, messageId, userId) {
     DeleteMessageRequest(chatId, messageId, userId).then(data => {
         HandleDeleteMessageResponse(data);
     }).catch(error => {
@@ -22,7 +22,7 @@ function DeleteMessage(chatId, messageId, userId) {
     });
 };
 
-function EditChatName(newName, chatId) {
+function EditChatNameHandler(newName, chatId) {
     EditChatNameRequest(newName, chatId).then(data => {
         HandleEditChatNameResponse(data);
     }).catch(error => {
@@ -30,7 +30,7 @@ function EditChatName(newName, chatId) {
     });
 };
 
-function LeaveChat(chatId, isActive) {
+function LeaveChatHandler(chatId, isActive) {
     LeaveChatRequest(chatId).then(data => {
         if (!isActive) { return }
         HandleLeaveChatResponse(data);
@@ -39,7 +39,7 @@ function LeaveChat(chatId, isActive) {
     })
 }
 
-function SwitchChat(chatType, chatId) {
+function SwitchChatHandler(chatType, chatId) {
     SwitchChatRequest(chatType, chatId).then(data => {
         HandleSwitchChatResponse(data);
     }).catch(error => {

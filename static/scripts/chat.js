@@ -23,10 +23,18 @@ socket.onmessage = function (event) {
 }
 
 document.addEventListener("DOMContentLoaded", function() {
+    SetupListeners()
+    
     addNewMsgListenerToMsgInput()
     addNewMsgListenerToSendMsgButton()
     addAddContactEventListenerToInput()
 })
+
+function SetupListeners() {
+    addChatModalListenerToChatContainer()
+    addMessageModalListenerToMessageContainer()
+}
+
 
 
 function addAddContactEventListenerToInput() {
