@@ -4,6 +4,7 @@
   flex-direction: column;
   padding: 1rem;
   overflow: hidden;
+  max-height:90%;
 }
 
 #messages-container {
@@ -14,6 +15,7 @@
     scroll-behavior: smooth;
     overflow-y: auto;
     height: 90%;
+    max-height:90%;
 
 }
 

@@ -1,5 +1,5 @@
 {{ define "chats" }}
     {{ range .Chats }}
-        {{ template "chat" . }}
+        {{ template "chat" dict "Chat" . "ActiveChatId" $.ActiveChatId }}
     {{ end }}
 {{ end }}

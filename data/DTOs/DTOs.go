@@ -21,7 +21,17 @@ func (s *SwitchChatRequest) GetChatId() (typ.ChatId, error) {
 }
 
 type SwitchChatResponse struct {
-	Messages []entities.Message `json:"Messages"`
+	ActiveChatId typ.ChatId         `json:"ActiveChatId"`
+	Messages     []entities.Message `json:"Messages"`
+}
+
+type SwitchContactChatRequest struct {
+	ContactChatId string `json:"ContactChatId"`
+}
+
+type SwitchContactChatResponse struct {
+	ActiveContactChatId typ.ChatId         `json:"ActiveContactChatId"`
+	Messages            []entities.Message `json:"Messages"`
 }
 
 type NewChatRequest struct {
@@ -58,10 +68,11 @@ type ResponsePayload struct {
 }
 
 type RenderChatPayload struct {
-	UserId   typ.UserId         `json:"UserId"`
-	Chats    []entities.Chat    `json:"Chats"`
-	Messages []entities.Message `json:"Messages"`
-	Contacts []entities.Contact `json:"Contacts"`
+	UserId       typ.UserId         `json:"UserId"`
+	Chats        []entities.Chat    `json:"Chats"`
+	Messages     []entities.Message `json:"Messages"`
+	Contacts     []entities.Contact `json:"Contacts"`
+	ActiveChatId typ.ChatId         `json:"ActiveChatId"`
 }
 
 type ErrorResponse struct {
@@ -128,11 +139,21 @@ type EditChatNameResponse struct {
 	Name string `json:"Name"`
 }
 type DeleteMessageRequest struct {
-	MessageId string
-	UserId    string
-	ChatId    string
+	MessageId string `json:"MessageId"`
+	UserId    string `json:"UserId"`
+	ChatId    string `json:"ChatId"`
 }
 
 type DeleteMessageResponse struct {
 	Messages []entities.Message
+}
+
+type RemoveContactRequest struct {
+	ContactId string `json:"ContactId"`
+}
+
+type RemoveContactResponse struct {
+	Contacts        []entities.Contact
+	Messages        []entities.Message
+	NewActiveChatId typ.ChatId
 }

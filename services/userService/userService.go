@@ -102,3 +102,8 @@ func (u *UserService) GetContact(chatId typ.ChatId, userId typ.UserId) (*ent.Con
 	return u.usrR.GetContact(chatId, userId)
 
 }
+
+func (u *UserService) RemoveContact(contactId typ.ContactId, userId typ.UserId) error {
+	u.lgr.LogFunctionInfo()
+	return u.usrR.RemoveContact(contactId, userId)
+}

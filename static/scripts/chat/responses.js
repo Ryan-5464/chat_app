@@ -7,13 +7,21 @@ function HandleLeaveChatResponse(data) {
     return HandleResponse(data, callbacks);
 };
 
-
 function HandleAddContactResponse(data) {
     const callbacks = {
         Contacts: (data) => RenderContactElements(data, false),
         Messages: (data) => RenderMessageElements(data, true)
     };
     return  HandleResponse(data, callbacks);
+};
+
+function HandleRemoveContactResponse(data) {
+    const callbacks = {
+        NewActiveChatId: (data) => SetChatToActive(data),
+        Contacts: (data) => RenderContactElements(data, true), 
+        Messages: (data) => RenderMessageElements(data, true),
+    };
+    return HandleResponse(data, callbacks);
 };
 
 function HandleDeleteMessageResponse(data) {
@@ -39,8 +47,26 @@ function HandleNewChatResponse(data) {
 };
 
 function HandleSwitchChatResponse(data) {
-    const callbacks = {Messages: (data) => RenderMessageElements(data, true)};
+    const callbacks = {
+        ActiveChatId: (data) => SetChatToActive(data),
+        Messages: (data) => RenderMessageElements(data, true)
+    };
     return HandleResponse(data, callbacks);
+};
+
+function HandleSwitchContactChatResponse(data) {
+    const callbacks = {
+        ActiveContactChatId: (data) => SetContactChatToActive(data),
+        Messages: (data) => RenderMessageElements(data, true),
+    }
+    return HandleResponse(data, callbacks)
+}
+
+function HandleNewMessageResponse(data) {
+    const callbacks = {
+        Messages: (data) => RenderMessageElements(data, false),
+    };
+    return HandleResponse(data, callbacks)
 };
 
 function HandleResponse(data, callbacks) {
@@ -50,7 +76,7 @@ function HandleResponse(data, callbacks) {
         if (callbacks[key]) {
             callbacks[key](value);
         } else {
-            throw new Error(`No callback found for key: ${key}`);
+            console.log(`Warning => No callback found for key: ${key}`);
         };
     });
 };

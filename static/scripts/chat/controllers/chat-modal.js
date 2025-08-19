@@ -37,13 +37,12 @@ function ConfigureLeaveButton(chatModalController) {
 
 function ConfigureChatModal() {
     const modal = document.getElementById('chatModal');
-    const chatModalController = {
+    modal.__controller = {
         Close: () => CloseModal(modal),
         OpenAt: (clientX, clientY) => OpenModalAt(modal, clientX, clientY),
         EditChatName: (chatId) => EditChatName(chatId, () => CloseModal(modal)),
         LeaveChat: (chatId) => LeaveChat(chatId, () => CloseModal(modal)),
     };
-    modal.__controller = chatModalController;
     return modal;
 };
 

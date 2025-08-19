@@ -3,9 +3,13 @@ const DEL_MSG_ENDPOINT = '/api/message/delete';
 const EDIT_CHAT_NAME_ENDPOINT = '/api/chat/edit';
 const CHAT_SWITCH_ENDPOINT = '/api/chat/switch';
 const NEW_CHAT_ENDPOINT = '/api/chat/new';
-const ADD_CONTACT_ENDPOINT = '/api/contact/add';
+const ADD_CONTACT_ENDPOINT = '/api/chat/contact/add';
+const REMOVE_CONTACT_ENDPOINT = 'api/chat/contact/remove';
+const CONTACT_CHAT_SWITCH_ENDPOINT = 'api/chat/contact/switch';
 
 const AddContactRequest = (email) => safeRequest(() => POST(ADD_CONTACT_ENDPOINT, { Email: email }));
+
+const RemoveContactRequest = (contactId) => safeRequest(() => DELETE(REMOVE_CONTACT_ENDPOINT, { ContactId: contactId }));
 
 const DeleteMessageRequest = (chatId, messageId, userId) => safeRequest(() => DELETE(DEL_MSG_ENDPOINT, { ChatId: chatId, MessageId: messageId, UserId: userId }));
 
@@ -15,7 +19,9 @@ const LeaveChatRequest = (chatId) => safeRequest(() => DELETE(LEAVE_CHAT_ENDPOIN
 
 const NewChatRequest = (newChatName) => safeRequest(() => POST(NEW_CHAT_ENDPOINT, { Name: newChatName }));
 
-const SwitchChatRequest = (chatType, chatId) => safeRequest(() => GET(CHAT_SWITCH_ENDPOINT, { ChatType: chatType, ChatId: chatId}));
+const SwitchChatRequest = (chatId) => safeRequest(() => GET(CHAT_SWITCH_ENDPOINT, { ChatId: chatId}));
+
+const SwitchContactChatRequest = (contactChatId) => safeRequest(() => GET(CONTACT_CHAT_SWITCH_ENDPOINT, { ContactChatId: contactChatId }));
 
 async function safeRequest(reqFunc) {
     console.log("safe request: ", reqFunc)

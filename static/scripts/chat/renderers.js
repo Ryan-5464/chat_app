@@ -6,6 +6,7 @@ const RenderChatNameElement = (data) => ReplaceElement('chat-name-input', ChatNa
 
 const DeleteMessageElement = (data) => DeleteElement(`[data-messageid="${data}"]`);
 const DeleteChatElement = (data) => DeleteElement(`[data-chatid="${data}"]`)
+const DeleteContactElement = (data) => DeleteElement(`[data-contactid="${data}"]`)
 
 function RenderElements(containerId, elemFactory, data, overwrite) {
     console.log("render elements", containerId, elemFactory, data, overwrite)
@@ -35,13 +36,24 @@ function DeleteElement(identifier) {
     };
 };
 
-function SetChatToActive(NewActiveChatId) {
+function SetChatToActive(activeChatId) {
     const chats = document.querySelectorAll('.active');
     if (chats) {
         Object.values(chats).forEach(chat => {
             chat.classList.remove('active');
         });
     }
-    const chat = document.querySelector(`[data-chatid="${NewActiveChatId}"]`);
+    const chat = document.querySelector(`[data-chatid="${activeChatId}"]`);
+    chat.classList.add('active')
+}
+
+function SetContactChatToActive(activeContactChatId) {
+    const chats = document.querySelectorAll('.active');
+    if (chats) {
+        Object.values(chats).forEach(chat => {
+            chat.classList.remove('active');
+        });
+    }
+    const chat = document.querySelector(`[data-contactchatid="${activeContactChatId}"]`);
     chat.classList.add('active')
 }

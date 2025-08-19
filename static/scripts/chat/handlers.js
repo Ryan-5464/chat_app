@@ -17,6 +17,20 @@ function AddContactHandler(email) {
     });
 };
 
+function RemoveContactHandler(contactId, isActive) {
+    RemoveContactRequest(contactId).then(data => {
+        console.log("remove contact response handler: ", data)
+        if (!isActive) { 
+            console.log("deleting inactive contact element", contactId)
+            DeleteContactElement(contactId);
+            return;
+        };
+        HandleRemoveContactResponse(data);
+    }).catch(error => {
+        console.error("Remove contact failed => error: ", error);
+    });
+}
+
 function DeleteMessageHandler(chatId, messageId, userId) {
     DeleteMessageRequest(chatId, messageId, userId).then(data => {
         console.log("delete messasge response handler: ", data)
@@ -49,11 +63,20 @@ function LeaveChatHandler(chatId, isActive) {
     });
 };
 
-function SwitchChatHandler(chatType, chatId) {
-    SwitchChatRequest(chatType, chatId).then(data => {
+function SwitchChatHandler(chatId) {
+    SwitchChatRequest(chatId).then(data => {
         console.log("switch chat response handler: ", data)
         HandleSwitchChatResponse(data);
     }).catch(error => {
         console.error("Switch chat failed => error: ", error);
+    });
+};
+
+function SwitchContactChatHandler(contactChatId) {
+    SwitchContactChatRequest(contactChatId).then(data => {
+        console.log("switch contact chat response handler: ", data);
+        HandleSwitchContactChatResponse(data);
+    }).catch(error => {
+        console.error("Switch contact chat failed => error: ", error);
     });
 };

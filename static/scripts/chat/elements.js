@@ -74,6 +74,10 @@ function ContactElement(contact) {
 function MessageElement(message) {
     const messageElem = document.createElement('div')
     messageElem.classList.add('message')
+    console.log("is user message", message.IsUserMessage)
+    if (message.IsUserMessage) {
+        messageElem.classList.add('me')
+    }
     messageElem.setAttribute('data-messageid', message.Id)
     messageElem.setAttribute('data-chatid', message.ChatId)
     messageElem.setAttribute('data-userid', message.UserId)

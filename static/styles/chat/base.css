@@ -1,29 +1,29 @@
 * {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
 }
 
 body {
-  background-color: var(--bg);
-    height: 95%;
+    background-color: var(--bg);
+    height: 120vh;
     margin: 0;
     padding: 0;
     overflow: hidden;
-  display: flex;
-  flex-direction: column;
+    display: flex;
+    flex-direction: column;
 }
 
 #header-container,
 #footer-container {
-  height: 5%;
-  background-color: var(--bg);
-  padding: 1rem;
+    height: 5%;
+    background-color: var(--bg);
+    padding: 1rem;
 }
 
 #main-container {
-  flex: 1;
-  display: flex;
-  overflow: hidden;
+    flex: 1;
+    display: flex;
+    overflow: hidden;
 }
 

@@ -1,5 +1,6 @@
 {{ define "message" }}
-<div class="message {{ if eq .UserId $.UserId }}me{{ end }}" 
+<!-- <div class="message {{ if eq .UserId $.UserId }}me{{ end }}"  -->
+<div class="message {{ if .IsUserMessage }}me{{ end }}" 
      data-userid="{{ .UserId }}" 
      data-chatid="{{ .ChatId }}" 
      data-messageid="{{ .Id }}" 

@@ -576,6 +576,26 @@ func (dbs *DbService) GetContacts(userId typ.UserId) ([]model.Contact, error) {
 	return populateContactModels(rows), nil
 }
 
+func (dbs *DbService) DeleteContact(contactId typ.ContactId, userId typ.UserId) error {
+	dbs.lgr.LogFunctionInfo()
+
+	dbs.lgr.DLog(fmt.Sprintf("contactId: %v, userId: %v", contactId, userId))
+
+	qb := qbuilder.NewQueryBuilder()
+
+	contactTable := qb.Table(schema.ContactTable)
+	id1F := qb.Field(schema.Id1)
+	id2F := qb.Field(schema.Id2)
+
+	query := qb.DELETE_FROM(contactTable).
+		WHERE(id1F, qb.EqualTo()).AND(id2F, qb.EqualTo()).
+		OR(id1F, qb.EqualTo()).AND(id2F, qb.EqualTo()).Build()
+
+	dbs.lgr.DLog(fmt.Sprintf("query: %s", query))
+
+	return dbs.db.Delete(query, contactId, userId, userId, contactId)
+}
+
 func selectAllFromWhereEqualTo(table string, field string) string {
 	qb := qbuilder.NewQueryBuilder()
 

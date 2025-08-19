@@ -59,8 +59,11 @@ var (
 )
 
 func init() {
+	tmpl := template.New("").Funcs(template.FuncMap{
+		"dict": dict,
+	})
 	chatViewTmpl = template.Must(
-		template.ParseFiles(
+		tmpl.ParseFiles(
 			chatViewHTML,
 			messagesHTML,
 			messageHTML,
@@ -122,9 +125,10 @@ func (h *ChatHandler) RenderChatPage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	var chatId typ.ChatId = -1
 	var messages []entities.Message
 	if len(chats) != 0 {
-		chatId := chats[0].Id
+		chatId = chats[0].Id
 		messages, err = h.msgS.GetChatMessages(chatId, userId)
 		if err != nil {
 			h.lgr.LogError(fmt.Errorf("failed to get chat messages for chatId: %v, Error: %v", chatId, err))
@@ -142,10 +146,11 @@ func (h *ChatHandler) RenderChatPage(w http.ResponseWriter, r *http.Request) {
 
 	h.lgr.DLog(fmt.Sprintf("session userId: %v", userId))
 	renderChatpayload := dto.RenderChatPayload{
-		UserId:   userId,
-		Chats:    chats,
-		Messages: messages,
-		Contacts: contacts,
+		UserId:       userId,
+		Chats:        chats,
+		Messages:     messages,
+		Contacts:     contacts,
+		ActiveChatId: chatId,
 	}
 
 	if err = chatViewTmpl.ExecuteTemplate(w, "chatView", renderChatpayload); err != nil {
@@ -333,7 +338,7 @@ func (h *ChatHandler) SwitchChat(w http.ResponseWriter, r *http.Request) {
 
 	query := r.URL.Query()
 	switchChatRequest := dto.SwitchChatRequest{
-		ChatId: query.Get("chatid"),
+		ChatId: query.Get("ChatId"),
 	}
 
 	switchChatResponse, err := h.handleChatSwitchRequest(switchChatRequest, session.UserId())
@@ -343,11 +348,7 @@ func (h *ChatHandler) SwitchChat(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := chatViewTmpl.ExecuteTemplate(w, "messages", switchChatResponse); err != nil {
-		h.lgr.LogError(fmt.Errorf("failed to execute messages template for chat view, Error: %v", err))
-		http.Error(w, InternalServerError, http.StatusInternalServerError)
-		return
-	}
+	h.sendJSONResponse(w, switchChatResponse)
 
 	h.lgr.DLog("->>>> RESPONSE SENT")
 }
@@ -366,7 +367,8 @@ func (h *ChatHandler) handleChatSwitchRequest(switchChatRequest dto.SwitchChatRe
 	}
 
 	switchChatResponse := dto.SwitchChatResponse{
-		Messages: messages,
+		ActiveChatId: chatId,
+		Messages:     messages,
 	}
 
 	return switchChatResponse, nil
@@ -420,6 +422,82 @@ func (h *ChatHandler) handleNewChatRequest(cr dto.NewChatRequest, userId typ.Use
 
 	newChatResponse := dto.NewChatResponse{
 		Chats: []entities.Chat{*chat},
+	}
+
+	return newChatResponse, nil
+}
+
+/* REMOVE CONTACT REQUEST ====================================================================== */
+
+func (h *ChatHandler) RemoveContact(w http.ResponseWriter, r *http.Request) {
+	h.lgr.LogFunctionInfo()
+
+	if r.Method != http.MethodDelete {
+		h.lgr.LogError(errors.New("request method not allowed"))
+		http.Error(w, MethodNotAllowed, http.StatusMethodNotAllowed)
+		return
+	}
+
+	session, userAuthenticated := checkAuthenticationStatus(r)
+	if !userAuthenticated {
+		h.lgr.Log("user not authenticated, redirecting to landing page...")
+		http.Redirect(w, r, "/", http.StatusSeeOther)
+		return
+	}
+
+	query := r.URL.Query()
+	removeContactRequest := dto.RemoveContactRequest{
+		ContactId: query.Get("ContactId"),
+	}
+
+	removeContactResponse, err := h.handleRemoveContactRequest(removeContactRequest, session.UserId())
+	if err != nil {
+		h.lgr.LogError(fmt.Errorf("failed to handle remove contact request, Error: %v", err))
+		http.Error(w, InternalServerError, http.StatusInternalServerError)
+		return
+	}
+
+	h.sendJSONResponse(w, removeContactResponse)
+
+	h.lgr.DLog("->>>> RESPONSE SENT")
+}
+
+func (h *ChatHandler) handleRemoveContactRequest(cr dto.RemoveContactRequest, userId typ.UserId) (dto.RemoveContactResponse, error) {
+	h.lgr.LogFunctionInfo()
+
+	contactId, err := lib.ConvertStringToInt64(cr.ContactId)
+	if err != nil {
+		return dto.RemoveContactResponse{}, err
+	}
+
+	if err := h.userS.RemoveContact(typ.ContactId(contactId), userId); err != nil {
+		return dto.RemoveContactResponse{}, err
+	}
+
+	chats, err := h.chatS.GetChats(userId)
+	if err != nil {
+		return dto.RemoveContactResponse{}, err
+	}
+
+	newActiveChatId := chats[0].Id
+	var messages []entities.Message
+	if len(chats) != 0 {
+		chatId := newActiveChatId
+		messages, err = h.msgS.GetChatMessages(chatId, userId)
+		if err != nil {
+			return dto.RemoveContactResponse{}, err
+		}
+	}
+
+	contacts, err := h.userS.GetContacts(userId)
+	if err != nil {
+		return dto.RemoveContactResponse{}, err
+	}
+
+	newChatResponse := dto.RemoveContactResponse{
+		NewActiveChatId: newActiveChatId,
+		Contacts:        contacts,
+		Messages:        messages,
 	}
 
 	return newChatResponse, nil
@@ -510,10 +588,13 @@ func (h *ChatHandler) AddContact(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	query := r.URL.Query()
-	addContactRequest := dto.AddContactRequest{
-		Email: query.Get("email"),
+	var addContactRequest dto.AddContactRequest
+	if err := json.NewDecoder(r.Body).Decode(&addContactRequest); err != nil {
+		h.lgr.LogError(fmt.Errorf("failed to decode JSON request body: ", err))
+		http.Error(w, msgMalformedJSON, http.StatusBadRequest)
+		return
 	}
+	h.lgr.DLog(fmt.Sprintf("Add contact request name: %v", addContactRequest.Email))
 
 	addContactResponse, err := h.handleAddContactRequest(addContactRequest, session.UserId())
 	if err != nil {
@@ -522,11 +603,7 @@ func (h *ChatHandler) AddContact(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := chatViewTmpl.ExecuteTemplate(w, "new-contact", addContactResponse); err != nil {
-		h.lgr.LogError(fmt.Errorf("failed to execute new-contact template for chat view, Error: %v", err))
-		http.Error(w, InternalServerError, http.StatusInternalServerError)
-		return
-	}
+	h.sendJSONResponse(w, addContactResponse)
 
 	h.lgr.DLog("->>>> RESPONSE SENT")
 }
@@ -581,41 +658,39 @@ func (h *ChatHandler) SwitchContactChat(w http.ResponseWriter, r *http.Request) 
 	}
 
 	query := r.URL.Query()
-	switchChatRequest := dto.SwitchChatRequest{
-		ChatId: query.Get("chatid"),
+	switchContactChatRequest := dto.SwitchContactChatRequest{
+		ContactChatId: query.Get("ContactChatId"),
 	}
 
-	switchChatResponse, err := h.handleContactChatSwitchRequest(switchChatRequest, session.UserId())
+	switchContactChatResponse, err := h.handleContactChatSwitchRequest(switchContactChatRequest, session.UserId())
 	if err != nil {
 		h.lgr.LogError(fmt.Errorf("failed to handle contact chat switch request, Error: %v", err))
 		http.Error(w, InternalServerError, http.StatusInternalServerError)
 		return
 	}
 
-	if err := chatViewTmpl.ExecuteTemplate(w, "messages", switchChatResponse); err != nil {
-		h.lgr.LogError(fmt.Errorf("failed to execute messages template for chat view, Error: %v", err))
-		http.Error(w, InternalServerError, http.StatusInternalServerError)
-		return
-	}
+	h.sendJSONResponse(w, switchContactChatResponse)
 
 	h.lgr.DLog("->>>> RESPONSE SENT")
 }
 
-func (h *ChatHandler) handleContactChatSwitchRequest(switchChatRequest dto.SwitchChatRequest, userId typ.UserId) (dto.SwitchChatResponse, error) {
+func (h *ChatHandler) handleContactChatSwitchRequest(s dto.SwitchContactChatRequest, userId typ.UserId) (dto.SwitchContactChatResponse, error) {
 	h.lgr.LogFunctionInfo()
 
-	chatId, err := switchChatRequest.GetChatId()
+	cid, err := lib.ConvertStringToInt64(s.ContactChatId)
 	if err != nil {
-		return dto.SwitchChatResponse{}, err
+		return dto.SwitchContactChatResponse{}, err
+	}
+	contactChatId := typ.ChatId(cid)
+
+	messages, err := h.msgS.GetContactMessages(contactChatId, userId)
+	if err != nil {
+		return dto.SwitchContactChatResponse{}, err
 	}
 
-	messages, err := h.msgS.GetContactMessages(chatId, userId)
-	if err != nil {
-		return dto.SwitchChatResponse{}, err
-	}
-
-	switchChatResponse := dto.SwitchChatResponse{
-		Messages: messages,
+	switchChatResponse := dto.SwitchContactChatResponse{
+		ActiveContactChatId: contactChatId,
+		Messages:            messages,
 	}
 
 	return switchChatResponse, nil
@@ -759,8 +834,23 @@ func (h *ChatHandler) sendJSONResponse(w http.ResponseWriter, responseDTO any) {
 	w.WriteHeader(http.StatusOK)
 
 	if err := json.NewEncoder(w).Encode(responseDTO); err != nil {
-		h.lgr.LogError(fmt.Errorf("failed to encode JSON response for edit chat name, Error: %v", err))
+		h.lgr.LogError(fmt.Errorf("failed to encode JSON response, Error: %v", err))
 		http.Error(w, InternalServerError, http.StatusInternalServerError)
 		return
 	}
+}
+
+func dict(values ...any) (map[string]any, error) {
+	if len(values)%2 != 0 {
+		return nil, fmt.Errorf("invalid dict call: must have even number of args")
+	}
+	m := make(map[string]any, len(values)/2)
+	for i := 0; i < len(values); i += 2 {
+		key, ok := values[i].(string)
+		if !ok {
+			return nil, fmt.Errorf("dict keys must be strings")
+		}
+		m[key] = values[i+1]
+	}
+	return m, nil
 }

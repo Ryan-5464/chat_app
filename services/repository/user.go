@@ -171,6 +171,11 @@ func (u *UserRepository) GetContact(chatId typ.ChatId, userId typ.UserId) (*ent.
 	return contact, nil
 }
 
+func (u *UserRepository) RemoveContact(contactId typ.ContactId, userId typ.UserId) error {
+	u.lgr.LogFunctionInfo()
+	return u.dbS.DeleteContact(contactId, userId)
+}
+
 func mapUserInfoToContacts(contacts []ent.Contact, users []model.User) []ent.Contact {
 	contactIdMap := make(map[typ.ContactId]ent.Contact)
 	for _, contact := range contacts {

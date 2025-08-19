@@ -107,7 +107,7 @@ func (m *MessageService) HandleNewMessage(mi dto.NewMessageInput) error {
 
 func (m *MessageService) BroadcastMessage(userId typ.UserId, conn i.Socket, msg entities.Message) error {
 	m.lgr.LogFunctionInfo()
-	log.Println(":: braoadcast message ", msg)
+	log.Println(":: broadcast message ", msg)
 
 	msg.IsUserMessage = msg.UserId == userId
 
