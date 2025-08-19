@@ -390,14 +390,11 @@ func (h *ChatHandler) NewChat(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := r.ParseForm(); err != nil {
-		h.lgr.Log("faield to parse POST request data...")
-		http.Error(w, ParseFormFail, http.StatusBadRequest)
+	var newChatRequest dto.NewChatRequest
+	if err := json.NewDecoder(r.Body).Decode(&newChatRequest); err != nil {
+		h.lgr.LogError(fmt.Errorf("failed to decode JSON request body: ", err))
+		http.Error(w, msgMalformedJSON, http.StatusBadRequest)
 		return
-	}
-
-	newChatRequest := dto.NewChatRequest{
-		Name: r.FormValue("chatName"),
 	}
 	h.lgr.DLog(fmt.Sprintf("New chat request name: %v", newChatRequest.Name))
 
@@ -408,11 +405,7 @@ func (h *ChatHandler) NewChat(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := chatViewTmpl.ExecuteTemplate(w, "new-chat", newChatResponse); err != nil {
-		h.lgr.LogError(fmt.Errorf("failed to execute new-chat template for chat view, Error: %v", err))
-		http.Error(w, InternalServerError, http.StatusInternalServerError)
-		return
-	}
+	h.sendJSONResponse(w, newChatResponse)
 
 	h.lgr.DLog("->>>> RESPONSE SENT")
 }

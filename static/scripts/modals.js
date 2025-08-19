@@ -72,8 +72,9 @@ window.addEventListener("click", function (e) {
 //     }
 
 function replaceWithInput(elem, placeholder) {
-    elem.innerHTML = ''
     const input = document.createElement('input');
+    input.__oldtext = elem.innerHTML
+    elem.innerHTML = ''
     input.id = 'chat-name-input'
     input.type = 'text';
     input.name = 'Name';
@@ -83,4 +84,5 @@ function replaceWithInput(elem, placeholder) {
     elem.appendChild(input);
     return input
 }
+
 

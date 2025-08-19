@@ -48,6 +48,14 @@ function ConfigureChatModal() {
 };
 
 function EditChatName(chatId, closeModal) {
+    const openInput = document.getElementById('chat-name-input')
+    if (openInput) {
+        const openInputChatName = document.createElement('div')
+        openInputChatName.classList.add('chat-name')
+        openInputChatName.innerHTML = openInput.__oldtext
+        openInput.replaceWith(openInputChatName)
+    }
+    if (openInput) { openInput.remove()}
     const chat = document.querySelector(`[data-chatid="${chatId}"]`);
     const chatName = chat.querySelector('.chat-name');
     const input = replaceWithInput(chatName, "Enter new name");
@@ -65,5 +73,6 @@ function LeaveChat(chatId, closeModal) {
     const activeChatId = activeChat?.getAttribute("data-chatid");
     const isActive = chatId === activeChatId;
     closeModal();
+    console.log("is active", isActive)
     LeaveChatHandler(chatId, isActive);
 };

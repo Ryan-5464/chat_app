@@ -33,6 +33,7 @@ document.addEventListener("DOMContentLoaded", function() {
 function SetupListeners() {
     addChatModalListenerToChatContainer()
     addMessageModalListenerToMessageContainer()
+    addNewChatEventListenerToNewChatInput()
 }
 
 
@@ -51,7 +52,7 @@ function addAddContactEventListenerToInput() {
 }
 
 function addNewMsgListenerToMsgInput() {
-    const input = document.getElementById("input")
+    const input = document.getElementById("message-input")
     input.addEventListener('keydown', function (event) {
         if (event.key === "Enter") {
             const replyId = null

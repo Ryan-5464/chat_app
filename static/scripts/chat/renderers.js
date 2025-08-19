@@ -4,10 +4,11 @@ const RenderMessageElements = (data, overwrite) => RenderElements('messages-cont
 const RenderContactElements = (data, overwrite) => RenderElements('contacts-container', ContactElement, data, overwrite);
 const RenderChatNameElement = (data) => ReplaceElement('chat-name-input', ChatNameElement, data);
 
-const DeleteMessageElement = (data) => DeleteElement(`[data-messageid="${data.MessageId}"]`);
-const DeleteChatElement = (data) => DeleteElement(`[data-chatid="${data.ChatId}"]`)
+const DeleteMessageElement = (data) => DeleteElement(`[data-messageid="${data}"]`);
+const DeleteChatElement = (data) => DeleteElement(`[data-chatid="${data}"]`)
 
 function RenderElements(containerId, elemFactory, data, overwrite) {
+    console.log("render elements", containerId, elemFactory, data, overwrite)
     const container = document.getElementById(containerId);
     if (!container) {
         throw new Error(`Element with id=${containerId} not found!`);
@@ -30,7 +31,17 @@ function DeleteElement(identifier) {
     if (elem) {
         elem.remove();
     } else {
-        throw new Error(`Failed to find element for identifier = ${identifier}="${value}" `);
+        throw new Error(`Failed to find element for identifier = ${identifier}`);
     };
 };
 
+function SetChatToActive(NewActiveChatId) {
+    const chats = document.querySelectorAll('.active');
+    if (chats) {
+        Object.values(chats).forEach(chat => {
+            chat.classList.remove('active');
+        });
+    }
+    const chat = document.querySelector(`[data-chatid="${NewActiveChatId}"]`);
+    chat.classList.add('active')
+}
