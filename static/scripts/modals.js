@@ -7,11 +7,11 @@ window.addEventListener("click", function (e) {
     });
 });
 
-function replaceWithInput(elem, placeholder) {
+function replaceWithInput(elem, placeholder, id) {
     const input = document.createElement('input');
     input.__oldtext = elem.innerHTML
     elem.innerHTML = ''
-    input.id = 'chat-name-input'
+    input.id = id
     input.type = 'text';
     input.name = 'Name';
     input.placeholder = placeholder;

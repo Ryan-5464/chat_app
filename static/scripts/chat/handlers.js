@@ -45,7 +45,16 @@ function EditChatNameHandler(newName, chatId) {
         console.log("edit chat name response handler", data)
         HandleEditChatNameResponse(data);
     }).catch(error => {
-        console.error("Edit chame name failed => error: ", error);
+        console.error("Edit chat name failed => error: ", error);
+    });
+};
+
+function EditMessageHandler(messageText, messageId, userId) {
+    EditMessageRequest(messageText, messageId, userId).then(data => {
+        console.log("edit message response handler", data)
+        HandleEditMessageResponse(data);
+    }).catch(error => {
+        console.error("Edit message failed => error: ", error);
     });
 };
 

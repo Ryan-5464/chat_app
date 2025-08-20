@@ -3,6 +3,7 @@ const RenderChatElements = (data, overwrite) => RenderElements('chats-container'
 const RenderMessageElements = (data, overwrite) => RenderElements('messages-container', MessageElement, data, overwrite);
 const RenderContactElements = (data, overwrite) => RenderElements('contacts-container', ContactElement, data, overwrite);
 const RenderChatNameElement = (data) => ReplaceElement('chat-name-input', ChatNameElement, data);
+const RenderMessageTextElement = (data) => ReplaceElement('edit-message-input', MessageTextElement, data)
 
 const DeleteMessageElement = (data) => DeleteElement(`[data-messageid="${data}"]`);
 const DeleteChatElement = (data) => DeleteElement(`[data-chatid="${data}"]`)

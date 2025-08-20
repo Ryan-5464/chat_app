@@ -23,6 +23,7 @@ const (
 	msgMalformedJSON    StatusCodeMessage = "Invalid JSON received"
 	MethodNotAllowed    StatusCodeMessage = "request method not allowed"
 	ParseFormFail       StatusCodeMessage = "Failed to parse form"
+	UnauthorizedRequest StatusCodeMessage = "User not authorized to make change"
 )
 
 type MessageType = string
@@ -694,6 +695,75 @@ func (h *ChatHandler) handleContactChatSwitchRequest(s dto.SwitchContactChatRequ
 	}
 
 	return switchChatResponse, nil
+}
+
+// EDIT MESSAGE ====================================================================
+
+func (h *ChatHandler) EditMessage(w http.ResponseWriter, r *http.Request) {
+	h.lgr.LogFunctionInfo()
+
+	if r.Method != http.MethodPost {
+		h.lgr.LogError(errors.New("request method not allowed"))
+		http.Error(w, MethodNotAllowed, http.StatusMethodNotAllowed)
+		return
+	}
+
+	session, userAuthenticated := checkAuthenticationStatus(r)
+	if !userAuthenticated {
+		h.lgr.Log("user not authenticated, redirecting to landing page...")
+		http.Redirect(w, r, "/", http.StatusSeeOther)
+		return
+	}
+
+	var editMessageRequest dto.EditMessageRequest
+	if err := json.NewDecoder(r.Body).Decode(&editMessageRequest); err != nil {
+		h.lgr.LogError(fmt.Errorf("failed to decode JSON request body: ", err))
+		http.Error(w, ParseFormFail, http.StatusBadRequest)
+		return
+	}
+
+	userId, err := lib.ConvertStringToInt64(editMessageRequest.UserId)
+	if err != nil {
+		http.Error(w, InternalServerError, http.StatusInternalServerError)
+		return
+	}
+
+	if session.UserId() != typ.UserId(userId) {
+		h.lgr.LogError(fmt.Errorf("user does not own message: ", err))
+		http.Error(w, UnauthorizedRequest, http.StatusBadRequest)
+		return
+	}
+
+	editMessageResponse, err := h.handleEditMessageRequest(editMessageRequest)
+	if err != nil {
+		h.lgr.LogError(fmt.Errorf("failed to handle contact edit chat name request, Error: %v", err))
+		http.Error(w, InternalServerError, http.StatusInternalServerError)
+		return
+	}
+
+	SendJSONResponse(w, editMessageResponse)
+
+	h.lgr.DLog(fmt.Sprintf("->>>> RESPONSE SENT:: %v", editMessageResponse))
+
+}
+
+func (h *ChatHandler) handleEditMessageRequest(mr dto.EditMessageRequest) (dto.EditMessageResponse, error) {
+	h.lgr.LogFunctionInfo()
+
+	messageId, err := lib.ConvertStringToInt64(mr.MessageId)
+	if err != nil {
+		return dto.EditMessageResponse{}, err
+	}
+
+	msg, err := h.msgS.EditMessage(mr.MsgText, typ.MessageId(messageId))
+	if err != nil {
+		return dto.EditMessageResponse{}, err
+	}
+
+	return dto.EditMessageResponse{
+		MsgText: msg.Text,
+	}, nil
+
 }
 
 // EDIT CHAT NAME ==================================================================

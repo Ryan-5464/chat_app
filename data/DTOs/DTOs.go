@@ -159,9 +159,19 @@ type RemoveContactResponse struct {
 }
 
 type EditUserNameRequest struct {
-	Name string
+	Name string `json:"Name"`
 }
 
 type EditUserNameResponse struct {
 	Name string
+}
+
+type EditMessageRequest struct {
+	MsgText   string `json:"MsgText"`
+	MessageId string `json:"MessageId"`
+	UserId    string `json:"UserId"`
+}
+
+type EditMessageResponse struct {
+	MsgText string
 }

@@ -57,7 +57,7 @@ function EditChatName(chatId, closeModal) {
     if (openInput) { openInput.remove()}
     const chat = document.querySelector(`[data-chatid="${chatId}"]`);
     const chatName = chat.querySelector('.chat-name');
-    const input = replaceWithInput(chatName, "Enter new name");
+    const input = replaceWithInput(chatName, "Enter new name", 'chat-name-input');
     input.focus();
     closeModal();
     input.addEventListener('keydown', (e) => {

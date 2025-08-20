@@ -130,6 +130,18 @@ func (dbs *DbService) UpdateChatName(name string, chatId typ.ChatId) error {
 	return dbs.db.Update(query, name, chatId)
 }
 
+func (dbs *DbService) UpdateMessage(msgText string, msgId typ.MessageId) error {
+	dbs.lgr.LogFunctionInfo()
+
+	dbs.lgr.DLog(fmt.Sprintf("msgText: %v, msgId %v", msgText, msgId))
+
+	query := updateWhereEqualTo(schema.MessageTable, schema.MessageId, schema.MsgText)
+
+	dbs.lgr.DLog(fmt.Sprintf("query: %v", query))
+
+	return dbs.db.Update(query, msgText, msgId)
+}
+
 func (dbs *DbService) UpdateChatAdmin(chatId typ.ChatId, newAdminId typ.UserId) error {
 	dbs.lgr.LogFunctionInfo()
 

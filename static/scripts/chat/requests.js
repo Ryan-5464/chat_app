@@ -6,6 +6,7 @@ const NEW_CHAT_ENDPOINT = '/api/chat/new';
 const ADD_CONTACT_ENDPOINT = '/api/chat/contact/add';
 const REMOVE_CONTACT_ENDPOINT = 'api/chat/contact/remove';
 const CONTACT_CHAT_SWITCH_ENDPOINT = 'api/chat/contact/switch';
+const EDIT_MESSAGE_ENDPOINT = 'api/message/edit';
 
 const AddContactRequest = (email) => safeRequest(() => POST(ADD_CONTACT_ENDPOINT, { Email: email }));
 
@@ -22,6 +23,8 @@ const NewChatRequest = (newChatName) => safeRequest(() => POST(NEW_CHAT_ENDPOINT
 const SwitchChatRequest = (chatId) => safeRequest(() => GET(CHAT_SWITCH_ENDPOINT, { ChatId: chatId}));
 
 const SwitchContactChatRequest = (contactChatId) => safeRequest(() => GET(CONTACT_CHAT_SWITCH_ENDPOINT, { ContactChatId: contactChatId }));
+
+const EditMessageRequest = (messageText, messageId, userId) => safeRequest(() => POST(EDIT_MESSAGE_ENDPOINT, { MsgText: messageText, MessageId: messageId, UserId: userId }));
 
 async function safeRequest(reqFunc) {
     console.log("safe request: ", reqFunc)

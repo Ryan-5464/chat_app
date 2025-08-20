@@ -89,6 +89,26 @@ func (m *MessageRepository) DeleteMessage(messageId typ.MessageId) error {
 	return m.dbS.DeleteMessage(messageId)
 }
 
+func (m *MessageRepository) EditMessage(msgText string, msgId typ.MessageId) error {
+	m.lgr.LogFunctionInfo()
+	return m.dbS.UpdateMessage(msgText, msgId)
+}
+
+func (m *MessageRepository) GetMessage(msgId typ.MessageId) (*entities.Message, error) {
+	m.lgr.LogFunctionInfo()
+
+	msgModel, err := m.dbS.GetMessage(msgId)
+	if err != nil {
+		return nil, err
+	}
+
+	if msgModel == nil {
+		return nil, errors.New("no message found")
+	}
+
+	return messageEntityFromModel(msgModel), nil
+}
+
 func messageEntitiesFromModels(messages []model.Message) []entities.Message {
 	if len(messages) == 0 {
 		return []entities.Message{}

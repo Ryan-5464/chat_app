@@ -43,6 +43,8 @@ type MessageRepository interface {
 	NewContactMessage(userId typ.UserId, chatId typ.ChatId, replyId *typ.MessageId, text string) (*ent.Message, error)
 	NewMessage(userId typ.UserId, chatId typ.ChatId, replyId *typ.MessageId, text string) (*ent.Message, error)
 	DeleteMessage(messageId typ.MessageId) error
+	GetMessage(msgId typ.MessageId) (*ent.Message, error)
+	EditMessage(msgText string, msgId typ.MessageId) error
 }
 
 type DbService interface {
@@ -75,6 +77,7 @@ type DbService interface {
 	GetContactMessages(chatId typ.ChatId) ([]model.Message, error)
 	GetMessage(msgId typ.MessageId) (*model.Message, error)
 	GetMessages(msgIds []typ.MessageId) ([]model.Message, error)
+	UpdateMessage(msgtext string, msgId typ.MessageId) error
 
 	CreateContact(id1 typ.UserId, id2 typ.ContactId) (typ.LastInsertId, error)
 	GetContact(chatId typ.ChatId) (*model.Contact, error)
@@ -102,6 +105,7 @@ type MessageService interface {
 	HandleNewContactMessage(mi dto.NewMessageInput) error
 	HandleNewMessage(mi dto.NewMessageInput) error
 	DeleteMessage(messageId typ.MessageId) error
+	EditMessage(msgText string, msgId typ.MessageId) (*ent.Message, error)
 }
 
 type UserService interface {

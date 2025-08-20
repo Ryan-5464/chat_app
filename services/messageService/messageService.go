@@ -191,6 +191,16 @@ func (m *MessageService) DeleteMessage(messageId typ.MessageId) error {
 	return m.msgR.DeleteMessage(messageId)
 }
 
+func (m *MessageService) EditMessage(msgText string, msgId typ.MessageId) (*entities.Message, error) {
+	m.lgr.LogFunctionInfo()
+
+	if err := m.msgR.EditMessage(msgText, msgId); err != nil {
+		return nil, err
+	}
+
+	return m.msgR.GetMessage(msgId)
+}
+
 func getUniqueUserIdsFromMessages(slice []typ.UserId) []typ.UserId {
 	seen := make(map[typ.UserId]struct{})
 	var result []typ.UserId

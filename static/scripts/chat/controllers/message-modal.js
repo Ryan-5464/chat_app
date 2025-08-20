@@ -53,12 +53,13 @@ function ConfigureMessageModal() {
 function EditMessage(messageId, closeModal) {
     const message = document.querySelector(`[data-messageid="${messageId}"]`);
     const msgText = message.querySelector('.message-text');
-    const input = replaceWithInput(msgText, msgText.innerHTML);
+    const userId = message.getAttribute('data-userid');
+    const input = replaceWithInput(msgText, msgText.innerHTML, 'edit-message-input');
     input.focus();
     closeModal();
     input.addEventListener('keydown', (e) => {
         if (e.key == "Enter") {
-            EditMessageHandler(input.value, messageId);
+            EditMessageHandler(input.value, messageId, userId);
         };
     });
     return;

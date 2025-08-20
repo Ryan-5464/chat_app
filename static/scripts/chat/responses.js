@@ -38,6 +38,13 @@ function HandleEditChatNameResponse(data) {
     return HandleResponse(data, callbacks);
 };
 
+function HandleEditMessageResponse(data) {
+    const callbacks = {
+        MsgText: (data) => RenderMessageTextElement(data),
+    };
+    return HandleResponse(data, callbacks);
+};
+
 function HandleNewChatResponse(data) {
     const callbacks = {
         Chats: (data) => RenderChatElements(data, false), 
