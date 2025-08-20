@@ -92,6 +92,11 @@ func (u *UserService) AddContact(a dto.AddContactInput) (*ent.Contact, error) {
 	return u.usrR.AddContact(typ.ContactId(contact.Id), contact.Name, contact.Email, a.UserId)
 }
 
+func (u *UserService) EditUserName(name string, userId typ.UserId) error {
+	u.lgr.LogFunctionInfo()
+	return u.usrR.EditUserName(name, userId)
+}
+
 func (u *UserService) GetContacts(userId typ.UserId) ([]ent.Contact, error) {
 	u.lgr.LogFunctionInfo()
 	return u.usrR.GetContacts(userId)

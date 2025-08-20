@@ -348,7 +348,7 @@ func (h *ChatHandler) SwitchChat(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	h.sendJSONResponse(w, switchChatResponse)
+	SendJSONResponse(w, switchChatResponse)
 
 	h.lgr.DLog("->>>> RESPONSE SENT")
 }
@@ -407,7 +407,7 @@ func (h *ChatHandler) NewChat(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	h.sendJSONResponse(w, newChatResponse)
+	SendJSONResponse(w, newChatResponse)
 
 	h.lgr.DLog("->>>> RESPONSE SENT")
 }
@@ -457,7 +457,7 @@ func (h *ChatHandler) RemoveContact(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	h.sendJSONResponse(w, removeContactResponse)
+	SendJSONResponse(w, removeContactResponse)
 
 	h.lgr.DLog("->>>> RESPONSE SENT")
 }
@@ -533,7 +533,7 @@ func (h *ChatHandler) LeaveChat(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	h.sendJSONResponse(w, leaveChatResponse)
+	SendJSONResponse(w, leaveChatResponse)
 
 	h.lgr.DLog("->>>> RESPONSE SENT")
 }
@@ -603,7 +603,7 @@ func (h *ChatHandler) AddContact(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	h.sendJSONResponse(w, addContactResponse)
+	SendJSONResponse(w, addContactResponse)
 
 	h.lgr.DLog("->>>> RESPONSE SENT")
 }
@@ -669,7 +669,7 @@ func (h *ChatHandler) SwitchContactChat(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	h.sendJSONResponse(w, switchContactChatResponse)
+	SendJSONResponse(w, switchContactChatResponse)
 
 	h.lgr.DLog("->>>> RESPONSE SENT")
 }
@@ -729,7 +729,7 @@ func (h *ChatHandler) EditChatName(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	h.sendJSONResponse(w, editChatNameResponse)
+	SendJSONResponse(w, editChatNameResponse)
 
 	h.lgr.DLog(fmt.Sprintf("->>>> RESPONSE SENT:: %v", editChatNameResponse))
 
@@ -827,17 +827,6 @@ func (h *ChatHandler) handleDeleteMessageRequest(dr dto.DeleteMessageRequest, us
 	return dto.DeleteMessageResponse{
 		Messages: messages,
 	}, nil
-}
-
-func (h *ChatHandler) sendJSONResponse(w http.ResponseWriter, responseDTO any) {
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-
-	if err := json.NewEncoder(w).Encode(responseDTO); err != nil {
-		h.lgr.LogError(fmt.Errorf("failed to encode JSON response, Error: %v", err))
-		http.Error(w, InternalServerError, http.StatusInternalServerError)
-		return
-	}
 }
 
 func dict(values ...any) (map[string]any, error) {

@@ -55,6 +55,11 @@ document.addEventListener("DOMContentLoaded", function() {
     
     addNewMsgListenerToMsgInput()
     addNewMsgListenerToSendMsgButton()
+
+    document.querySelectorAll('.message').forEach(msg => {
+        formatMessageDates(msg)
+    })
+
 })
 
 function SetupListeners() {
@@ -89,6 +94,7 @@ function addNewMsgListenerToMsgInput() {
         }
     })
 }
+
 function addNewMsgListenerToSendMsgButton() {
     const button = document.getElementById("send-message-button")
     button.addEventListener('click', function () {
@@ -138,4 +144,29 @@ function sendMessage(msgText, chatId, replyId) {
         console.log(":: request payload, ", payload)
         socket.send(JSON.stringify(payload));
     }
+}
+
+function formatMessageDates(messageElem) {
+    const createdAtRaw = messageElem.dataset.createdat
+    const lastEditAtRaw = messageElem.dataset.lasteditedat
+
+    const createdAt = new Date(createdAtRaw)
+    const lastEditAt = new Date(lastEditAtRaw)
+
+    const header = document.createElement('div')
+    header.classList.add('message-header')
+
+    if (createdAt < lastEditAt) {
+        const lastEditDiv = document.createElement('div')
+        lastEditDiv.classList.add('message-lasteditat')
+        lastEditDiv.innerText = `Edited: ${lastEditAt.toLocaleString()}`
+        header.appendChild(lastEditDiv)
+    } else {
+        const createdDiv = document.createElement('div')
+        createdDiv.classList.add('message-createdat')
+        createdDiv.innerText = `Sent: ${createdAt.toLocaleString()}`
+        header.appendChild(createdDiv)
+    }
+
+    messageElem.insertBefore(header, messageElem.querySelector('.message-text'))
 }

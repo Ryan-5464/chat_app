@@ -1,0 +1,27 @@
+profile page - edit username
+register page - enterusername
+nav bar profile
+nav bar who is logged in
+nav bar log out
+message edit
+message delete
+message reply
+message styling
+message scroll bar styling
+chat unread message count
+chat admin name
+chat member list modal
+chat add member
+chat styling
+chat styling
+contact styling
+contact name
+contact online status
+contact known since time format
+contact profile
+login restyle
+register restyle
+index restyle
+themes?
+optimizations?
+caching?

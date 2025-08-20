@@ -576,6 +576,18 @@ func (dbs *DbService) GetContacts(userId typ.UserId) ([]model.Contact, error) {
 	return populateContactModels(rows), nil
 }
 
+func (dbs *DbService) UpdateUserName(name string, userId typ.UserId) error {
+	dbs.lgr.LogFunctionInfo()
+
+	dbs.lgr.DLog(fmt.Sprintf("name: %v, userId: %v", name, userId))
+
+	query := updateWhereEqualTo(schema.UserTable, schema.UserId, schema.Name)
+
+	dbs.lgr.DLog(fmt.Sprintf("query: %s", query))
+
+	return dbs.db.Update(query, name, userId)
+}
+
 func (dbs *DbService) DeleteContact(contactId typ.ContactId, userId typ.UserId) error {
 	dbs.lgr.LogFunctionInfo()
 

@@ -176,6 +176,11 @@ func (u *UserRepository) RemoveContact(contactId typ.ContactId, userId typ.UserI
 	return u.dbS.DeleteContact(contactId, userId)
 }
 
+func (u *UserRepository) EditUserName(name string, userId typ.UserId) error {
+	u.lgr.LogFunctionInfo()
+	return u.dbS.UpdateUserName(name, userId)
+}
+
 func mapUserInfoToContacts(contacts []ent.Contact, users []model.User) []ent.Contact {
 	contactIdMap := make(map[typ.ContactId]ent.Contact)
 	for _, contact := range contacts {

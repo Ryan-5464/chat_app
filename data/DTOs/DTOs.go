@@ -157,3 +157,11 @@ type RemoveContactResponse struct {
 	Messages        []entities.Message
 	NewActiveChatId typ.ChatId
 }
+
+type EditUserNameRequest struct {
+	Name string
+}
+
+type EditUserNameResponse struct {
+	Name string
+}

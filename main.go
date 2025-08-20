@@ -53,6 +53,7 @@ func main() {
 	indexHandler := handler.NewIndexHandler(logger, authS)
 	registerHandler := handler.NewRegisterHandler(logger, authS, userS)
 	loginHandler := handler.NewLoginHandler(logger, authS, userS)
+	profileHandler := handler.NewProfileHandler(logger, authS, userS)
 
 	fs := http.FileServer(http.Dir("./static"))
 	http.Handle("/static/", http.StripPrefix("/static/", fs))
@@ -69,6 +70,9 @@ func main() {
 	http.Handle("/api/chat/contact/add", authMW.AttachTo(http.HandlerFunc(chatHandler.AddContact)))
 	http.Handle("/api/chat/contact/remove", authMW.AttachTo(http.HandlerFunc(chatHandler.RemoveContact)))
 	http.Handle("/api/message/delete", authMW.AttachTo(http.HandlerFunc(chatHandler.DeleteMessage)))
+	http.Handle("/api/profile/name/edit", authMW.AttachTo(http.HandlerFunc(profileHandler.EditUserName)))
+
+	http.Handle("/profile", authMW.AttachTo(http.HandlerFunc(profileHandler.RenderProfilePage)))
 	http.Handle("/login", authMW.AttachTo(http.HandlerFunc(loginHandler.RenderLoginPage)))
 	http.Handle("/register", authMW.AttachTo(http.HandlerFunc(registerHandler.RenderRegisterPage)))
 	http.Handle("/chat", authMW.AttachTo(http.HandlerFunc(chatHandler.RenderChatPage)))

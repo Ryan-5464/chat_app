@@ -92,15 +92,20 @@ function MessageElement(message) {
     author.innerHTML = message.Author
     messageHeader.appendChild(author)
 
-    const createdAt = document.createElement('div')
-    createdAt.classList.add('message-createat')
-    createdAt.innerHTML = message.CreatedAt
-    messageHeader.appendChild(createdAt)
+    const formatCreatedAt = new Date(message.CreatedAt)
+    const formatLastEditAt = new Date(message.LastEditAt)
 
-    const lastEditAt = document.createElement('div')
-    lastEditAt.classList.add('message-lasteditat')
-    lastEditAt.innerHTML = message.LastEditAt
-    messageHeader.appendChild(lastEditAt)
+    if (formatCreatedAt < formatLastEditAt) {
+        const lastEditAt = document.createElement('div')
+        lastEditAt.classList.add('message-lasteditat')
+        lastEditAt.innerHTML = `Edited: ${formatLastEditAt.toLocaleString()}`
+        messageHeader.appendChild(lastEditAt)
+    } else {
+        const createdAt = document.createElement('div')
+        createdAt.classList.add('message-createdat')
+        createdAt.innerHTML = `Sent: ${formatCreatedAt.toLocaleString()}`
+        messageHeader.appendChild(createdAt)
+    }
 
     const messgeFooter = document.createElement('div')
     messgeFooter.classList.add('message-footer')

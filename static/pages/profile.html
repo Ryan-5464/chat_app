@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>User Profile</title>
+  <link rel="stylesheet" href="/static/styles/profile.css">
+</head>
+
+<body>
+
+  <div id="profile-container">
+    <h2>User Profile</h2>
+
+    <!-- Username Box -->
+    <div class="profile-box">
+      <div class="form-box">
+        <div class="form-header">
+          <label for="username">Username</label>
+          <span id="current-value" class="current-value">{{ .Name }}</span>
+        </div>
+        <input id="username" type="text" name="username" placeholder="Enter new username">
+      </div>
+    </div>
+
+    <!-- Email Box -->
+    <div class="profile-box">
+      <div class="form-box">
+        <div class="form-header">
+          <label for="email">Email</label>
+          <span class="current-value">user@example.com</span>
+        </div>
+        <input id="email" type="email" name="email" placeholder="Enter new email">
+      </div>
+    </div>
+
+    <!-- Status Box -->
+    <div class="profile-box">
+      <div class="form-box">
+        <div class="form-header">
+          <label for="status">Status</label>
+          <span class="current-value">Available</span>
+        </div>
+        <input id="status" type="text" name="status" placeholder="Enter new status">
+      </div>
+    </div>
+
+  </div>
+
+</body>
+<script src="/static/scripts/chat/requests.js" defer></script>
+<script src="/static/scripts/chat/handlers.js" defer></script>
+<script src="/static/scripts/chat/responses.js" defer></script>
+<script src="/static/scripts/profile.js" defer></script>
+</html>

@@ -21,6 +21,7 @@ type UserRepository interface {
 	GetUsers(userIds []typ.UserId) ([]ent.User, error)
 	NewUser(userName string, userEmail cred.Email, pwdHash cred.PwdHash) (*ent.User, error)
 	RemoveContact(contactId typ.ContactId, userId typ.UserId) error
+	EditUserName(name string, userId typ.UserId) error
 }
 
 type ChatRepository interface {
@@ -51,6 +52,7 @@ type DbService interface {
 	CreateUser(userName string, email cred.Email, pwdHash cred.PwdHash) (typ.LastInsertId, error)
 	GetUser(usrIds typ.UserId) (*model.User, error)
 	GetUsers(usrIds []typ.UserId) ([]model.User, error)
+	UpdateUserName(name string, userId typ.UserId) error
 
 	CreateMember(chatId typ.ChatId, userId typ.UserId) error
 	DeleteMember(chatId typ.ChatId, userId typ.UserId) error
@@ -112,6 +114,7 @@ type UserService interface {
 	GetUsers(userId []typ.UserId) ([]ent.User, error)
 	NewUser(newUser dto.NewUserInput) (*ent.User, error)
 	RemoveContact(contactId typ.ContactId, userId typ.UserId) error
+	EditUserName(name string, userId typ.UserId) error
 }
 
 type ConnectionService interface {
