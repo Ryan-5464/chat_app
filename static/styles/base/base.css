@@ -21,3 +21,9 @@
   font-weight: normal;
   font-style: normal;
 }
+
+.hidden {
+    display: none;
+    pointer-events: none;
+    user-select: none;
+}

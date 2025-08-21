@@ -179,7 +179,27 @@ func (m *MessageService) GetContactMessages(chatId typ.ChatId, userId typ.UserId
 		return []entities.Message{}, err
 	}
 
+	userIds := []typ.UserId{}
+	for _, message := range messages {
+		userIds = append(userIds, message.UserId)
+	}
+
+	uniqueUserIds := getUniqueUserIdsFromMessages(userIds)
+
+	users, err := m.usrS.GetUsers(uniqueUserIds)
+	if err != nil {
+		return []entities.Message{}, err
+	}
+
+	m.lgr.DLog(fmt.Sprintf("USERS => %v", users))
+
+	authorMap := make(map[typ.UserId]string)
+	for _, user := range users {
+		authorMap[user.Id] = user.Name
+	}
+
 	for i := range messages {
+		messages[i].Author = authorMap[messages[i].UserId]
 		messages[i].IsUserMessage = messages[i].UserId == userId
 	}
 

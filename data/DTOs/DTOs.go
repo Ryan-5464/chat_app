@@ -141,11 +141,10 @@ type EditChatNameResponse struct {
 type DeleteMessageRequest struct {
 	MessageId string `json:"MessageId"`
 	UserId    string `json:"UserId"`
-	ChatId    string `json:"ChatId"`
 }
 
 type DeleteMessageResponse struct {
-	Messages []entities.Message
+	MessageId typ.MessageId
 }
 
 type RemoveContactRequest struct {

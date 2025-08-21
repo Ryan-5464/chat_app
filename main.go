@@ -18,7 +18,7 @@ import (
 )
 
 func main() {
-	logger := lgr.NewLogger(false)
+	logger := lgr.NewLogger(true)
 
 	cwd, err := os.Getwd()
 	if err != nil {

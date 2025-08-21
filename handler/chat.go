@@ -838,7 +838,7 @@ func (h *ChatHandler) DeleteMessage(w http.ResponseWriter, r *http.Request) {
 	}
 
 	query := r.URL.Query()
-	userId, err := lib.ConvertStringToInt64(query.Get("userid"))
+	userId, err := lib.ConvertStringToInt64(query.Get("UserId"))
 	if err != nil {
 		h.lgr.LogError(fmt.Errorf("failed to parse userId: %v", err))
 		http.Error(w, InternalServerError, http.StatusInternalServerError)
@@ -851,9 +851,8 @@ func (h *ChatHandler) DeleteMessage(w http.ResponseWriter, r *http.Request) {
 	}
 
 	deleteMessageRequest := dto.DeleteMessageRequest{
-		MessageId: query.Get("messageid"),
-		UserId:    query.Get("userid"),
-		ChatId:    query.Get("chatid"),
+		MessageId: query.Get("MessageId"),
+		UserId:    query.Get("UserId"),
 	}
 
 	deleteMessageResponse, err := h.handleDeleteMessageRequest(deleteMessageRequest, session.UserId())
@@ -863,11 +862,7 @@ func (h *ChatHandler) DeleteMessage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := chatViewTmpl.ExecuteTemplate(w, "messages", deleteMessageResponse); err != nil {
-		h.lgr.LogError(fmt.Errorf("failed to execute messages template for chat view, Error: %v", err))
-		http.Error(w, InternalServerError, http.StatusInternalServerError)
-		return
-	}
+	SendJSONResponse(w, deleteMessageResponse)
 
 	h.lgr.DLog("->>>> RESPONSE SENT")
 }
@@ -884,18 +879,8 @@ func (h *ChatHandler) handleDeleteMessageRequest(dr dto.DeleteMessageRequest, us
 		return dto.DeleteMessageResponse{}, err
 	}
 
-	chatId, err := lib.ConvertStringToInt64(dr.ChatId)
-	if err != nil {
-		return dto.DeleteMessageResponse{}, err
-	}
-
-	messages, err := h.msgS.GetChatMessages(typ.ChatId(chatId), userId)
-	if err != nil {
-		return dto.DeleteMessageResponse{}, err
-	}
-
 	return dto.DeleteMessageResponse{
-		Messages: messages,
+		MessageId: typ.MessageId(messageId),
 	}, nil
 }
 

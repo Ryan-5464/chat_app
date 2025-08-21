@@ -2,7 +2,6 @@ register page - enterusername
 nav bar profile
 nav bar who is logged in
 nav bar log out
-message delete
 message reply
 message styling
 message scroll bar styling
@@ -17,10 +16,6 @@ contact name
 contact online status
 contact known since time format
 contact profile
-fix bug, only allow 1 message text input open at a time.
-fix bug, delete message
-dont allow user to see edit and delete when opening modal on unowned message
-add message author fix for contact messages, (also for page rendering incase we want to seee contact messages on load? privacy concern?)
 themes?
 optimizations?
 caching?

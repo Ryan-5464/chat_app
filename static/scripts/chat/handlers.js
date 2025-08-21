@@ -1,3 +1,4 @@
+
 function NewChatHandler(newChatName) {
     console.log("new chat rquest: ", newChatName);
     NewChatRequest(newChatName).then(data => {
@@ -31,8 +32,8 @@ function RemoveContactHandler(contactId, isActive) {
     });
 }
 
-function DeleteMessageHandler(chatId, messageId, userId) {
-    DeleteMessageRequest(chatId, messageId, userId).then(data => {
+function DeleteMessageHandler(messageId, userId) {
+    DeleteMessageRequest(messageId, userId).then(data => {
         console.log("delete messasge response handler: ", data)
         HandleDeleteMessageResponse(data);
     }).catch(error => {
