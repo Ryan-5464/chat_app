@@ -8,23 +8,26 @@ import (
 	typ "server/types"
 )
 
-func NewUserService(l i.Logger, u i.UserRepository, c i.ChatService) *UserService {
+func NewUserService(l i.Logger, u i.UserRepository) *UserService {
 	return &UserService{
-		lgr:   l,
-		usrR:  u,
-		chatS: c,
+		lgr:  l,
+		usrR: u,
 	}
 }
 
 type UserService struct {
-	lgr   i.Logger
-	usrR  i.UserRepository
-	chatS i.ChatService
+	lgr  i.Logger
+	usrR i.UserRepository
 }
 
 func (u *UserService) GetUser(userId typ.UserId) (*ent.User, error) {
 	u.lgr.LogFunctionInfo()
 	return u.usrR.GetUser(userId)
+}
+
+func (u *UserService) GetUserByEmail(email cred.Email) (*ent.User, error) {
+	u.lgr.LogFunctionInfo()
+	return u.usrR.GetUserByEmail(email)
 }
 
 func (u *UserService) GetUsers(userIds []typ.UserId) ([]ent.User, error) {

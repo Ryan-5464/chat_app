@@ -176,6 +176,16 @@ func (u *UserRepository) RemoveContact(contactId typ.ContactId, userId typ.UserI
 	return u.dbS.DeleteContact(contactId, userId)
 }
 
+func (u *UserRepository) GetUserByEmail(email cred.Email) (*ent.User, error) {
+	u.lgr.LogFunctionInfo()
+	userModel, err := u.dbS.GetUserByEmail(email)
+	if err != nil {
+		return nil, err
+	}
+
+	return userEntityFromModel(userModel), nil
+}
+
 func (u *UserRepository) EditUserName(name string, userId typ.UserId) error {
 	u.lgr.LogFunctionInfo()
 	return u.dbS.UpdateUserName(name, userId)

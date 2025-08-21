@@ -174,3 +174,20 @@ type EditMessageRequest struct {
 type EditMessageResponse struct {
 	MsgText string
 }
+
+type GetChatMembersRequest struct {
+	ChatId string `json:"ChatId"`
+}
+
+type GetChatMembersResponse struct {
+	Members []entities.Member
+}
+
+type AddMemberToChatRequest struct {
+	Email  string `json:"Email"`
+	ChatId string `json:"ChatId"`
+}
+
+type AddMemberToChatResponse struct {
+	Members []entities.Member
+}

@@ -22,6 +22,7 @@ type UserRepository interface {
 	NewUser(userName string, userEmail cred.Email, pwdHash cred.PwdHash) (*ent.User, error)
 	RemoveContact(contactId typ.ContactId, userId typ.UserId) error
 	EditUserName(name string, userId typ.UserId) error
+	GetUserByEmail(email cred.Email) (*ent.User, error)
 }
 
 type ChatRepository interface {
@@ -35,6 +36,7 @@ type ChatRepository interface {
 	NewChatAdmin(chatId typ.ChatId, newAdminId typ.UserId) error
 	VerifyChatAdmin(chatId typ.ChatId, userId typ.UserId) (bool, error)
 	EditChatName(newName string, chatId typ.ChatId) error
+	GetChatMemberships(userId typ.UserId) ([]ent.Member, error)
 }
 
 type MessageRepository interface {
@@ -55,6 +57,7 @@ type DbService interface {
 	GetUser(usrIds typ.UserId) (*model.User, error)
 	GetUsers(usrIds []typ.UserId) ([]model.User, error)
 	UpdateUserName(name string, userId typ.UserId) error
+	GetUserByEmail(email cred.Email) (*model.User, error)
 
 	CreateMember(chatId typ.ChatId, userId typ.UserId) error
 	DeleteMember(chatId typ.ChatId, userId typ.UserId) error
@@ -97,6 +100,9 @@ type ChatService interface {
 	NewChat(chatName string, adminId typ.UserId) (*ent.Chat, error)
 	LeaveChat(chatId typ.ChatId, userId typ.UserId) ([]ent.Chat, error)
 	EditChatName(newName string, chatId typ.ChatId, userId typ.UserId) error
+	GetChatMembers(chatId typ.ChatId) ([]ent.Member, error)
+	AddMember(email cred.Email, chatId typ.ChatId) (typ.UserId, error)
+	GetChatMember(chatId typ.ChatId, userId typ.UserId) (*ent.Member, error)
 }
 
 type MessageService interface {
@@ -119,6 +125,7 @@ type UserService interface {
 	NewUser(newUser dto.NewUserInput) (*ent.User, error)
 	RemoveContact(contactId typ.ContactId, userId typ.UserId) error
 	EditUserName(name string, userId typ.UserId) error
+	GetUserByEmail(email cred.Email) (*ent.User, error)
 }
 
 type ConnectionService interface {

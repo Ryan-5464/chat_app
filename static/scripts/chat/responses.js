@@ -73,8 +73,22 @@ function HandleNewMessageResponse(data) {
     const callbacks = {
         Messages: (data) => RenderMessageElements(data, false),
     };
-    return HandleResponse(data, callbacks)
+    return HandleResponse(data, callbacks);
 };
+
+function HandleGetMemberListResponse(data) {
+    const callbacks = {
+        Members: (data) => RenderChatMemberElements(data, true),
+    };
+    return HandleResponse(data, callbacks);
+};
+
+function HandleAddMemberResponse(data) {
+    const callbacks = {
+        Members: (data) => RenderChatMemberElements(data, false),
+    }
+    return HandleResponse(data, callbacks);
+}
 
 function HandleResponse(data, callbacks) {
     Object.entries(data).forEach(([key, value]) => {

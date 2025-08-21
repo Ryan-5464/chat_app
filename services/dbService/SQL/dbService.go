@@ -46,6 +46,25 @@ func (dbs *DbService) UpdateUserEmail(newEmail cred.Email, userId typ.UserId) er
 	return dbs.db.Update(query, newEmail, userId)
 }
 
+func (dbs *DbService) GetUserByEmail(email cred.Email) (*model.User, error) {
+	dbs.lgr.LogFunctionInfo()
+
+	dbs.lgr.DLog(fmt.Sprintf("email %v", email))
+
+	query := selectAllFromWhereEqualTo(schema.UserTable, schema.Email)
+
+	dbs.lgr.DLog(fmt.Sprintf("query %s", query))
+
+	rows, err := dbs.db.Read(query, email)
+	if err != nil {
+		return nil, err
+	}
+
+	dbs.lgr.DLog(fmt.Sprintf("rows %v", rows))
+
+	return populateUserModel(rows), nil
+}
+
 func (dbs *DbService) GetChat(chatId typ.ChatId) (*model.Chat, error) {
 	dbs.lgr.LogFunctionInfo()
 

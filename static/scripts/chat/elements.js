@@ -120,6 +120,31 @@ function MessageElement(message) {
 
 }
 
+function MemberElement(member) {
+    const memberElem = document.createElement('div');
+    memberElem.classList.add('member')
+    memberElem.setAttribute('data-chatid', member.ChatId)
+    memberElem.setAttribute('data-userid', member.UserId)
+    memberElem.innerHTML = member
+
+    const name = document.createElement('div')
+    name.classList.add('.memberName')
+    name.innerHTML = member.Name
+    memberElem.appendChild(name)
+
+    const email = document.createElement('div')
+    email.classList.add('.memberEmail')
+    email.innerHTML = member.Email
+    memberElem.appendChild(email)
+
+    const joined = document.createElement('div')
+    joined.classList.add('.memberJoined')
+    joined.innerHTML = member.Joined
+    memberElem.appendChild(joined)
+
+    return memberElem;
+}
+
 function ChatNameElement(name) {
     const chatNameElem = document.createElement('div');
     chatNameElem.classList.add('chat-name');

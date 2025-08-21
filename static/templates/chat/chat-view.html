@@ -9,6 +9,7 @@
     <link rel="stylesheet" href="/static/styles/base/button-elem.css">
     <link rel="stylesheet" href="/static/styles/base/input-elem.css">
     <link rel="stylesheet" href="/static/styles/base/modal-elem.css">
+    <link rel="stylesheet" href="/static/styles/base/member-modal-elem.css">
     <link rel="stylesheet" href="/static/styles/chat/base.css">
     <link rel="stylesheet" href="/static/styles/chat/chat.css">
     <link rel="stylesheet" href="/static/styles/chat/contact.css">
@@ -86,10 +87,14 @@
 
             {{ template "contact-modal" }}
 
+           
+
         </div>
 
 
     </div>
+
+ {{ template "member-list-modal" }}
 
 </div>
 
@@ -105,6 +110,7 @@
 <script src="/static/scripts/chat/responses.js" defer></script>
 <script src="/static/scripts/chat/controllers/modal.js" defer></script>
 <script src="/static/scripts/chat/controllers/chat-modal.js" defer></script>
+<script src="/static/scripts/chat/controllers/member-list-modal.js" defer></script>
 <script src="/static/scripts/chat/controllers/contact-modal.js" defer></script>
 <script src="/static/scripts/chat/controllers/message-modal.js" defer></script>
 <script src="/static/scripts/chat/controllers/new-chat.js" defer></script>

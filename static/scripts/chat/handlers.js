@@ -90,3 +90,21 @@ function SwitchContactChatHandler(contactChatId) {
         console.error("Switch contact chat failed => error: ", error);
     });
 };
+
+function DisplayMemberListHandler(chatId) {
+    GetMemberListRequest(chatId).then(data => {
+        console.log("display member list: ", data);
+        HandleGetMemberListResponse(data);
+    }).catch(error => {
+        console.error("Display member list failed => error: ", error);
+    });
+};
+
+function AddMemberToChatHandler(email, chatId) {
+    AddMemberToChatRequest(email, chatId).then(data => {
+        console.log("add member to chat: ", data)
+        HandleAddMemberResponse(data);
+    }).catch(error => {
+        console.error("Add member to chat failed => error: ", error);
+    });
+};

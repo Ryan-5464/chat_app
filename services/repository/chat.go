@@ -106,6 +106,16 @@ func (c *ChatRepository) GetMembers(chatId typ.ChatId) ([]ent.Member, error) {
 	return memberModelsToEntities(members), nil
 }
 
+func (c *ChatRepository) GetChatMemberships(userId typ.UserId) ([]ent.Member, error) {
+	c.lgr.LogFunctionInfo()
+	memberships, err := c.dbS.GetMemberships(userId)
+	if err != nil {
+		return []ent.Member{}, err
+	}
+
+	return memberModelsToEntities(memberships), nil
+}
+
 func (c *ChatRepository) RemoveChatMember(chatId typ.ChatId, userId typ.UserId) error {
 	c.lgr.LogFunctionInfo()
 	return c.dbS.DeleteMember(chatId, userId)
@@ -179,8 +189,10 @@ func memberModelsToEntities(models []model.Member) []ent.Member {
 	var members []ent.Member
 	for _, model := range models {
 		ent := ent.Member{
-			ChatId: model.ChatId,
-			UserId: model.UserId,
+			ChatId:        model.ChatId,
+			UserId:        model.UserId,
+			LastReadMsgId: model.LastReadMsgId,
+			Joined:        model.Joined,
 		}
 		members = append(members, ent)
 	}

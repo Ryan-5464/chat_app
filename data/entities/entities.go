@@ -48,6 +48,10 @@ type Contact struct {
 }
 
 type Member struct {
-	ChatId typ.ChatId
-	UserId typ.UserId
+	ChatId        typ.ChatId
+	UserId        typ.UserId
+	LastReadMsgId typ.MessageId
+	Joined        time.Time
+	Name          string
+	Email         cred.Email
 }

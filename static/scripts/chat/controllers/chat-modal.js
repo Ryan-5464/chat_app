@@ -3,6 +3,7 @@ function addChatModalListenerToChatContainer() {
     const container = document.getElementById('chats-container');
     const configureEditButton = ConfigureEditButton(modal.__controller);
     const configureLeaveButton = ConfigureLeaveButton(modal.__controller);
+    const configureMembersButton = ConfigureMembersButton(modal.__controller);
     
     container.addEventListener("contextmenu", (e) => {
         e.preventDefault();
@@ -12,6 +13,7 @@ function addChatModalListenerToChatContainer() {
         modal.__controller.OpenAt(e.clientX, e.clientY);
         configureEditButton(chatId);
         configureLeaveButton(chatId);
+        configureMembersButton(chatId);
     });
 };
 
@@ -35,6 +37,19 @@ function ConfigureLeaveButton(chatModalController) {
     return (chatId) => { currentChatId = chatId };
 };
 
+function ConfigureMembersButton(chatModalController) {
+    const membersButton = document.getElementById('chat-members-btn');
+    let currentChatId = null;
+
+    membersButton.addEventListener('click', () => {
+        if (!currentChatId) return;
+        const addMemberInput = document.getElementById('add-member-input')
+        addMemberInput.setAttribute('data-chatid', currentChatId)
+        chatModalController.DisplayMemberList(currentChatId);
+    });
+    return (chatId) => {currentChatId = chatId}
+}
+
 function ConfigureChatModal() {
     const modal = document.getElementById('chatModal');
     modal.__controller = {
@@ -42,6 +57,7 @@ function ConfigureChatModal() {
         OpenAt: (clientX, clientY) => OpenModalAt(modal, clientX, clientY),
         EditChatName: (chatId) => EditChatName(chatId, () => CloseModal(modal)),
         LeaveChat: (chatId) => LeaveChat(chatId, () => CloseModal(modal)),
+        DisplayMemberList: (chatId) => DisplayMemberList(chatId, () => CloseModal(modal)),
     };
     return modal;
 };
@@ -75,3 +91,12 @@ function LeaveChat(chatId, closeModal) {
     console.log("is active", isActive)
     LeaveChatHandler(chatId, isActive);
 };
+
+function DisplayMemberList(chatId, closeModal) {
+    closeModal(); // closes the chat options modal
+    const memberModal = ConfigureMemberModal();
+    memberModal.__controller.Open();
+
+    // Fetch & render members
+    DisplayMemberListHandler(chatId);
+}

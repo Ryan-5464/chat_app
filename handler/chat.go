@@ -40,19 +40,20 @@ const (
 type HTMLPath = string
 
 const (
-	chatViewHTML     HTMLPath = "./static/templates/chat/chat-view.html"
-	messagesHTML     HTMLPath = "./static/templates/chat/messages.html"
-	messageHTML      HTMLPath = "./static/templates/chat/message.html"
-	chatHTML         HTMLPath = "./static/templates/chat/chat.html"
-	chatsHTML        HTMLPath = "./static/templates/chat/chats.html"
-	newChatHTML      HTMLPath = "./static/templates/chat/new-chat.html"
-	newChatNameHTML  HTMLPath = "./static/templates/chat/new-chat-name.html"
-	LeaveChatHTML    HTMLPath = "./static/templates/chat/leave-chat.html"
-	contactHTML      HTMLPath = "./static/templates/chat/contact.html"
-	contactsHTML     HTMLPath = "./static/templates/chat/contacts.html"
-	contactModalHTML HTMLPath = "./static/templates/chat/contact-modal.html"
-	chatModalHTML    HTMLPath = "./static/templates/chat/chat-modal.html"
-	messageModalHTML HTMLPath = "./static/templates/chat/message-modal.html"
+	chatViewHTML        HTMLPath = "./static/templates/chat/chat-view.html"
+	messagesHTML        HTMLPath = "./static/templates/chat/messages.html"
+	messageHTML         HTMLPath = "./static/templates/chat/message.html"
+	chatHTML            HTMLPath = "./static/templates/chat/chat.html"
+	chatsHTML           HTMLPath = "./static/templates/chat/chats.html"
+	newChatHTML         HTMLPath = "./static/templates/chat/new-chat.html"
+	newChatNameHTML     HTMLPath = "./static/templates/chat/new-chat-name.html"
+	LeaveChatHTML       HTMLPath = "./static/templates/chat/leave-chat.html"
+	contactHTML         HTMLPath = "./static/templates/chat/contact.html"
+	contactsHTML        HTMLPath = "./static/templates/chat/contacts.html"
+	contactModalHTML    HTMLPath = "./static/templates/chat/contact-modal.html"
+	chatModalHTML       HTMLPath = "./static/templates/chat/chat-modal.html"
+	messageModalHTML    HTMLPath = "./static/templates/chat/message-modal.html"
+	memberListModalHTML HTMLPath = "./static/templates/chat/member-list-modal.html"
 )
 
 var (
@@ -78,6 +79,7 @@ func init() {
 			contactModalHTML,
 			chatModalHTML,
 			messageModalHTML,
+			memberListModalHTML,
 		),
 	)
 }
@@ -317,6 +319,61 @@ func (h *ChatHandler) handleNewContactMessageRequest(mr dto.NewMessageRequest, u
 	}
 
 	return nil
+}
+
+// GET CHAT MEMBERS ============================================================
+
+func (h *ChatHandler) GetChatMembers(w http.ResponseWriter, r *http.Request) {
+	h.lgr.LogFunctionInfo()
+
+	if r.Method != http.MethodGet {
+		h.lgr.LogError(errors.New("request method not allowed"))
+		http.Error(w, MethodNotAllowed, http.StatusMethodNotAllowed)
+		return
+	}
+
+	_, userAuthenticated := checkAuthenticationStatus(r)
+	if !userAuthenticated {
+		h.lgr.Log("user not authenticated, redirecting to landing page...")
+		http.Redirect(w, r, "/", http.StatusSeeOther)
+		return
+	}
+
+	query := r.URL.Query()
+	getChatmembersRequest := dto.GetChatMembersRequest{
+		ChatId: query.Get("ChatId"),
+	}
+
+	getChatMembersRequest, err := h.handleGetChatMembersRequest(getChatmembersRequest)
+	if err != nil {
+		h.lgr.LogError(fmt.Errorf("failed to handle switch chat request, Error: %v", err))
+		http.Error(w, InternalServerError, http.StatusInternalServerError)
+		return
+	}
+
+	SendJSONResponse(w, getChatMembersRequest)
+
+	h.lgr.DLog("->>>> RESPONSE SENT")
+}
+
+func (h *ChatHandler) handleGetChatMembersRequest(mr dto.GetChatMembersRequest) (dto.GetChatMembersResponse, error) {
+	h.lgr.LogFunctionInfo()
+
+	chatId, err := lib.ConvertStringToInt64(mr.ChatId)
+	if err != nil {
+		return dto.GetChatMembersResponse{}, err
+	}
+
+	members, err := h.chatS.GetChatMembers(typ.ChatId(chatId))
+	if err != nil {
+		return dto.GetChatMembersResponse{}, err
+	}
+
+	getChatMembersResponse := dto.GetChatMembersResponse{
+		Members: members,
+	}
+
+	return getChatMembersResponse, nil
 }
 
 /* SWITCH CHAT ============================================================== */
@@ -569,6 +626,71 @@ func (h *ChatHandler) handleLeaveChatRequest(cr dto.LeaveChatRequest, userId typ
 	}
 
 	return newChatResponse, nil
+}
+
+// ADD MEMBER TO CHAT ============================================================================
+
+func (h *ChatHandler) AddMemberToChat(w http.ResponseWriter, r *http.Request) {
+	h.lgr.LogFunctionInfo()
+
+	if r.Method != http.MethodPost {
+		h.lgr.LogError(errors.New("request method not allowed"))
+		http.Error(w, MethodNotAllowed, http.StatusMethodNotAllowed)
+		return
+	}
+
+	_, userAuthenticated := checkAuthenticationStatus(r)
+	if !userAuthenticated {
+		h.lgr.Log("user not authenticated, redirecting to landing page...")
+		http.Redirect(w, r, "/", http.StatusSeeOther)
+		return
+	}
+
+	var addMemberToChatRequest dto.AddMemberToChatRequest
+	if err := json.NewDecoder(r.Body).Decode(&addMemberToChatRequest); err != nil {
+		h.lgr.LogError(fmt.Errorf("failed to decode JSON request body: ", err))
+		http.Error(w, msgMalformedJSON, http.StatusBadRequest)
+		return
+	}
+	h.lgr.DLog(fmt.Sprintf("Add member email: %v", addMemberToChatRequest.Email))
+	h.lgr.DLog(fmt.Sprintf("Chat id: %v", addMemberToChatRequest.ChatId))
+
+	addMemberToChatResponse, err := h.handleAddMemberToChatRequest(addMemberToChatRequest)
+	if err != nil {
+		h.lgr.LogError(fmt.Errorf("failed to handle add member request, Error: %v", err))
+		http.Error(w, InternalServerError, http.StatusInternalServerError)
+		return
+	}
+
+	SendJSONResponse(w, addMemberToChatResponse)
+
+	h.lgr.DLog("->>>> RESPONSE SENT")
+
+}
+
+func (h *ChatHandler) handleAddMemberToChatRequest(ar dto.AddMemberToChatRequest) (dto.AddMemberToChatResponse, error) {
+	h.lgr.LogFunctionInfo()
+
+	chatId, err := lib.ConvertStringToInt64(ar.ChatId)
+	if err != nil {
+		return dto.AddMemberToChatResponse{}, err
+	}
+
+	memberId, err := h.chatS.AddMember(cred.Email(ar.Email), typ.ChatId(chatId))
+	if err != nil {
+		return dto.AddMemberToChatResponse{}, err
+	}
+
+	member, err := h.chatS.GetChatMember(typ.ChatId(chatId), memberId)
+	if err != nil {
+		return dto.AddMemberToChatResponse{}, err
+	}
+
+	addMemberToChatResponse := dto.AddMemberToChatResponse{
+		Members: []entities.Member{*member},
+	}
+
+	return addMemberToChatResponse, nil
 }
 
 /* ADD FRIEND REQUEST ========================================================================== */
