@@ -1,18 +1,12 @@
 {{ define "member-list-modal" }}
     <div id="chatMemberModal">
-        <div id="memberModal-content">
+        <div id="memberModal-content" class="modal-content">
             <div id="memberModal-options">
                 <div id="member-list-container">
-                    <div class="member">
-                        <span>Member 1</span>
-                        <button>Del</button>
-                    </div>
-                    <div class="member">
-                        <span>Member 1</span>
-                        <button>Del</button>
-                    </div>
                 </div>
-            <input id="add-member-input" class="input" placeholder="Enter user email"/>
+            <div id="add-member"><span class="text-header">Add Member</span>
+                <input id="add-member-input" class="input-elem" type="text" placeholder="Enter user email"/>
+                </div>
             </div>
         </div>
     </div>

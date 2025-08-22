@@ -1,31 +1,26 @@
-function ConfigureMemberModal() {
+function ConfigureMemberListModal() {
     const modal = document.getElementById('chatMemberModal');
-    const content = document.getElementById('memberModal-content');
-
+    
     modal.__controller = {
-        Open: () => {
-            modal.style.display = "flex"; // enable flex centering here
-            content.classList.add("opening");
-            content.classList.remove("closing");
-        },
-        Close: () => {
-            content.classList.remove("opening");
-            content.classList.add("closing");
-            setTimeout(() => {
-                modal.style.display = "none"; // hide again
-            }, 300);
-        },
-        AddMemberToChat: (email, chatId) => AddMemberToChat(email, chatId)
+        Close: () => CloseModal(modal),
+        OpenAt: (clientX, clientY) => OpenModalAt(modal, clientX, clientY),
+        AddMemberToChat: (email, chatId) => AddMemberToChat(email, chatId),
     } 
+    
+    console.log("configure member list => modal:", modal)
+    AddMemberModalToMemberListModal(modal) 
 
-    // 🟢 Close when clicking the backdrop (but not the modal content)
-    modal.addEventListener("click", (e) => {
-        if (e.target === modal) {
-            modal.__controller.Close();
-        }
+    document.addEventListener("click", (e) => {
+    const modal = document.getElementById("chatMemberModal");
+    if (!modal.classList.contains("open")) return; // only when open
+
+    if (!e.target.closest('.modal-content')) {
+        modal.__controller.Close();
+    }
     });
 
-    const addMemberInput = document.getElementById('add-member-input')
+    let addMemberInput = document.getElementById('add-member-input')
+    addMemberInput = RemoveAllListeners(addMemberInput);
     addMemberInput.addEventListener('keydown', (e) => {
         if (e.key !== 'Enter') return;
         e.preventDefault()

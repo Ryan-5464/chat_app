@@ -54,6 +54,7 @@ const (
 	chatModalHTML       HTMLPath = "./static/templates/chat/chat-modal.html"
 	messageModalHTML    HTMLPath = "./static/templates/chat/message-modal.html"
 	memberListModalHTML HTMLPath = "./static/templates/chat/member-list-modal.html"
+	memberModalHTML     HTMLPath = "./static/templates/chat/member-modal.html"
 )
 
 var (
@@ -80,6 +81,7 @@ func init() {
 			chatModalHTML,
 			messageModalHTML,
 			memberListModalHTML,
+			memberModalHTML,
 		),
 	)
 }
@@ -485,6 +487,63 @@ func (h *ChatHandler) handleNewChatRequest(cr dto.NewChatRequest, userId typ.Use
 	return newChatResponse, nil
 }
 
+// REMOVE MEMBER FROM CHAT ======================================================================
+
+func (h *ChatHandler) RemoveMemberFromChat(w http.ResponseWriter, r *http.Request) {
+	h.lgr.LogFunctionInfo()
+
+	if r.Method != http.MethodDelete {
+		h.lgr.LogError(errors.New("request method not allowed"))
+		http.Error(w, MethodNotAllowed, http.StatusMethodNotAllowed)
+		return
+	}
+
+	session, userAuthenticated := checkAuthenticationStatus(r)
+	if !userAuthenticated {
+		h.lgr.Log("user not authenticated, redirecting to landing page...")
+		http.Redirect(w, r, "/", http.StatusSeeOther)
+		return
+	}
+
+	query := r.URL.Query()
+	removeMemberRequest := dto.RemoveMemberRequest{
+		ChatId: query.Get("ChatId"),
+		UserId: query.Get("UserId"),
+	}
+
+	removeMemberResponse, err := h.handleRemoveMemberRequest(removeMemberRequest, session.UserId())
+	if err != nil {
+		h.lgr.LogError(fmt.Errorf("failed to handle remove member request, Error: %v", err))
+		http.Error(w, InternalServerError, http.StatusInternalServerError)
+		return
+	}
+
+	SendJSONResponse(w, removeMemberResponse)
+
+	h.lgr.DLog("->>>> RESPONSE SENT")
+
+}
+
+func (h *ChatHandler) handleRemoveMemberRequest(rm dto.RemoveMemberRequest, adminId typ.UserId) (dto.RemoveMemberResponse, error) {
+	h.lgr.LogFunctionInfo()
+
+	chatId, err := lib.ConvertStringToInt64(rm.ChatId)
+	if err != nil {
+		return dto.RemoveMemberResponse{}, err
+	}
+
+	userId, err := lib.ConvertStringToInt64(rm.UserId)
+	if err != nil {
+		return dto.RemoveMemberResponse{}, err
+	}
+
+	if err := h.chatS.RemoveMember(typ.ChatId(chatId), typ.UserId(userId), adminId); err != nil {
+		return dto.RemoveMemberResponse{}, err
+	}
+
+	return dto.RemoveMemberResponse{Success: true}, nil
+}
+
 /* REMOVE CONTACT REQUEST ====================================================================== */
 
 func (h *ChatHandler) RemoveContact(w http.ResponseWriter, r *http.Request) {
@@ -652,8 +711,8 @@ func (h *ChatHandler) AddMemberToChat(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, msgMalformedJSON, http.StatusBadRequest)
 		return
 	}
-	h.lgr.DLog(fmt.Sprintf("Add member email: %v", addMemberToChatRequest.Email))
-	h.lgr.DLog(fmt.Sprintf("Chat id: %v", addMemberToChatRequest.ChatId))
+	h.lgr.Log(fmt.Sprintf("Add member email: %v", addMemberToChatRequest.Email))
+	h.lgr.Log(fmt.Sprintf("Chat id: %v", addMemberToChatRequest.ChatId))
 
 	addMemberToChatResponse, err := h.handleAddMemberToChatRequest(addMemberToChatRequest)
 	if err != nil {
@@ -680,6 +739,8 @@ func (h *ChatHandler) handleAddMemberToChatRequest(ar dto.AddMemberToChatRequest
 	if err != nil {
 		return dto.AddMemberToChatResponse{}, err
 	}
+
+	h.lgr.DLog(fmt.Sprintf("NEW MEMBER ID => ", memberId))
 
 	member, err := h.chatS.GetChatMember(typ.ChatId(chatId), memberId)
 	if err != nil {

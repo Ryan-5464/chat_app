@@ -1,6 +1,7 @@
 package chatservice
 
 import (
+	"errors"
 	ent "server/data/entities"
 	i "server/interfaces"
 	cred "server/services/authService/credentials"
@@ -102,6 +103,21 @@ func (c *ChatService) GetChatMembers(chatId typ.ChatId) ([]ent.Member, error) {
 	}
 
 	return members, nil
+}
+
+func (c *ChatService) RemoveMember(chatId typ.ChatId, userId typ.UserId, adminId typ.UserId) error {
+	c.lgr.LogFunctionInfo()
+
+	isAdmin, err := c.chatR.VerifyChatAdmin(chatId, adminId)
+	if err != nil {
+		return err
+	}
+
+	if !isAdmin {
+		return errors.New("user not authorized to remove members")
+	}
+
+	return c.chatR.RemoveChatMember(chatId, userId)
 }
 
 func (c *ChatService) LeaveChat(chatId typ.ChatId, userId typ.UserId) ([]ent.Chat, error) {

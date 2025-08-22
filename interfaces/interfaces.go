@@ -103,6 +103,7 @@ type ChatService interface {
 	GetChatMembers(chatId typ.ChatId) ([]ent.Member, error)
 	AddMember(email cred.Email, chatId typ.ChatId) (typ.UserId, error)
 	GetChatMember(chatId typ.ChatId, userId typ.UserId) (*ent.Member, error)
+	RemoveMember(chatId typ.ChatId, userId typ.UserId, adminId typ.UserId) error
 }
 
 type MessageService interface {

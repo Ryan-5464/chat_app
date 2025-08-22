@@ -52,13 +52,12 @@ function ConfigureDeleteMsgButton(msgModalController) {
 
 function ConfigureMessageModal() {
     const modal = document.getElementById('messageModal');
-    const messageModalController = {
+    modal.__controller = {
         Close: () => CloseModal(modal),
         OpenAt: (clientX, clientY) => OpenModalAt(modal, clientX, clientY),
         EditMessage: (messageId) => EditMessage(messageId, () => CloseModal(modal)),
         DeleteMessage: (chatId, messageId, userId) => DeleteMessage(chatId, messageId, userId, () => CloseModal(modal)),
     };
-    modal.__controller = messageModalController;
     return modal;
 };
 

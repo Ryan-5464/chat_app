@@ -1,0 +1,39 @@
+.member {
+    display: flex;
+    align-items: center;
+    justify-content: space-between; /* spreads them nicely */
+    gap: 16px; /* spacing between items */
+    max-width: 100%;
+    padding: 10px 14px;
+    margin-bottom: 8px;
+    background-color: var(--snd-col);
+    border-radius: 4px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s ease, box-shadow 0.3s ease;
+}
+
+.member:hover {
+    transform: scale(1.01);
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15);
+}
+
+.member-name {
+    font-size: 14px;
+    font-weight: bold;
+    color: var(--font-col-hgl);
+    flex: 1; /* allows name to take more space */
+}
+
+.member-email {
+    font-size: 14px;
+    color: var(--font-col-prim);
+    flex: 1;
+    text-align: left;
+}
+
+.member-joined {
+    font-size: 12px;
+    color: var(--font-col-snd);
+    text-align: right;
+    white-space: nowrap; /* prevents wrapping */
+}

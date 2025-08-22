@@ -3,7 +3,7 @@ nav bar profile
 nav bar who is logged in
 nav bar log out
 message reply
-message styling
+message - edit text let user select old text
 message scroll bar styling
 chat unread message count
 chat admin name

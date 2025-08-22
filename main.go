@@ -18,7 +18,7 @@ import (
 )
 
 func main() {
-	logger := lgr.NewLogger(true)
+	logger := lgr.NewLogger(false)
 
 	cwd, err := os.Getwd()
 	if err != nil {
@@ -71,6 +71,7 @@ func main() {
 	http.Handle("/api/chat/contact/remove", authMW.AttachTo(http.HandlerFunc(chatHandler.RemoveContact)))
 	http.Handle("/api/chat/members", authMW.AttachTo(http.HandlerFunc(chatHandler.GetChatMembers)))
 	http.Handle("/api/chat/members/add", authMW.AttachTo(http.HandlerFunc(chatHandler.AddMemberToChat)))
+	http.Handle("/api/chat/member/remove", authMW.AttachTo(http.HandlerFunc(chatHandler.RemoveMemberFromChat)))
 	http.Handle("/api/message/delete", authMW.AttachTo(http.HandlerFunc(chatHandler.DeleteMessage)))
 	http.Handle("/api/message/edit", authMW.AttachTo(http.HandlerFunc(chatHandler.EditMessage)))
 	http.Handle("/api/profile/name/edit", authMW.AttachTo(http.HandlerFunc(profileHandler.EditUserName)))

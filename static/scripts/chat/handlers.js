@@ -108,3 +108,17 @@ function AddMemberToChatHandler(email, chatId) {
         console.error("Add member to chat failed => error: ", error);
     });
 };
+
+function RemoveMemberHandler(chatId, userId) {
+    RemoveMemberRequest(chatId, userId).then(data => {
+        console.log("remove member from chat: ", data)
+        const members = document.querySelectorAll('.member')
+        Object.values(members).forEach(member => {
+            if (member.getAttribute('data-userid') === userId) {
+                member.remove()
+            }
+        })
+    }).catch(error => {
+        console.error("Remove member from chat failed => error: ", error);
+    });
+}

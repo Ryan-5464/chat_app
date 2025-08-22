@@ -1,11 +1,9 @@
 #chatMemberModal {
-  display: none; /* hidden until JS opens it */
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.4);
   z-index: 2000;
-
-  /* centering will work once JS sets display:flex */
+  pointer-events: none; 
+  display:flex;
   align-items: center;
   justify-content: center;
 }
@@ -14,7 +12,7 @@
 #memberModal-content {
   min-width: 300px;
   max-width: 500px;
-  height: 500px;
+  max-height: 500px;
   width: 80%;
   background-color: #121a26;
   color: #ecf0f1;
@@ -104,4 +102,16 @@
 
 #memberModal-content.closing {
   animation: memberClose 0.3s ease forwards;
+}
+
+#add-member {
+    display:flex;
+    flex-direction:row;
+    justify-content:space-between;
+    align-items:flex-end;
+}
+
+#add-member-input {
+    color: var(--font-col-snd);
+    margin-left: 30px;
 }

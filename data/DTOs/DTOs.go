@@ -191,3 +191,12 @@ type AddMemberToChatRequest struct {
 type AddMemberToChatResponse struct {
 	Members []entities.Member
 }
+
+type RemoveMemberRequest struct {
+	ChatId string `json:"ChatId"`
+	UserId string `json:"UserId"`
+}
+
+type RemoveMemberResponse struct {
+	Success bool
+}

@@ -122,25 +122,26 @@ function MessageElement(message) {
 
 function MemberElement(member) {
     const memberElem = document.createElement('div');
-    memberElem.classList.add('member')
-    memberElem.setAttribute('data-chatid', member.ChatId)
-    memberElem.setAttribute('data-userid', member.UserId)
-    memberElem.innerHTML = member
+    memberElem.classList.add('member');
+    memberElem.setAttribute('data-chatid', member.ChatId);
+    memberElem.setAttribute('data-userid', member.UserId);
 
-    const name = document.createElement('div')
-    name.classList.add('.memberName')
-    name.innerHTML = member.Name
-    memberElem.appendChild(name)
+    const name = document.createElement('div');
+    name.classList.add('member-name');
+    name.innerHTML = member.Name;
+    memberElem.appendChild(name);
 
-    const email = document.createElement('div')
-    email.classList.add('.memberEmail')
-    email.innerHTML = member.Email
-    memberElem.appendChild(email)
+    const email = document.createElement('div');
+    email.classList.add('member-email');
+    email.innerHTML = member.Email;
+    memberElem.appendChild(email);
 
-    const joined = document.createElement('div')
-    joined.classList.add('.memberJoined')
-    joined.innerHTML = member.Joined
-    memberElem.appendChild(joined)
+    const formatJoined = new Date(member.Joined);
+
+    const joined = document.createElement('div');
+    joined.classList.add('member-joined');
+    joined.innerHTML = `Joined: ${formatJoined.toLocaleString()}`;
+    memberElem.appendChild(joined);
 
     return memberElem;
 }

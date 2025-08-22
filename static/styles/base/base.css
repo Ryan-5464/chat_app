@@ -27,3 +27,10 @@
     pointer-events: none;
     user-select: none;
 }
+
+.text-header {
+    font-size: 18px;
+    font-weight: bold;
+    color: var(--font-col-snd);
+    margin: auto;
+}

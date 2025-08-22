@@ -17,6 +17,7 @@
     <link rel="stylesheet" href="/static/styles/chat/main-content.css">
     <link rel="stylesheet" href="/static/styles/chat/right-sidebar.css">
     <link rel="stylesheet" href="/static/styles/chat/message.css">
+    <link rel="stylesheet" href="/static/styles/chat/member.css">
     <link rel="stylesheet" href="/static/styles/chat/sidebar-elem.css">
     <!-- <script src="https://unpkg.com/htmx.org@1.9.2"></script> -->
      <script src="https://unpkg.com/htmx.org@1.9.2/dist/htmx.min.js" defer></script>
@@ -87,30 +88,29 @@
 
             {{ template "contact-modal" }}
 
-           
-
         </div>
 
-
     </div>
-
- {{ template "member-list-modal" }}
-
+    
 </div>
 
+{{ template "member-list-modal" }}
+{{ template "member-modal" }}
 
 <div id="footer-container"></div>
 
 </body>
 
+<script src="/static/scripts/funcs.js" defer></script>
 <script src="/static/scripts/chat/renderers.js" defer></script>
 <script src="/static/scripts/chat/elements.js" defer></script>
 <script src="/static/scripts/chat/requests.js" defer></script>
 <script src="/static/scripts/chat/handlers.js" defer></script>
 <script src="/static/scripts/chat/responses.js" defer></script>
 <script src="/static/scripts/chat/controllers/modal.js" defer></script>
-<script src="/static/scripts/chat/controllers/chat-modal.js" defer></script>
+<script src="/static/scripts/chat/controllers/member-modal.js" defer></script>
 <script src="/static/scripts/chat/controllers/member-list-modal.js" defer></script>
+<script src="/static/scripts/chat/controllers/chat-modal.js" defer></script>
 <script src="/static/scripts/chat/controllers/contact-modal.js" defer></script>
 <script src="/static/scripts/chat/controllers/message-modal.js" defer></script>
 <script src="/static/scripts/chat/controllers/new-chat.js" defer></script>
@@ -119,7 +119,6 @@
 <script src="/static/scripts/config.js" defer></script>
 <script src="/static/scripts/domloaded.js" defer></script>
 <script src="/static/scripts/modals.js" defer></script>
-<script src="/static/scripts/funcs.js" defer></script>
 <script src="/static/scripts/prototypes.js" defer></script>
 </html>
 

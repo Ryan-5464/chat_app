@@ -9,6 +9,7 @@ const CONTACT_CHAT_SWITCH_ENDPOINT = '/api/chat/contact/switch';
 const EDIT_MESSAGE_ENDPOINT = '/api/message/edit';
 const GET_MEMBERS_ENDPOINT = '/api/chat/members';
 const ADD_MEMBER_ENDPOINT = '/api/chat/members/add';
+const REMOVE_MEMBER_ENDPOINT = '/api/chat/member/remove';
 
 const AddContactRequest = (email) => safeRequest(() => POST(ADD_CONTACT_ENDPOINT, { Email: email }));
 
@@ -31,6 +32,8 @@ const EditMessageRequest = (messageText, messageId, userId) => safeRequest(() =>
 const GetMemberListRequest = (chatId) => safeRequest(() => GET(GET_MEMBERS_ENDPOINT, { ChatId: chatId }))
 
 const AddMemberToChatRequest = (email, chatId) => safeRequest(() => POST(ADD_MEMBER_ENDPOINT, { Email: email, ChatId: chatId }))
+
+const RemoveMemberRequest = (chatId, userId) => safeRequest(() => DELETE(REMOVE_MEMBER_ENDPOINT, { ChatId: chatId, UserId: userId }))
 
 async function safeRequest(reqFunc) {
     console.log("safe request: ", reqFunc)
@@ -82,18 +85,3 @@ function EndpointWithParams(endpoint, params) {
 
 
 
-
-// async function NewMessageRequest(chatId, replyId, msgText) {
-//     return fetch(NEW_CHAT_ENDPOINT, POST({ ChatId: chatId, ReplyId: replyId, MsgText: msgText}))
-//         .then(response => {
-//             if (!response.ok) throw new Error("Network response was not ok");
-//             return response.json();
-//         })
-//         .then(data => {
-//             console.log("new message response data: ", data)
-//             return data
-//         })
-//         .catch(error => {
-//             console.log('New message request failed:', error);
-//         })
-// }

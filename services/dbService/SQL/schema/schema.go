@@ -81,33 +81,39 @@ func Get() []string {
 	)
 
 	newContactTable := fmt.Sprintf(`
-		CREATE TABLE IF NOT EXISTS %s (
-			%s INTEGER PRIMARY KEY AUTOINCREMENT,
-			%s INTEGER NOT NULL,
-			%s INTEGER NOT NULL,
-			%s DATETIME DEFAULT CURRENT_TIMESTAMP,
-			%s DATETIME DEFAULT CURRENT_TIMESTAMP
-		);`,
+    CREATE TABLE IF NOT EXISTS %s (
+        %s INTEGER PRIMARY KEY AUTOINCREMENT,
+        %s INTEGER NOT NULL,
+        %s INTEGER NOT NULL,
+        %s DATETIME DEFAULT CURRENT_TIMESTAMP,
+        %s DATETIME DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE (%s, %s)
+    );`,
 		ContactTable,
 		ChatId,
 		Id1,
 		Id2,
 		CreatedAt,
 		LastMsgAt,
+		Id1,
+		Id2,
 	)
 
 	newMemberTable := fmt.Sprintf(`
-		CREATE TABLE IF NOT EXISTS %s (
-			%s INTEGER PRIMARY KEY AUTOINCREMENT,
-			%s INTEGER NOT NULL,
-			%s INTEGER NOT NULL,
-			%s DATETIME DEFAULT CURRENT_TIMESTAMP
-		);`,
+    CREATE TABLE IF NOT EXISTS %s (
+        %s INTEGER PRIMARY KEY AUTOINCREMENT,
+        %s INTEGER NOT NULL,
+        %s INTEGER NOT NULL,
+        %s DATETIME DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE (%s, %s)
+    );`,
 		MemberTable,
 		RowId,
 		ChatId,
 		UserId,
 		LastReadMsgId,
+		ChatId,
+		UserId,
 	)
 
 	var schema []string

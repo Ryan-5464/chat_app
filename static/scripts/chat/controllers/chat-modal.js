@@ -94,8 +94,8 @@ function LeaveChat(chatId, closeModal) {
 
 function DisplayMemberList(chatId, closeModal) {
     closeModal(); // closes the chat options modal
-    const memberModal = ConfigureMemberModal();
-    memberModal.__controller.Open();
+    const memberModal = ConfigureMemberListModal();
+    memberModal.__controller.OpenAt();
 
     // Fetch & render members
     DisplayMemberListHandler(chatId);

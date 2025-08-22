@@ -70,6 +70,7 @@ function SetupListeners() {
     addSwitchContactChatControllerToContactsContainer()
     addNewChatEventListenerToNewChatInput()
     addAddContactEventListenerToAddContactInput()
+    ConfigureMemberListModal() 
 }
 
 

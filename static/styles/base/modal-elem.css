@@ -80,3 +80,16 @@
   text-shadow: 0 0 6px var(--font-col-prim);
 }
 
+/* Member modal container */
+#memberModal {
+  position: fixed;
+  inset: 0; /* top, right, bottom, left = 0 */
+  background: transparent; /* no dark backdrop */
+  z-index: 3000; /* 👈 higher than chatMemberModal (2000) */
+  pointer-events: none;
+}
+
+
+
+
+
