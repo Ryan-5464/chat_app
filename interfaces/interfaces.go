@@ -109,8 +109,8 @@ type ChatService interface {
 type MessageService interface {
 	GetChatMessages(chatId typ.ChatId, userId typ.UserId) ([]ent.Message, error)
 	GetContactMessages(chatId typ.ChatId, userId typ.UserId) ([]entities.Message, error)
-	HandleNewContactMessage(mi dto.NewMessageInput) error
-	HandleNewMessage(mi dto.NewMessageInput) error
+	HandleNewContactMessage(u typ.UserId, c typ.ChatId, replyId *typ.MessageId, msgText string) error
+	HandleNewMessage(u typ.UserId, c typ.ChatId, replyId *typ.MessageId, msgText string) error
 	DeleteMessage(messageId typ.MessageId) error
 	EditMessage(msgText string, msgId typ.MessageId) (*ent.Message, error)
 }
@@ -143,8 +143,11 @@ type Socket interface {
 }
 
 type Logger interface {
-	DLog(message string)
-	Log(message string)
-	LogError(err error)
+	Dbug(message string)
+	Dbugf(message string, values ...any)
+	Info(message string)
+	Infof(message string, values ...any)
+	Error(err error)
+	Errorf(message string, err error, values ...any)
 	LogFunctionInfo()
 }

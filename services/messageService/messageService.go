@@ -64,10 +64,10 @@ func (m *MessageService) HandleNewContactMessage(mi dto.NewMessageInput) error {
 	return nil
 }
 
-func (m *MessageService) HandleNewMessage(mi dto.NewMessageInput) error {
+func (m *MessageService) HandleNewMessage(userId typ.UserId, chatId typ.ChatId, replyId *typ.MessageId, msgTxt string) error {
 	m.lgr.LogFunctionInfo()
 
-	msg, err := m.msgR.NewMessage(mi.UserId, mi.ChatId, mi.ReplyId, mi.Text)
+	msg, err := m.msgR.NewMessage(userId, chatId, replyId, msgTxt)
 	if err != nil {
 		return fmt.Errorf("failed to create new message: %w", err)
 	}

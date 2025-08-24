@@ -1,14 +1,13 @@
 package socket
 
 import (
-	"fmt"
 	"net/http"
-	l "server/logging"
+	"server/util"
 
 	"github.com/gorilla/websocket"
 )
 
-func New(w http.ResponseWriter, r *http.Request) *websocket.Conn {
+func newSocket(w http.ResponseWriter, r *http.Request) *websocket.Conn {
 
 	var upgrader = websocket.Upgrader{
 		ReadBufferSize:  1024,
@@ -17,8 +16,7 @@ func New(w http.ResponseWriter, r *http.Request) *websocket.Conn {
 
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
-		errWebsocketOpenFail := fmt.Errorf("Failed to establish websocket connection!")
-		l.Lgr.LogError(errWebsocketOpenFail)
+		util.Log.Errorf("Failed to establish websocket connection! => error: %v", err)
 		return nil
 	}
 

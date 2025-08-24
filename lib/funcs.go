@@ -1,11 +1,24 @@
 package lib
 
-import "strconv"
+type Option[T any] func(*T)
 
-func ConvertInt64ToString(i int64) string {
-	return strconv.FormatInt(i, 10)
+func ApplyOptions[T any](target *T, opts ...Option[T]) {
+	for _, opt := range opts {
+		opt(target)
+	}
 }
 
-func ConvertStringToInt64(s string) (int64, error) {
-	return strconv.ParseInt(s, 10, 64)
+func Reverse[T any](slice []T) []T {
+	n := len(slice)
+	rev := make([]T, n)
+	for i := len(slice) - 1; i >= 0; i-- {
+		rev = append(rev, slice[i])
+	}
+	return rev
+}
+
+func ReverseInPlace[T any](s []T) {
+	for i, j := 0, len(s)-1; i < j; i, j = i+1, j-1 {
+		s[i], s[j] = s[j], s[i]
+	}
 }

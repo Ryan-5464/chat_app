@@ -5,6 +5,9 @@ import (
 	"net/http"
 	"os"
 	"server/handler"
+	"server/handler/api"
+	"server/handler/socket"
+	"server/handler/view"
 	lgr "server/logging"
 	mw "server/middleware"
 	sauth "server/services/authService"
@@ -58,29 +61,32 @@ func main() {
 	fs := http.FileServer(http.Dir("./static"))
 	http.Handle("/static/", http.StripPrefix("/static/", fs))
 
-	authMW := mw.NewAuthMiddleware(logger, authS)
+	http.Handle("/api/chat/members", api.GetMembers(authS, chatS))
+	http.Handle("/api/chat/switch", api.SwitchChat(authS, msgS))
+	http.Handle("/api/chat/new", api.NewChat(authS, chatS))
+	http.Handle("/api/chat/member/remove", api.RemoveMember(authS, chatS))
+	http.Handle("/api/chat/contact/remove", api.RemoveContact(authS, chatS, msgS))
+	http.Handle("/api/chat/leave", api.LeaveChat(authS, chatS, msgS))
+
+	http.Handle("/api/message/delete", api.DeleteMessage(authS, msgS))
+
+	http.Handle("/chat", view.Chat(authS, chatS, msgS, userS))
+
+	http.Handle("/ws", socket.Chat(authS, chatS, msgS))
 
 	http.Handle("/api/register", authMW.AttachTo(http.HandlerFunc(registerHandler.RegisterUser)))
 	http.Handle("/api/login", authMW.AttachTo(http.HandlerFunc(loginHandler.LoginUser)))
-	http.Handle("/api/chat/new", authMW.AttachTo(http.HandlerFunc(chatHandler.NewChat)))
 	http.Handle("/api/chat/edit", authMW.AttachTo(http.HandlerFunc(chatHandler.EditChatName)))
-	http.Handle("/api/chat/leave", authMW.AttachTo(http.HandlerFunc(chatHandler.LeaveChat)))
-	http.Handle("/api/chat/switch", authMW.AttachTo(http.HandlerFunc(chatHandler.SwitchChat)))
 	http.Handle("/api/chat/contact/switch", authMW.AttachTo(http.HandlerFunc(chatHandler.SwitchContactChat)))
 	http.Handle("/api/chat/contact/add", authMW.AttachTo(http.HandlerFunc(chatHandler.AddContact)))
-	http.Handle("/api/chat/contact/remove", authMW.AttachTo(http.HandlerFunc(chatHandler.RemoveContact)))
-	http.Handle("/api/chat/members", authMW.AttachTo(http.HandlerFunc(chatHandler.GetChatMembers)))
 	http.Handle("/api/chat/members/add", authMW.AttachTo(http.HandlerFunc(chatHandler.AddMemberToChat)))
-	http.Handle("/api/chat/member/remove", authMW.AttachTo(http.HandlerFunc(chatHandler.RemoveMemberFromChat)))
-	http.Handle("/api/message/delete", authMW.AttachTo(http.HandlerFunc(chatHandler.DeleteMessage)))
 	http.Handle("/api/message/edit", authMW.AttachTo(http.HandlerFunc(chatHandler.EditMessage)))
 	http.Handle("/api/profile/name/edit", authMW.AttachTo(http.HandlerFunc(profileHandler.EditUserName)))
 
 	http.Handle("/profile", authMW.AttachTo(http.HandlerFunc(profileHandler.RenderProfilePage)))
 	http.Handle("/login", authMW.AttachTo(http.HandlerFunc(loginHandler.RenderLoginPage)))
 	http.Handle("/register", authMW.AttachTo(http.HandlerFunc(registerHandler.RenderRegisterPage)))
-	http.Handle("/chat", authMW.AttachTo(http.HandlerFunc(chatHandler.RenderChatPage)))
-	http.Handle("/ws", authMW.AttachTo(http.HandlerFunc(chatHandler.ChatWebsocket)))
+	http.Handle("/chat", authMW.AttachTo(reqMethodMW.AttachTo(http.HandlerFunc(chatHandler.RenderChatPage), mw.GET)))
 	http.Handle("/", authMW.AttachTo(http.HandlerFunc(indexHandler.RenderIndexPage)))
 
 	if err := http.ListenAndServe(":8081", nil); err != nil {

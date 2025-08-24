@@ -1,29 +1,11 @@
-package DTO
+package dto
 
 import (
-	"encoding/json"
 	"server/data/entities"
 	"server/lib"
 	cred "server/services/authService/credentials"
 	typ "server/types"
 )
-
-type SwitchChatRequest struct {
-	ChatId string `json:"ChatId"`
-}
-
-func (s *SwitchChatRequest) GetChatId() (typ.ChatId, error) {
-	cid, err := lib.ConvertStringToInt64(s.ChatId)
-	if err != nil {
-		return typ.ChatId(0), err
-	}
-	return typ.ChatId(cid), nil
-}
-
-type SwitchChatResponse struct {
-	ActiveChatId typ.ChatId         `json:"ActiveChatId"`
-	Messages     []entities.Message `json:"Messages"`
-}
 
 type SwitchContactChatRequest struct {
 	ContactChatId string `json:"ContactChatId"`
@@ -34,31 +16,10 @@ type SwitchContactChatResponse struct {
 	Messages            []entities.Message `json:"Messages"`
 }
 
-type NewChatRequest struct {
-	Name string `json:"Name"`
-}
-
-type NewChatResponse struct {
-	Chats []entities.Chat `json:"Chats"`
-}
-
 type NewMessageRequest struct {
 	ChatId  string `json:"ChatId"`
 	ReplyId string `json:"ReplyId"`
 	MsgText string `json:"MsgText"`
-}
-
-type WebsocketPayload struct {
-	Type string          `json:"Type"`
-	Data json.RawMessage `json:"Data"`
-}
-
-func (w *WebsocketPayload) ParseNewMessageRequest() (NewMessageRequest, error) {
-	newMessageRequest := NewMessageRequest{}
-	if err := json.Unmarshal(w.Data, &newMessageRequest); err != nil {
-		return NewMessageRequest{}, err
-	}
-	return newMessageRequest, nil
 }
 
 type ResponsePayload struct {
@@ -111,52 +72,6 @@ type NewMessageInput struct {
 	ReplyId *typ.MessageId
 }
 
-type LeaveChatRequest struct {
-	ChatId string `json:"ChatId"`
-}
-
-type LeaveChatResponse struct {
-	Chats           []entities.Chat
-	Messages        []entities.Message
-	NewActiveChatId typ.ChatId
-}
-
-type EditChatNameRequest struct {
-	Name   string `json:"Name"`
-	ChatId string `json:"ChatId"`
-	UserId typ.UserId
-}
-
-func (s EditChatNameRequest) GetChatId() (typ.ChatId, error) {
-	cid, err := lib.ConvertStringToInt64(s.ChatId)
-	if err != nil {
-		return 0, err
-	}
-	return typ.ChatId(cid), nil
-}
-
-type EditChatNameResponse struct {
-	Name string `json:"Name"`
-}
-type DeleteMessageRequest struct {
-	MessageId string `json:"MessageId"`
-	UserId    string `json:"UserId"`
-}
-
-type DeleteMessageResponse struct {
-	MessageId typ.MessageId
-}
-
-type RemoveContactRequest struct {
-	ContactId string `json:"ContactId"`
-}
-
-type RemoveContactResponse struct {
-	Contacts        []entities.Contact
-	Messages        []entities.Message
-	NewActiveChatId typ.ChatId
-}
-
 type EditUserNameRequest struct {
 	Name string `json:"Name"`
 }
@@ -175,14 +90,6 @@ type EditMessageResponse struct {
 	MsgText string
 }
 
-type GetChatMembersRequest struct {
-	ChatId string `json:"ChatId"`
-}
-
-type GetChatMembersResponse struct {
-	Members []entities.Member
-}
-
 type AddMemberToChatRequest struct {
 	Email  string `json:"Email"`
 	ChatId string `json:"ChatId"`
@@ -190,13 +97,4 @@ type AddMemberToChatRequest struct {
 
 type AddMemberToChatResponse struct {
 	Members []entities.Member
-}
-
-type RemoveMemberRequest struct {
-	ChatId string `json:"ChatId"`
-	UserId string `json:"UserId"`
-}
-
-type RemoveMemberResponse struct {
-	Success bool
 }
