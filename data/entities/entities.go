@@ -1,8 +1,8 @@
 package entities
 
 import (
-	cred "server/services/authService/credentials"
-	tkn "server/services/authService/jwetoken"
+	cred "server/services/auth/credentials"
+	tkn "server/services/auth/jwetoken"
 	typ "server/types"
 	"time"
 )

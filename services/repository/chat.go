@@ -2,27 +2,25 @@ package repository
 
 import (
 	"errors"
-	"fmt"
 	ent "server/data/entities"
 	i "server/interfaces"
-	model "server/services/dbService/SQL/models"
+	model "server/services/db/SQL/models"
 	typ "server/types"
+	"server/util"
 )
 
-func NewChatRepository(lgr i.Logger, dbS i.DbService) *ChatRepository {
+func NewChatRepository(dbS i.DbService) *ChatRepository {
 	return &ChatRepository{
-		lgr: lgr,
 		dbS: dbS,
 	}
 }
 
 type ChatRepository struct {
-	lgr i.Logger
 	dbS i.DbService
 }
 
 func (c *ChatRepository) GetChatMessages(chatId typ.ChatId) ([]ent.Message, error) {
-	c.lgr.DLog(fmt.Sprintf("chatid %v", chatId))
+	util.Log.FunctionInfo()
 
 	messages, err := c.dbS.GetChatMessages(chatId)
 	if err != nil {
@@ -33,12 +31,12 @@ func (c *ChatRepository) GetChatMessages(chatId typ.ChatId) ([]ent.Message, erro
 }
 
 func (c *ChatRepository) NewMember(chatId typ.ChatId, userId typ.UserId) error {
-	c.lgr.LogFunctionInfo()
+	util.Log.FunctionInfo()
 	return c.dbS.CreateMember(chatId, userId)
 }
 
 func (c *ChatRepository) NewChat(chatName string, adminId typ.UserId) (*ent.Chat, error) {
-	c.lgr.LogFunctionInfo()
+	util.Log.FunctionInfo()
 
 	lastInsertId, err := c.dbS.CreateChat(chatName, adminId)
 	if err != nil {
@@ -58,7 +56,7 @@ func (c *ChatRepository) NewChat(chatName string, adminId typ.UserId) (*ent.Chat
 }
 
 func (c *ChatRepository) GetChat(chatId typ.ChatId) (*ent.Chat, error) {
-	c.lgr.LogFunctionInfo()
+	util.Log.FunctionInfo()
 
 	chat, err := c.dbS.GetChat(chatId)
 	if err != nil {
@@ -69,14 +67,12 @@ func (c *ChatRepository) GetChat(chatId typ.ChatId) (*ent.Chat, error) {
 }
 
 func (c *ChatRepository) GetChats(userId typ.UserId) ([]ent.Chat, error) {
-	c.lgr.LogFunctionInfo()
+	util.Log.FunctionInfo()
 
 	memberships, err := c.dbS.GetMemberships(userId)
 	if err != nil {
 		return []ent.Chat{}, err
 	}
-
-	c.lgr.DLog(fmt.Sprintf("memberships: %v", memberships))
 
 	chatIds := getMembershipIds(memberships)
 
@@ -85,18 +81,16 @@ func (c *ChatRepository) GetChats(userId typ.UserId) ([]ent.Chat, error) {
 		return []ent.Chat{}, err
 	}
 
-	c.lgr.DLog(fmt.Sprintf("chat models: %v", chats))
-
 	return chatModelsToEntities(chats), nil
 }
 
 func (c *ChatRepository) DeleteChat(chatId typ.ChatId) error {
-	c.lgr.LogFunctionInfo()
+	util.Log.FunctionInfo()
 	return c.dbS.DeleteChat(chatId)
 }
 
 func (c *ChatRepository) GetMembers(chatId typ.ChatId) ([]ent.Member, error) {
-	c.lgr.LogFunctionInfo()
+	util.Log.FunctionInfo()
 
 	members, err := c.dbS.GetMembers(chatId)
 	if err != nil {
@@ -107,7 +101,7 @@ func (c *ChatRepository) GetMembers(chatId typ.ChatId) ([]ent.Member, error) {
 }
 
 func (c *ChatRepository) GetChatMemberships(userId typ.UserId) ([]ent.Member, error) {
-	c.lgr.LogFunctionInfo()
+	util.Log.FunctionInfo()
 	memberships, err := c.dbS.GetMemberships(userId)
 	if err != nil {
 		return []ent.Member{}, err
@@ -117,17 +111,17 @@ func (c *ChatRepository) GetChatMemberships(userId typ.UserId) ([]ent.Member, er
 }
 
 func (c *ChatRepository) RemoveChatMember(chatId typ.ChatId, userId typ.UserId) error {
-	c.lgr.LogFunctionInfo()
+	util.Log.FunctionInfo()
 	return c.dbS.DeleteMember(chatId, userId)
 }
 
 func (c *ChatRepository) NewChatAdmin(chatId typ.ChatId, newAdminId typ.UserId) error {
-	c.lgr.LogFunctionInfo()
+	util.Log.FunctionInfo()
 	return c.dbS.UpdateChatAdmin(chatId, newAdminId)
 }
 
 func (c *ChatRepository) VerifyChatAdmin(chatId typ.ChatId, userId typ.UserId) (bool, error) {
-	c.lgr.LogFunctionInfo()
+	util.Log.FunctionInfo()
 
 	chat, err := c.dbS.GetChat(chatId)
 	if err != nil {
@@ -142,7 +136,7 @@ func (c *ChatRepository) VerifyChatAdmin(chatId typ.ChatId, userId typ.UserId) (
 }
 
 func (c *ChatRepository) EditChatName(newName string, chatId typ.ChatId) error {
-	c.lgr.LogFunctionInfo()
+	util.Log.FunctionInfo()
 	return c.dbS.UpdateChatName(newName, chatId)
 }
 

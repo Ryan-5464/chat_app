@@ -3,8 +3,8 @@ package session
 import (
 	"fmt"
 	"net/http"
-	tkn "server/services/authService/jwetoken"
-	skey "server/services/authService/secretKeys"
+	tkn "server/services/auth/jwetoken"
+	skey "server/services/auth/secretKeys"
 	typ "server/types"
 	"time"
 )

@@ -44,7 +44,7 @@ func (h deleteMessage) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		UserId:    query.Get("UserId"),
 	}
 
-	res, err := h.handleRequest(req, session.UserId())
+	res, err := h.handleRequest(req)
 	if err != nil {
 		util.Log.Errorf("failed to delete message: %v", err)
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
@@ -56,7 +56,7 @@ func (h deleteMessage) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	util.Log.Dbug("->>>> RESPONSE SENT")
 }
 
-func (h deleteMessage) handleRequest(req dmrequest, userId typ.UserId) (dmresponse, error) {
+func (h deleteMessage) handleRequest(req dmrequest) (dmresponse, error) {
 	util.Log.FunctionInfo()
 
 	messageId, err := typ.ToMessageId(req.MessageId)

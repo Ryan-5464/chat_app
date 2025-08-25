@@ -15,7 +15,7 @@ contact online status
 contact known since time format
 contact profile
 fix bug where messge window isnt autoscrolling to bottom
-
+fix bug where non admins can interact with admin options for chats and members
 themes?
 optimizations?
 caching?

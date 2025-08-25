@@ -1,6 +1,0 @@
-> Test whether the chat admin is updated if the previous admin leaves
-> Test whether the chat is deleted if the admin leaves and it has no other GetMembers
-> Test whether everything remains the same if a member leaves the chat and is not the admin
-> Test whether the user can leave a chat as the admin and make a new chat with the same chatName
-
-

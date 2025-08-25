@@ -1,12 +1,10 @@
 package interfaces
 
 import (
-	dto "server/data/DTOs"
-	"server/data/entities"
 	ent "server/data/entities"
-	cred "server/services/authService/credentials"
-	sess "server/services/authService/session"
-	model "server/services/dbService/SQL/models"
+	cred "server/services/auth/credentials"
+	sess "server/services/auth/session"
+	model "server/services/db/SQL/models"
 	typ "server/types"
 )
 
@@ -41,7 +39,7 @@ type ChatRepository interface {
 
 type MessageRepository interface {
 	GetChatMessages(chatId typ.ChatId) ([]ent.Message, error)
-	GetContactMessages(chatId typ.ChatId) ([]entities.Message, error)
+	GetContactMessages(chatId typ.ChatId) ([]ent.Message, error)
 	NewContactMessage(userId typ.UserId, chatId typ.ChatId, replyId *typ.MessageId, text string) (*ent.Message, error)
 	NewMessage(userId typ.UserId, chatId typ.ChatId, replyId *typ.MessageId, text string) (*ent.Message, error)
 	DeleteMessage(messageId typ.MessageId) error
@@ -108,7 +106,7 @@ type ChatService interface {
 
 type MessageService interface {
 	GetChatMessages(chatId typ.ChatId, userId typ.UserId) ([]ent.Message, error)
-	GetContactMessages(chatId typ.ChatId, userId typ.UserId) ([]entities.Message, error)
+	GetContactMessages(chatId typ.ChatId, userId typ.UserId) ([]ent.Message, error)
 	HandleNewContactMessage(u typ.UserId, c typ.ChatId, replyId *typ.MessageId, msgText string) error
 	HandleNewMessage(u typ.UserId, c typ.ChatId, replyId *typ.MessageId, msgText string) error
 	DeleteMessage(messageId typ.MessageId) error
@@ -116,14 +114,14 @@ type MessageService interface {
 }
 
 type UserService interface {
-	AddContact(a dto.AddContactInput) (*ent.Contact, error)
+	AddContact(e cred.Email, u typ.UserId) (*ent.Contact, error)
 	FindUsers(emails []cred.Email) ([]ent.User, error)
 	GetChatUsers(chatId typ.ChatId) ([]ent.User, error)
 	GetContact(chatId typ.ChatId, userId typ.UserId) (*ent.Contact, error)
 	GetContacts(userId typ.UserId) ([]ent.Contact, error)
 	GetUser(userId typ.UserId) (*ent.User, error)
 	GetUsers(userId []typ.UserId) ([]ent.User, error)
-	NewUser(newUser dto.NewUserInput) (*ent.User, error)
+	NewUser(name string, e cred.Email, p cred.PwdHash) (*ent.User, error)
 	RemoveContact(contactId typ.ContactId, userId typ.UserId) error
 	EditUserName(name string, userId typ.UserId) error
 	GetUserByEmail(email cred.Email) (*ent.User, error)

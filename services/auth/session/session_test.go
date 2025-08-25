@@ -1,7 +1,7 @@
 package session
 
 import (
-	skey "server/services/authService/secretKeys"
+	skey "server/services/auth/secretKeys"
 	typ "server/types"
 	"testing"
 	"time"

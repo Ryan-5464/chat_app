@@ -4,25 +4,24 @@ import (
 	"errors"
 	ent "server/data/entities"
 	i "server/interfaces"
-	cred "server/services/authService/credentials"
-	model "server/services/dbService/SQL/models"
+	cred "server/services/auth/credentials"
+	model "server/services/db/SQL/models"
 	typ "server/types"
+	"server/util"
 )
 
-func NewUserRepository(lgr i.Logger, dbS i.DbService) *UserRepository {
+func NewUserRepository(dbS i.DbService) *UserRepository {
 	return &UserRepository{
-		lgr: lgr,
 		dbS: dbS,
 	}
 }
 
 type UserRepository struct {
-	lgr i.Logger
 	dbS i.DbService
 }
 
 func (u *UserRepository) GetUser(userId typ.UserId) (*ent.User, error) {
-	u.lgr.LogFunctionInfo()
+	util.Log.FunctionInfo()
 
 	userModel, err := u.dbS.GetUser(userId)
 	if err != nil {
@@ -34,7 +33,7 @@ func (u *UserRepository) GetUser(userId typ.UserId) (*ent.User, error) {
 }
 
 func (u *UserRepository) GetUsers(userIds []typ.UserId) ([]ent.User, error) {
-	u.lgr.LogFunctionInfo()
+	util.Log.FunctionInfo()
 
 	userModels, err := u.dbS.GetUsers(userIds)
 	if err != nil {
@@ -46,7 +45,7 @@ func (u *UserRepository) GetUsers(userIds []typ.UserId) ([]ent.User, error) {
 }
 
 func (u *UserRepository) GetChatUsers(chatId typ.ChatId) ([]ent.User, error) {
-	u.lgr.LogFunctionInfo()
+	util.Log.FunctionInfo()
 
 	members, err := u.dbS.GetMembers(chatId)
 	if err != nil {
@@ -64,7 +63,7 @@ func (u *UserRepository) GetChatUsers(chatId typ.ChatId) ([]ent.User, error) {
 }
 
 func (u *UserRepository) NewUser(userName string, userEmail cred.Email, pwdHash cred.PwdHash) (*ent.User, error) {
-	u.lgr.LogFunctionInfo()
+	util.Log.FunctionInfo()
 
 	lastInsertId, err := u.dbS.CreateUser(userName, userEmail, pwdHash)
 	if err != nil {
@@ -84,12 +83,12 @@ func (u *UserRepository) NewUser(userName string, userEmail cred.Email, pwdHash 
 }
 
 func (u *UserRepository) FindUser(email cred.Email) (*model.User, error) {
-	u.lgr.LogFunctionInfo()
+	util.Log.FunctionInfo()
 	return u.dbS.FindUser(email)
 }
 
 func (u *UserRepository) FindUsers(emails []cred.Email) ([]ent.User, error) {
-	u.lgr.LogFunctionInfo()
+	util.Log.FunctionInfo()
 
 	userModels, err := u.dbS.FindUsers(emails)
 	if err != nil {
@@ -100,7 +99,7 @@ func (u *UserRepository) FindUsers(emails []cred.Email) ([]ent.User, error) {
 }
 
 func (u *UserRepository) AddContact(contactId typ.ContactId, contactName string, contactEmail cred.Email, userId typ.UserId) (*ent.Contact, error) {
-	u.lgr.LogFunctionInfo()
+	util.Log.FunctionInfo()
 
 	lastInsertId, err := u.dbS.CreateContact(userId, typ.ContactId(contactId))
 	if err != nil {
@@ -129,7 +128,7 @@ func (u *UserRepository) AddContact(contactId typ.ContactId, contactName string,
 }
 
 func (u *UserRepository) GetContacts(userId typ.UserId) ([]ent.Contact, error) {
-	u.lgr.LogFunctionInfo()
+	util.Log.FunctionInfo()
 
 	contactModels, err := u.dbS.GetContacts(userId)
 	if err != nil {
@@ -152,7 +151,7 @@ func (u *UserRepository) GetContacts(userId typ.UserId) ([]ent.Contact, error) {
 }
 
 func (u *UserRepository) GetContact(chatId typ.ChatId, userId typ.UserId) (*ent.Contact, error) {
-	u.lgr.LogFunctionInfo()
+	util.Log.FunctionInfo()
 	contactModel, err := u.dbS.GetContact(chatId)
 	if err != nil {
 		return nil, err
@@ -172,12 +171,12 @@ func (u *UserRepository) GetContact(chatId typ.ChatId, userId typ.UserId) (*ent.
 }
 
 func (u *UserRepository) RemoveContact(contactId typ.ContactId, userId typ.UserId) error {
-	u.lgr.LogFunctionInfo()
+	util.Log.FunctionInfo()
 	return u.dbS.DeleteContact(contactId, userId)
 }
 
 func (u *UserRepository) GetUserByEmail(email cred.Email) (*ent.User, error) {
-	u.lgr.LogFunctionInfo()
+	util.Log.FunctionInfo()
 	userModel, err := u.dbS.GetUserByEmail(email)
 	if err != nil {
 		return nil, err
@@ -187,7 +186,7 @@ func (u *UserRepository) GetUserByEmail(email cred.Email) (*ent.User, error) {
 }
 
 func (u *UserRepository) EditUserName(name string, userId typ.UserId) error {
-	u.lgr.LogFunctionInfo()
+	util.Log.FunctionInfo()
 	return u.dbS.UpdateUserName(name, userId)
 }
 

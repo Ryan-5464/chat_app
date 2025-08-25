@@ -1,7 +1,5 @@
 package types
 
-import "server/lib"
-
 type ChatId int64
 
 func (c ChatId) Int64() int64 {
@@ -21,7 +19,7 @@ func (u UserId) Int64() int64 {
 }
 
 func (u UserId) String() string {
-	return lib.ConvertInt64ToString(u.Int64())
+	return ConvertInt64ToString(u.Int64())
 }
 
 type Rows []map[string]any

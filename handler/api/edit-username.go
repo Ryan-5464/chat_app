@@ -11,30 +11,31 @@ import (
 	"server/util"
 )
 
-func EditChatName(a i.AuthService, c i.ChatService) http.Handler {
-	h := editChatName{
-		chatS: c,
+func EditUserName(a i.AuthService, u i.UserService) http.Handler {
+	h := editUserName{
+		userS: u,
 	}
 	return mw.AddMiddleware(h, mw.WithAuth(a), mw.WithMethod(mw.POST))
 }
 
-type editChatName struct {
-	chatS i.ChatService
+type editUserName struct {
+	userS i.UserService
 }
 
-func (h editChatName) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func (h editUserName) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	util.Log.FunctionInfo()
 
 	session := r.Context().Value(ctxutil.SessionKey).(ss.Session)
 
-	var request ecnrequest
-	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+	var req eurequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		util.Log.Errorf("failed to decode JSON request body: %v", err)
 		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
 		return
 	}
+	userId := session.UserId()
 
-	res, err := h.handleRequest(request, session.UserId())
+	res, err := h.handleRequest(req, userId)
 	if err != nil {
 		util.Log.Errorf("failed to handle contact edit chat name request, Error: %v", err)
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
@@ -44,30 +45,23 @@ func (h editChatName) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	SendJSONResponse(w, res)
 
 	util.Log.Dbugf("->>>> RESPONSE SENT:: %v", res)
-
 }
 
-func (h editChatName) handleRequest(req ecnrequest, userId typ.UserId) (ecnresponse, error) {
+func (h editUserName) handleRequest(req eurequest, userId typ.UserId) (euresponse, error) {
 	util.Log.FunctionInfo()
 
-	chatId, err := typ.ToChatId(req.ChatId)
+	err := h.userS.EditUserName(req.Name, userId)
 	if err != nil {
-		return ecnresponse{}, err
+		return euresponse{}, err
 	}
 
-	err = h.chatS.EditChatName(req.Name, chatId, userId)
-	if err != nil {
-		return ecnresponse{}, err
-	}
-
-	return ecnresponse{Name: req.Name}, nil
+	return euresponse{Name: req.Name}, nil
 }
 
-type ecnrequest struct {
-	Name   string `json:"Name"`
-	ChatId string `json:"ChatId"`
-}
-
-type ecnresponse struct {
+type eurequest struct {
 	Name string `json:"Name"`
+}
+
+type euresponse struct {
+	Name string
 }

@@ -2,14 +2,14 @@ package authservice
 
 import (
 	"fmt"
-	util "server/logging"
-	"server/services/authService/jwetoken"
-	skey "server/services/authService/secretKeys"
-	sess "server/services/authService/session"
+	"server/services/auth/jwetoken"
+	skey "server/services/auth/secretKeys"
+	sess "server/services/auth/session"
 	typ "server/types"
+	"server/util"
 )
 
-func NewService() *AuthService {
+func NewAuthService() *AuthService {
 	return &AuthService{
 		sks: *skey.NewSecretKeyService(300),
 	}

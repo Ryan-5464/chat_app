@@ -3,10 +3,12 @@ package middleware
 import (
 	"context"
 	"errors"
+	"log"
 	"net/http"
 	"server/handler/ctxutil"
 	"server/handler/status"
 	i "server/interfaces"
+	ss "server/services/auth/session"
 	"server/util"
 )
 
@@ -49,6 +51,23 @@ func (a *authMW) Bind(next http.Handler) http.Handler {
 
 		ctx := context.WithValue(r.Context(), ctxutil.SessionKey, session)
 
+		log.Println("CONTEXT CONTEXT :::: ", ctx)
+
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
+}
+
+func checkAuthenticationStatus(r *http.Request) (ss.Session, bool) {
+	util.Log.Dbug("Checking authentication status...")
+
+	session := r.Context().Value("session").(ss.Session)
+
+	emptySession := ss.Session{}
+	if session == emptySession {
+		util.Log.Dbug("User not authenticated.")
+		return emptySession, false
+	}
+
+	util.Log.Dbug("User is authenticated.")
+	return session, true
 }

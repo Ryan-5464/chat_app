@@ -2,7 +2,7 @@ package api
 
 import (
 	"net/http"
-	"server/data/entities"
+	ent "server/data/entities"
 	"server/handler/ctxutil"
 	mw "server/handler/middleware"
 	i "server/interfaces"
@@ -70,6 +70,6 @@ type screquest struct {
 }
 
 type scresponse struct {
-	ActiveChatId typ.ChatId         `json:"ActiveChatId"`
-	Messages     []entities.Message `json:"Messages"`
+	ActiveChatId typ.ChatId    `json:"ActiveChatId"`
+	Messages     []ent.Message `json:"Messages"`
 }

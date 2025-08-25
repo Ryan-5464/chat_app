@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	skey "server/services/authService/secretKeys"
+	skey "server/services/auth/secretKeys"
 	typ "server/types"
 	"time"
 

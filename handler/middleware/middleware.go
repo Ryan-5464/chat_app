@@ -28,3 +28,7 @@ func WithAuth(a i.AuthService) *authMW {
 func WithMethod(method ReqMethod) *reqMethodMW {
 	return NewReqMethodMW(method)
 }
+
+func WithNoAuth() *noAuthMW {
+	return NewNoAuthMW()
+}
