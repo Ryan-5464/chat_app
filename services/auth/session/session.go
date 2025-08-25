@@ -57,3 +57,7 @@ func (s Session) JWEToken() string {
 func (s Session) Name() string {
 	return s.cookie.Name
 }
+
+func (s *Session) InvalidateSession() {
+	s.cookie.Expires = time.Now().Add(-1 * time.Hour)
+}

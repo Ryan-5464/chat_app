@@ -63,24 +63,10 @@ function ConfigureChatModal() {
 };
 
 function EditChatName(chatId, closeModal) {
-    const openInput = document.getElementById('chat-name-input')
-    if (openInput) {
-        const openInputChatName = document.createElement('div')
-        openInputChatName.classList.add('chat-name')
-        openInputChatName.innerHTML = openInput.__oldtext
-        openInput.replaceWith(openInputChatName)
-    }
-    if (openInput) { openInput.remove()}
     const chat = document.querySelector(`[data-chatid="${chatId}"]`);
-    const chatName = chat.querySelector('.chat-name');
-    const input = replaceWithInput(chatName, "Enter new name", 'chat-name-input');
-    input.focus();
+    const editChatNameHandler = (inputText) => { EditChatNameHandler(inputText, chatId) }
     closeModal();
-    input.addEventListener('keydown', (e) => {
-        if (e.key === "Enter") {
-            EditChatNameHandler(input.value, chatId);
-        };
-    });
+    textInputController(chat, editChatNameHandler, 'chat-name-input', 'chat-name')
 };
 
 function LeaveChat(chatId, closeModal) {

@@ -6,6 +6,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <link rel="stylesheet" href="/static/styles/base/base.css">
+    <link rel="stylesheet" href="/static/styles/base/nav.css">
+    <link rel="stylesheet" href="/static/styles/base/scroll.css">
     <link rel="stylesheet" href="/static/styles/base/button-elem.css">
     <link rel="stylesheet" href="/static/styles/base/input-elem.css">
     <link rel="stylesheet" href="/static/styles/base/modal-elem.css">
@@ -30,7 +32,12 @@
 <body class="jura">
 
 <div id="header-container">
-    <nav></nav>
+<nav>
+    <a>Status</a>
+    <a>{{ .User.Name }}</a>
+    <a href="/profile">Profile</a>
+    <a id="logout" href="/api/logout">Logout</a>
+</nav>
 </div>
 
 <div id="main-container">
@@ -107,6 +114,7 @@
 <script src="/static/scripts/chat/requests.js" defer></script>
 <script src="/static/scripts/chat/handlers.js" defer></script>
 <script src="/static/scripts/chat/responses.js" defer></script>
+<script src="/static/scripts/chat/controllers/text-input.js" defer></script>
 <script src="/static/scripts/chat/controllers/modal.js" defer></script>
 <script src="/static/scripts/chat/controllers/member-modal.js" defer></script>
 <script src="/static/scripts/chat/controllers/member-list-modal.js" defer></script>

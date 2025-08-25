@@ -2,7 +2,7 @@ package view
 
 import (
 	"net/http"
-	"server/data/entities"
+	ent "server/data/entities"
 	"server/handler/ctxutil"
 	mw "server/handler/middleware"
 	"server/handler/templ"
@@ -57,7 +57,7 @@ func (h chatView) getChatTemplateData(userId typ.UserId) (tmplData, error) {
 	}
 
 	var chatId typ.ChatId
-	var messages []entities.Message
+	var messages []ent.Message
 	if len(chats) != 0 {
 		chatId = chats[0].Id
 		messages, err = h.msgS.GetChatMessages(chatId, userId)
@@ -73,7 +73,14 @@ func (h chatView) getChatTemplateData(userId typ.UserId) (tmplData, error) {
 		return tmplData{}, err
 	}
 
+	user, err := h.userS.GetUser(userId)
+	if err != nil {
+		util.Log.Errorf("failed to get contacts for userId: %v, Error: %v", userId, err)
+		return tmplData{}, err
+	}
+
 	return tmplData{
+		User:         user,
 		UserId:       userId,
 		Chats:        chats,
 		Messages:     messages,
@@ -84,9 +91,10 @@ func (h chatView) getChatTemplateData(userId typ.UserId) (tmplData, error) {
 }
 
 type tmplData struct {
-	UserId       typ.UserId         `json:"UserId"`
-	Chats        []entities.Chat    `json:"Chats"`
-	Messages     []entities.Message `json:"Messages"`
-	Contacts     []entities.Contact `json:"Contacts"`
-	ActiveChatId typ.ChatId         `json:"ActiveChatId"`
+	User         *ent.User     `json:"User"`
+	UserId       typ.UserId    `json:"UserId"`
+	Chats        []ent.Chat    `json:"Chats"`
+	Messages     []ent.Message `json:"Messages"`
+	Contacts     []ent.Contact `json:"Contacts"`
+	ActiveChatId typ.ChatId    `json:"ActiveChatId"`
 }

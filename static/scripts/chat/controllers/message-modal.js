@@ -63,21 +63,10 @@ function ConfigureMessageModal() {
 
 function EditMessage(messageId, closeModal) {
     const message = document.querySelector(`[data-messageid="${messageId}"]`);
-    const msgText = message.querySelector('.message-text');
     const userId = message.getAttribute('data-userid');
-    const openInput = document.getElementById('edit-message-input');
-    if (openInput) {
-        openInput.replaceWith(openInput.__oldtext)
-    }
-    const input = replaceWithInput(msgText, msgText.innerHTML, 'edit-message-input');
-    input.focus();
+    const editMessageHandler = (inputText) => { EditMessageHandler(inputText, messageId, userId) }
     closeModal();
-    input.addEventListener('keydown', (e) => {
-        if (e.key == "Enter") {
-            EditMessageHandler(input.value, messageId, userId);
-        };
-    });
-    return;
+    textInputController(message, editMessageHandler, 'edit-message-input', 'message-text', true)
 };
 
 function DeleteMessage(chatId, messageId, userId, closeModal) {

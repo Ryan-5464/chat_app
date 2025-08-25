@@ -1,0 +1,19 @@
+#messages-container::-webkit-scrollbar {
+    width: 8px;               /* width of vertical scrollbar */
+    height: 8px;              /* height of horizontal scrollbar */
+}
+
+#messages-container::-webkit-scrollbar-track {
+    background: var(--bg);      /* scrollbar track color */
+    border-radius: 10px;
+}
+
+#messages-container::-webkit-scrollbar-thumb {
+    background-color: var(--snd-col);   /* color of the scroll thumb */
+    border-radius: 10px;      /* roundness of the scroll thumb */
+    border: 1px solid var(--snd-col); /* padding around thumb */
+}
+
+#messages-container::-webkit-scrollbar-thumb:hover {
+    background-color: var(--hgl-col);   /* darker on hover */
+}

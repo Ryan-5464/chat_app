@@ -1,7 +1,11 @@
 .sidebar-elem {
+    height: 100px;
     position: relative;
     padding: 16px;
     background-color: var(--prim-col);
+    border-bottom-width: 1px;
+    border-bottom-color: var(--bdr-col);
+    border-bottom-style: solid;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
     margin-bottom: 1px;
     border-radius: 0;

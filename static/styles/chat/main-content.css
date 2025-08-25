@@ -16,7 +16,7 @@
     overflow-y: auto;
     height: 90%;
     max-height:90%;
-
+    margin-top: 100px;
 }
 
 #message-input-container {

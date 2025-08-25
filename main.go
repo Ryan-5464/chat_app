@@ -61,6 +61,7 @@ func main() {
 	http.Handle("/api/chat/contact/switch", api.SwitchContactChat(authS, msgS))
 	http.Handle("/api/chat/contact/add", api.AddContact(authS, connS, userS))
 	http.Handle("/api/chat/members/add", api.AddMember(authS, chatS))
+	http.Handle("/api/logout", api.Logout(authS))
 
 	http.Handle("/api/message/delete", api.DeleteMessage(authS, msgS))
 	http.Handle("/api/message/edit", api.EditMessage(authS, msgS))

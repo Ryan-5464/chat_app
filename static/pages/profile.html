@@ -6,9 +6,20 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>User Profile</title>
   <link rel="stylesheet" href="/static/styles/profile.css">
+  <link rel="stylesheet" href="/static/styles/base/nav.css">
 </head>
 
 <body>
+
+    <div id="header-container">
+        <nav>
+            <a>Status</a>
+            <a>{{ .User.Name }}</a>
+            <a href="/chat">Chat</a>
+            <a id="logout" href="/api/logout">Logout</a>
+        </nav>
+    </div>
+
 
   <div id="profile-container">
     <h2>User Profile</h2>
@@ -18,7 +29,7 @@
       <div class="form-box">
         <div class="form-header">
           <label for="username">Username</label>
-          <span id="current-value" class="current-value">{{ .Name }}</span>
+          <span id="current-value" class="current-value">{{ .User.Name }}</span>
         </div>
         <input id="username" type="text" name="username" placeholder="Enter new username">
       </div>

@@ -2,12 +2,10 @@
 <div 
     class="chat sidebar-elem {{if eq .Chat.Id .ActiveChatId}}active{{end}}" 
     data-chatid="{{ .Chat.Id }}" 
-    data-adminid="{{ .Chat.AdminId }}" 
     data-createdat="{{ .Chat.CreatedAt }}"
 >
     <div class="chat-header">
         <div class="chat-name">{{ .Chat.Name }}</div>
-        <div class="chat-admin-name">Admin Name {{ .Chat.AdminName }}</div>
         <div class="chat-unread-message-count">{{ .Chat.UnreadMessageCount }}</div>
     </div>
     <div class="chat-footer">

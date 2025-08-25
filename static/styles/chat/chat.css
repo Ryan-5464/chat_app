@@ -1,14 +1,12 @@
+.chat {
+    border-bottom-width: 1px;
+    border-bottom-color: var(--bdr-col);
+}
+
 .chat-name {
     font-size: 18px;
     color: var(--font-col-snd);
     text-shadow: 0 0 3px rgba(0,0,0,0.3);
-    transition: color 0.3s ease;
-}
-
-.chat-admin-name {
-    font-size: 14px;
-    color: var(--font-col-snd);
-    margin-top: 4px;
     transition: color 0.3s ease;
 }
 

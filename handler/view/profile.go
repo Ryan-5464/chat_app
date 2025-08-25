@@ -2,6 +2,7 @@ package view
 
 import (
 	"net/http"
+	ent "server/data/entities"
 	"server/handler/ctxutil"
 	mw "server/handler/middleware"
 	i "server/interfaces"
@@ -34,9 +35,9 @@ func (h profile) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	data := struct {
-		Name string
+		User *ent.User
 	}{
-		Name: user.Name,
+		User: user,
 	}
 
 	tmpl, err := template.ParseFiles("./static/pages/profile.html")

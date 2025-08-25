@@ -48,6 +48,8 @@ socket.onmessage = function (event) {
     } else {
         console.log("other chat message received")
     }
+
+    AutoScrollToBottom()
 }
 
 document.addEventListener("DOMContentLoaded", function() {
@@ -60,7 +62,18 @@ document.addEventListener("DOMContentLoaded", function() {
         formatMessageDates(msg)
     })
 
+    AutoScrollToBottom()
+
 })
+
+function AutoScrollToBottom() {
+    const container = document.getElementById('messages-container')
+    requestAnimationFrame(() => {
+        container.scrollTop = container.scrollHeight;
+    });
+
+}
+
 
 function SetupListeners() {
     addChatModalListenerToChatContainer()

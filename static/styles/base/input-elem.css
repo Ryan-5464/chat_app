@@ -24,3 +24,22 @@
     border-color: var(--bdr-col-hgl); 
 }
 
+#textSizer {
+  visibility: hidden;
+  position: absolute;
+  white-space: pre;
+}
+
+#textSizer {
+  visibility: hidden;
+  position: absolute;
+  white-space: pre;
+}
+
+.textArea {
+  font: inherit;
+  overflow: hidden;
+  resize: none;
+  max-height: none;
+  height: auto;
+}

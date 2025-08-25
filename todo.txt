@@ -1,21 +1,12 @@
-register page - enterusername
-nav bar profile
-nav bar who is logged in
-nav bar log out
 message reply
-message - edit text let user select old text
-message scroll bar styling
 chat unread message count
-chat admin name
 chat styling
-chat styling
-contact styling
-contact name
 contact online status
 contact known since time format
 contact profile
-fix bug where messge window isnt autoscrolling to bottom
 fix bug where non admins can interact with admin options for chats and members
 themes?
 optimizations?
 caching?
+
+checking adding two contacts in a row for a  bug

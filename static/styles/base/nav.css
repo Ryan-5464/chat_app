@@ -1,0 +1,24 @@
+
+nav {
+    display: flex;
+    justify-content: right;
+    height: 34px;
+    padding-top: 10px;
+    border-bottom-style: solid;
+    border-bottom-color: var(--bdr-col);
+    border-bottom-width: 1px;
+}
+
+a {
+    margin: 0px 15px 0px 15px;
+    color: var(--font-col-snd);
+}
+
+
+a:hover{
+    color: #a8c7ff;
+}
+
+#logout {
+    margin-left:80px;
+}

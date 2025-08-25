@@ -11,8 +11,9 @@
     <h1>Create an Account</h1>
 
     <form id="registerForm" method="POST" action="/api/register">
-      <input type="email" id="email" name="Email" placeholder="Email" required>
-      <input type="password" id="password" name="Password" placeholder="Password" required>
+      <input type="email" id="email" name="Email" placeholder="Enter email..." required>
+      <input type="password" id="password" name="Password" placeholder="Enter password..." required>
+      <input type="username" id="username" name="Name" placeholder="Enter name..." required>
 
       {{ if .Error }}
         <div id="error" class="error-message">{{ .Error }}</div>
