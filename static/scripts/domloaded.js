@@ -12,6 +12,16 @@ socket.onmessage = function (event) {
     const payload = JSON.parse(event.data);
     console.log(":: payload, ", payload);
 
+    if (payload.Chats != null) {
+        Object.values(payload.Chats).forEach(chat => {
+            const chatElem = document.querySelector(`[data-chatid="${chat.Id}"]`);
+            const umc = chatElem.querySelectorAll('.chat-unread-message-count');
+            if (umc && !chatElem.classList.contains('active')) {
+                umc[0].innerHTML = chat.UnreadMessageCount;
+            }
+        })
+    }
+
     let messageChatId;
     if (!payload.Messages) return;
     Object.values(payload.Messages).forEach(message => {

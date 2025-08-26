@@ -89,9 +89,9 @@ func (c *ChatRepository) DeleteChat(chatId typ.ChatId) error {
 	return c.dbS.DeleteChat(chatId)
 }
 
-func (c *ChatRepository) GetUnreadMessageCount(lastReadMsgId typ.MessageId) (int64, error) {
+func (c *ChatRepository) GetUnreadMessageCount(lastReadMsgId typ.MessageId, chatId typ.ChatId) (int64, error) {
 	util.Log.FunctionInfo()
-	return c.dbS.GetUnreadMessageCount(lastReadMsgId)
+	return c.dbS.GetUnreadMessageCount(lastReadMsgId, chatId)
 }
 
 func (c *ChatRepository) GetMember(chatId typ.ChatId, userId typ.UserId) (*ent.Member, error) {

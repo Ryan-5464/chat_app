@@ -7,7 +7,7 @@ import (
 	"time"
 )
 
-var Log *Logger = NewLogger(true)
+var Log *Logger = NewLogger(false)
 
 func NewLogger(debug bool) *Logger {
 	logger := &Logger{Debug: debug}

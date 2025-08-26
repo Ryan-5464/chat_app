@@ -3,7 +3,6 @@ package middleware
 import (
 	"context"
 	"errors"
-	"log"
 	"net/http"
 	"server/handler/ctxutil"
 	"server/handler/status"
@@ -25,7 +24,6 @@ func (a *authMW) Bind(next http.Handler) http.Handler {
 
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		util.Log.FunctionInfo()
-		util.Log.Info("Authenticating...")
 
 		cookie, err := r.Cookie("session_token")
 		if err != nil {
@@ -50,8 +48,6 @@ func (a *authMW) Bind(next http.Handler) http.Handler {
 		http.SetCookie(w, session.Cookie())
 
 		ctx := context.WithValue(r.Context(), ctxutil.SessionKey, session)
-
-		log.Println("CONTEXT CONTEXT :::: ", ctx)
 
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})

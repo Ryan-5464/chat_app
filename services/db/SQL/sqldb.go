@@ -675,21 +675,22 @@ func (dbs *DbService) GetLatestChatMessageId(chatId typ.ChatId) (typ.MessageId, 
 	return typ.MessageId(messageId), nil
 }
 
-func (dbs *DbService) GetUnreadMessageCount(lastReadMsgId typ.MessageId) (int64, error) {
+func (dbs *DbService) GetUnreadMessageCount(lastReadMsgId typ.MessageId, chatId typ.ChatId) (int64, error) {
 	util.Log.FunctionInfo()
 
-	util.Log.Dbugf("lastReadMsgId: %v", lastReadMsgId)
+	util.Log.Dbugf("chatId: %v, lastReadMsgId: %v", chatId, lastReadMsgId)
 
 	qb := qbuilder.NewQueryBuilder()
 
 	msgTbl := qb.Table(schema.MessageTable)
 	msgIdF := qb.Field(schema.MessageId)
+	chatIdF := qb.Field(schema.ChatId)
 
-	query := qb.SELECT(qb.Count(qb.All())).FROM(msgTbl).WHERE(msgIdF, qb.GreaterThan()).Build()
+	query := qb.SELECT(qb.Count(qb.All())).FROM(msgTbl).WHERE(chatIdF, qb.EqualTo()).AND(msgIdF, qb.GreaterThan()).Build()
 
 	util.Log.Dbugf("query: %s", query)
 
-	rows, err := dbs.db.Read(query, lastReadMsgId)
+	rows, err := dbs.db.Read(query, chatId, lastReadMsgId)
 	if err != nil {
 		return 0, err
 	}

@@ -36,7 +36,7 @@ type ChatRepository interface {
 	VerifyChatAdmin(chatId typ.ChatId, userId typ.UserId) (bool, error)
 	EditChatName(newName string, chatId typ.ChatId) error
 	GetChatMemberships(userId typ.UserId) ([]ent.Member, error)
-	GetUnreadMessageCount(lastReadMsgId typ.MessageId) (int64, error)
+	GetUnreadMessageCount(lastReadMsgId typ.MessageId, c typ.ChatId) (int64, error)
 }
 
 type MessageRepository interface {
@@ -85,7 +85,7 @@ type DbService interface {
 	GetMessages(msgIds []typ.MessageId) ([]model.Message, error)
 	UpdateMessage(msgtext string, msgId typ.MessageId) error
 	UpdateLastReadMsgId(lastReadMsgId typ.MessageId, chatId typ.ChatId, userId typ.UserId) error
-	GetUnreadMessageCount(lastReadMsgId typ.MessageId) (int64, error)
+	GetUnreadMessageCount(lastReadMsgId typ.MessageId, c typ.ChatId) (int64, error)
 	GetLatestChatMessageId(chatId typ.ChatId) (typ.MessageId, error)
 
 	CreateContact(id1 typ.UserId, id2 typ.ContactId) (typ.LastInsertId, error)

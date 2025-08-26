@@ -1,6 +1,7 @@
 package api
 
 import (
+	"log"
 	"net/http"
 	ent "server/data/entities"
 	"server/handler/ctxutil"
@@ -58,6 +59,8 @@ func (h switchChat) handleRequest(req screquest, userId typ.UserId) (scresponse,
 	}
 
 	latestMsgId := findLastestMessageId(messages)
+
+	log.Println("latestMsgId: ", latestMsgId)
 
 	if err := h.msgS.UpdateLastReadMsgId(latestMsgId, chatId, userId); err != nil {
 		return scresponse{}, err

@@ -8,11 +8,12 @@ import (
 	"server/util"
 )
 
-func NewMessageService(m i.MessageRepository, u i.UserService, c i.ConnectionService) *MessageService {
+func NewMessageService(m i.MessageRepository, u i.UserService, cn i.ConnectionService, c i.ChatService) *MessageService {
 	return &MessageService{
 		msgR:  m,
 		usrS:  u,
-		connS: c,
+		connS: cn,
+		chatS: c,
 	}
 }
 
@@ -20,6 +21,12 @@ type MessageService struct {
 	msgR  i.MessageRepository
 	usrS  i.UserService
 	connS i.ConnectionService
+	chatS i.ChatService
+}
+
+// to avoid import cycle with chat service.
+func (m *MessageService) SetChatService(c i.ChatService) {
+	m.chatS = c
 }
 
 func (m *MessageService) HandleNewContactMessage(userId typ.UserId, chatId typ.ChatId, replyId *typ.MessageId, msgTxt string) error {
@@ -51,7 +58,7 @@ func (m *MessageService) HandleNewContactMessage(userId typ.UserId, chatId typ.C
 			util.Log.Infof("user is offline for userId %v", userId)
 			continue
 		}
-		if err := m.BroadcastMessage(userId, conn, *msg); err != nil {
+		if err := m.broadcastMessage(userId, nil, conn, *msg); err != nil {
 			util.Log.Errorf(":: failed to broadcast message %v", err)
 			return err
 		}
@@ -93,7 +100,13 @@ func (m *MessageService) HandleNewMessage(userId typ.UserId, chatId typ.ChatId, 
 			util.Log.Infof("connection is nil for userId %v!", userId)
 			continue
 		}
-		if err := m.BroadcastMessage(userId, conn, *msg); err != nil {
+
+		chats, err := m.chatS.GetChats(userId)
+		if err != nil {
+			return err
+		}
+
+		if err := m.broadcastMessage(userId, chats, conn, *msg); err != nil {
 			return err
 		}
 		util.Log.Dbug("->>>> RESPONSE SENT")
@@ -102,7 +115,7 @@ func (m *MessageService) HandleNewMessage(userId typ.UserId, chatId typ.ChatId, 
 	return nil
 }
 
-func (m *MessageService) BroadcastMessage(userId typ.UserId, conn i.Socket, msg ent.Message) error {
+func (m *MessageService) broadcastMessage(userId typ.UserId, chats []ent.Chat, conn i.Socket, msg ent.Message) error {
 	util.Log.FunctionInfo()
 
 	msg.IsUserMessage = msg.UserId == userId
@@ -115,7 +128,7 @@ func (m *MessageService) BroadcastMessage(userId typ.UserId, conn i.Socket, msg 
 		Messages []ent.Message
 	}{
 		Type:     1,
-		Chats:    nil,
+		Chats:    chats,
 		Messages: messages,
 	}
 
