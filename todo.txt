@@ -1,5 +1,4 @@
 message reply
-chat unread message count
 chat styling
 contact online status
 contact known since time format
@@ -13,4 +12,4 @@ caching?
 refactor interfaces
 
 
-when the user scrolls to the bottom of the chat it should update the unread message count to the most recent message
+
