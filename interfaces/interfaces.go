@@ -29,12 +29,14 @@ type ChatRepository interface {
 	GetChats(userId typ.UserId) ([]ent.Chat, error)
 	NewChat(chatName string, adminId typ.UserId) (*ent.Chat, error)
 	NewMember(chatId typ.ChatId, userId typ.UserId) error
+	GetMember(chatId typ.ChatId, userId typ.UserId) (*ent.Member, error)
 	GetMembers(chatId typ.ChatId) ([]ent.Member, error)
 	RemoveChatMember(chatId typ.ChatId, userId typ.UserId) error
 	NewChatAdmin(chatId typ.ChatId, newAdminId typ.UserId) error
 	VerifyChatAdmin(chatId typ.ChatId, userId typ.UserId) (bool, error)
 	EditChatName(newName string, chatId typ.ChatId) error
 	GetChatMemberships(userId typ.UserId) ([]ent.Member, error)
+	GetUnreadMessageCount(lastReadMsgId typ.MessageId) (int64, error)
 }
 
 type MessageRepository interface {
@@ -45,6 +47,8 @@ type MessageRepository interface {
 	DeleteMessage(messageId typ.MessageId) error
 	GetMessage(msgId typ.MessageId) (*ent.Message, error)
 	EditMessage(msgText string, msgId typ.MessageId) error
+	UpdateLastReadMsgId(lastReadMsgId typ.MessageId, chatId typ.ChatId, userId typ.UserId) error
+	GetLatestChatMessageId(chatId typ.ChatId) (typ.MessageId, error)
 }
 
 type DbService interface {
@@ -59,6 +63,7 @@ type DbService interface {
 
 	CreateMember(chatId typ.ChatId, userId typ.UserId) error
 	DeleteMember(chatId typ.ChatId, userId typ.UserId) error
+	GetMember(chatId typ.ChatId, userId typ.UserId) (*model.Member, error)
 	GetMembers(chatId typ.ChatId) ([]model.Member, error)
 	GetMemberships(userId typ.UserId) ([]model.Member, error)
 
@@ -79,6 +84,9 @@ type DbService interface {
 	GetMessage(msgId typ.MessageId) (*model.Message, error)
 	GetMessages(msgIds []typ.MessageId) ([]model.Message, error)
 	UpdateMessage(msgtext string, msgId typ.MessageId) error
+	UpdateLastReadMsgId(lastReadMsgId typ.MessageId, chatId typ.ChatId, userId typ.UserId) error
+	GetUnreadMessageCount(lastReadMsgId typ.MessageId) (int64, error)
+	GetLatestChatMessageId(chatId typ.ChatId) (typ.MessageId, error)
 
 	CreateContact(id1 typ.UserId, id2 typ.ContactId) (typ.LastInsertId, error)
 	GetContact(chatId typ.ChatId) (*model.Contact, error)
@@ -102,6 +110,7 @@ type ChatService interface {
 	AddMember(email cred.Email, chatId typ.ChatId) (typ.UserId, error)
 	GetChatMember(chatId typ.ChatId, userId typ.UserId) (*ent.Member, error)
 	RemoveMember(chatId typ.ChatId, userId typ.UserId, adminId typ.UserId) error
+	GetUnreadMessageCount(chatId typ.ChatId, userId typ.UserId) (int64, error)
 }
 
 type MessageService interface {
@@ -111,6 +120,8 @@ type MessageService interface {
 	HandleNewMessage(u typ.UserId, c typ.ChatId, replyId *typ.MessageId, msgText string) error
 	DeleteMessage(messageId typ.MessageId) error
 	EditMessage(msgText string, msgId typ.MessageId) (*ent.Message, error)
+	UpdateLastReadMsgId(lastReadMsgId typ.MessageId, chatId typ.ChatId, userId typ.UserId) error
+	GetLatestChatMessageId(chatId typ.ChatId) (typ.MessageId, error)
 }
 
 type UserService interface {

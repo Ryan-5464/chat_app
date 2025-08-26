@@ -57,6 +57,12 @@ func (h switchChat) handleRequest(req screquest, userId typ.UserId) (scresponse,
 		return scresponse{}, err
 	}
 
+	latestMsgId := findLastestMessageId(messages)
+
+	if err := h.msgS.UpdateLastReadMsgId(latestMsgId, chatId, userId); err != nil {
+		return scresponse{}, err
+	}
+
 	res := scresponse{
 		ActiveChatId: chatId,
 		Messages:     messages,

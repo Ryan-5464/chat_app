@@ -1,6 +1,7 @@
 package qbuilder
 
 import (
+	typ "server/types"
 	"strings"
 )
 
@@ -188,6 +189,12 @@ func (q *queryBuilder) VALUES(v ...any) *queryBuilder {
 	q.WriteString("(")
 	q.WriteString(q.generatePlaceholdersString(lenValues))
 	q.WriteString(")")
+	return q
+}
+
+func (q *queryBuilder) LIMIT(n int64) *queryBuilder {
+	q.WriteString(" LIMIT ")
+	q.WriteString(typ.ConvertInt64ToString(n))
 	return q
 }
 

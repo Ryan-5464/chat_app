@@ -119,13 +119,21 @@ func (m *MessageService) BroadcastMessage(userId typ.UserId, conn i.Socket, msg 
 		Messages: messages,
 	}
 
-	err := conn.WriteJSON(payload)
-	if err != nil {
+	if err := conn.WriteJSON(payload); err != nil {
 		util.Log.Errorf("failed to write to websocket connection: %v", err)
 		return err
 	}
 
+	if err := m.msgR.UpdateLastReadMsgId(msg.Id, msg.ChatId, userId); err != nil {
+		return err
+	}
+
 	return nil
+}
+
+func (m *MessageService) GetLatestChatMessageId(chatId typ.ChatId) (typ.MessageId, error) {
+	util.Log.FunctionInfo()
+	return m.msgR.GetLatestChatMessageId(chatId)
 }
 
 func (m *MessageService) GetChatMessages(chatId typ.ChatId, userId typ.UserId) ([]ent.Message, error) {
@@ -206,6 +214,11 @@ func (m *MessageService) EditMessage(msgText string, msgId typ.MessageId) (*ent.
 	}
 
 	return m.msgR.GetMessage(msgId)
+}
+
+func (m *MessageService) UpdateLastReadMsgId(lastReadMsgId typ.MessageId, chatId typ.ChatId, userId typ.UserId) error {
+	util.Log.FunctionInfo()
+	return m.msgR.UpdateLastReadMsgId(lastReadMsgId, chatId, userId)
 }
 
 func getUniqueUserIdsFromMessages(slice []typ.UserId) []typ.UserId {

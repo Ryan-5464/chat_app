@@ -89,6 +89,21 @@ func (c *ChatRepository) DeleteChat(chatId typ.ChatId) error {
 	return c.dbS.DeleteChat(chatId)
 }
 
+func (c *ChatRepository) GetUnreadMessageCount(lastReadMsgId typ.MessageId) (int64, error) {
+	util.Log.FunctionInfo()
+	return c.dbS.GetUnreadMessageCount(lastReadMsgId)
+}
+
+func (c *ChatRepository) GetMember(chatId typ.ChatId, userId typ.UserId) (*ent.Member, error) {
+	util.Log.FunctionInfo()
+	member, err := c.dbS.GetMember(chatId, userId)
+	if err != nil {
+		return nil, err
+	}
+
+	return memberEntityFromModel(member), nil
+}
+
 func (c *ChatRepository) GetMembers(chatId typ.ChatId) ([]ent.Member, error) {
 	util.Log.FunctionInfo()
 
@@ -191,4 +206,13 @@ func memberModelsToEntities(models []model.Member) []ent.Member {
 		members = append(members, ent)
 	}
 	return members
+}
+
+func memberEntityFromModel(model *model.Member) *ent.Member {
+	return &ent.Member{
+		ChatId:        model.ChatId,
+		UserId:        model.UserId,
+		LastReadMsgId: model.LastReadMsgId,
+		Joined:        model.Joined,
+	}
 }

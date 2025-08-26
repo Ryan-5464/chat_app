@@ -135,6 +135,26 @@ func (dbs *DbService) DeleteChat(chatId typ.ChatId) error {
 
 }
 
+func (dbs *DbService) UpdateLastReadMsgId(lastReadMsgId typ.MessageId, chatId typ.ChatId, userId typ.UserId) error {
+	util.Log.FunctionInfo()
+
+	util.Log.Dbugf("lastReadMsgId: %v", lastReadMsgId)
+
+	qb := qbuilder.NewQueryBuilder()
+
+	mbrTbl := qb.Table(schema.MemberTable)
+	chatIdF := qb.Field(schema.ChatId)
+	lastReadMsgIdF := qb.Field(schema.LastReadMsgId)
+	userIdF := qb.Field(schema.UserId)
+
+	query := qb.UPDATE(mbrTbl, qb.SET(lastReadMsgIdF)).WHERE(chatIdF, qb.EqualTo()).AND(userIdF, qb.EqualTo()).Build()
+
+	util.Log.Dbugf("query: %v", query)
+
+	return dbs.db.Update(query, lastReadMsgId, chatId, userId)
+
+}
+
 func (dbs *DbService) UpdateChatName(name string, chatId typ.ChatId) error {
 	util.Log.FunctionInfo()
 
@@ -603,6 +623,78 @@ func (dbs *DbService) GetContacts(userId typ.UserId) ([]model.Contact, error) {
 	util.Log.Dbugf("rows: %v", rows)
 
 	return populateContactModels(rows), nil
+}
+
+func (dbs *DbService) GetMember(chatId typ.ChatId, userId typ.UserId) (*model.Member, error) {
+	util.Log.FunctionInfo()
+
+	util.Log.Dbugf("userId: %v, chatId: %v", userId, chatId)
+
+	qb := qbuilder.NewQueryBuilder()
+
+	mbrTbl := qb.Table(schema.MemberTable)
+	chatIdF := qb.Field(schema.ChatId)
+	userIdF := qb.Field(schema.UserId)
+
+	query := qb.SELECT(qb.All()).FROM(mbrTbl).WHERE(chatIdF, qb.EqualTo()).AND(userIdF, qb.EqualTo()).Build()
+
+	util.Log.Dbugf("query: %s", query)
+
+	rows, err := dbs.db.Read(query, chatId, userId)
+	if err != nil {
+		return nil, err
+	}
+
+	util.Log.Dbugf("rows: %v", rows)
+
+	return populateMemberModel(rows), nil
+}
+
+func (dbs *DbService) GetLatestChatMessageId(chatId typ.ChatId) (typ.MessageId, error) {
+	util.Log.FunctionInfo()
+
+	util.Log.Dbugf("chatId: %v", chatId)
+
+	qb := qbuilder.NewQueryBuilder()
+
+	msgTbl := qb.Table(schema.MessageTable)
+	chatIdF := qb.Field(schema.ChatId)
+
+	query := qb.SELECT(qb.All()).FROM(msgTbl).WHERE(chatIdF, qb.EqualTo()).LIMIT(1).Build()
+
+	util.Log.Dbugf("query: %s", query)
+
+	rows, err := dbs.db.Read(query, chatId)
+	if err != nil {
+		return 0, err
+	}
+
+	util.Log.Dbugf("rows: %v", rows)
+
+	messageId := rows[0][schema.MessageId].(int64)
+	return typ.MessageId(messageId), nil
+}
+
+func (dbs *DbService) GetUnreadMessageCount(lastReadMsgId typ.MessageId) (int64, error) {
+	util.Log.FunctionInfo()
+
+	util.Log.Dbugf("lastReadMsgId: %v", lastReadMsgId)
+
+	qb := qbuilder.NewQueryBuilder()
+
+	msgTbl := qb.Table(schema.MessageTable)
+	msgIdF := qb.Field(schema.MessageId)
+
+	query := qb.SELECT(qb.Count(qb.All())).FROM(msgTbl).WHERE(msgIdF, qb.GreaterThan()).Build()
+
+	util.Log.Dbugf("query: %s", query)
+
+	rows, err := dbs.db.Read(query, lastReadMsgId)
+	if err != nil {
+		return 0, err
+	}
+
+	return rows[0]["count"].(int64), nil
 }
 
 func (dbs *DbService) UpdateUserName(name string, userId typ.UserId) error {

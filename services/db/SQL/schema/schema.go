@@ -104,7 +104,7 @@ func Get() []string {
         %s INTEGER PRIMARY KEY AUTOINCREMENT,
         %s INTEGER NOT NULL,
         %s INTEGER NOT NULL,
-        %s DATETIME DEFAULT CURRENT_TIMESTAMP,
+        %s INTEGER DEFAULT 0,
         UNIQUE (%s, %s)
     );`,
 		MemberTable,

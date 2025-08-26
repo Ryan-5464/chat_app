@@ -10,3 +10,5 @@ optimizations?
 caching?
 
 checking adding two contacts in a row for a  bug
+
+refactor interfaces

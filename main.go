@@ -45,8 +45,8 @@ func main() {
 	authS := sauth.NewAuthService()
 	connS := sconn.NewConnectionService()
 	userS := suser.NewUserService(userR)
-	chatS := schat.NewChatService(chatR, userS)
 	msgS := smsg.NewMessageService(msgR, userS, connS)
+	chatS := schat.NewChatService(chatR, msgS, userS)
 
 	fs := http.FileServer(http.Dir("./static"))
 	http.Handle("/static/", http.StripPrefix("/static/", fs))
