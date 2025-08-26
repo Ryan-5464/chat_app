@@ -201,9 +201,11 @@ func (c *ChatService) GetUnreadMessageCount(chatId typ.ChatId, userId typ.UserId
 		return 0, err
 	}
 
+	util.Log.Dbugf("MEMBER BEFORE => %v", member)
 	if member.LastReadMsgId == 0 {
 		return 0, nil
 	}
+	util.Log.Dbugf("MEMBER AFTER => %v", member)
 
 	return c.chatR.GetUnreadMessageCount(member.LastReadMsgId)
 }

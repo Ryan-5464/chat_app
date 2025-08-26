@@ -904,8 +904,9 @@ func populateMemberModels(rows typ.Rows) []model.Member {
 	var mbrMs []model.Member
 	for _, row := range rows {
 		mbrM := model.Member{
-			ChatId: parseChatId(row[schema.ChatId]),
-			UserId: parseUserId(row[schema.UserId]),
+			ChatId:        parseChatId(row[schema.ChatId]),
+			UserId:        parseUserId(row[schema.UserId]),
+			LastReadMsgId: parseMessageId(row[schema.LastReadMsgId]),
 		}
 		mbrMs = append(mbrMs, mbrM)
 	}

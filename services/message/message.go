@@ -124,9 +124,9 @@ func (m *MessageService) BroadcastMessage(userId typ.UserId, conn i.Socket, msg 
 		return err
 	}
 
-	if err := m.msgR.UpdateLastReadMsgId(msg.Id, msg.ChatId, userId); err != nil {
-		return err
-	}
+	// if err := m.msgR.UpdateLastReadMsgId(msg.Id, msg.ChatId, userId); err != nil {
+	// 	return err
+	// }
 
 	return nil
 }

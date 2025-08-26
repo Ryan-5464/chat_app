@@ -47,7 +47,9 @@ function SetChatToActive(activeChatId) {
         });
     }
     const chat = document.querySelector(`[data-chatid="${activeChatId}"]`);
-    chat.classList.add('active')
+    const umc = chat.querySelector('#unread-msg-count');
+    umc.innerHTML = 0;
+    chat.classList.add('active');
 }
 
 function SetContactChatToActive(activeContactChatId) {

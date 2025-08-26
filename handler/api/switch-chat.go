@@ -64,8 +64,9 @@ func (h switchChat) handleRequest(req screquest, userId typ.UserId) (scresponse,
 	}
 
 	res := scresponse{
-		ActiveChatId: chatId,
-		Messages:     messages,
+		ActiveChatId:       chatId,
+		UnreadMessageCount: 0,
+		Messages:           messages,
 	}
 
 	return res, nil
@@ -76,6 +77,7 @@ type screquest struct {
 }
 
 type scresponse struct {
-	ActiveChatId typ.ChatId    `json:"ActiveChatId"`
-	Messages     []ent.Message `json:"Messages"`
+	ActiveChatId       typ.ChatId    `json:"ActiveChatId"`
+	UnreadMessageCount int64         `json:"UnreadMessageCount"`
+	Messages           []ent.Message `json:"Messages"`
 }

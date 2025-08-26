@@ -69,9 +69,19 @@ func (h chatView) getChatTemplateData(userId typ.UserId) (tmplData, error) {
 	// Setting to zero since active chat will always display latest message
 	// Must do this because chats are retrieved before latest message id is updated so active chatid
 	// is outdated.
+	util.Log.Dbugf("CHATS BEFORE => %v", chats)
+
 	if len(chats) != 0 {
+		for i := range chats {
+			chats[i].UnreadMessageCount, err = h.chatS.GetUnreadMessageCount(chats[i].Id, userId)
+			if err != nil {
+				return tmplData{}, err
+			}
+		}
 		chats[0].UnreadMessageCount = 0
 	}
+
+	util.Log.Dbugf("CHATS AFTER => %v", chats)
 
 	latestMsgId := findLastestMessageId(messages)
 

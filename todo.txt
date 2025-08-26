@@ -9,6 +9,8 @@ themes?
 optimizations?
 caching?
 
-checking adding two contacts in a row for a  bug
 
 refactor interfaces
+
+
+when the user scrolls to the bottom of the chat it should update the unread message count to the most recent message
