@@ -11,12 +11,12 @@ function ConfigureMemberListModal() {
     AddMemberModalToMemberListModal(modal) 
 
     document.addEventListener("click", (e) => {
-    const modal = document.getElementById("chatMemberModal");
-    if (!modal.classList.contains("open")) return; // only when open
+        const modal = document.getElementById("chatMemberModal");
+        if (!modal.classList.contains("open")) return; // only when open
 
-    if (!e.target.closest('.modal-content')) {
-        modal.__controller.Close();
-    }
+        if (!e.target.closest('.modal-content')) {
+            modal.__controller.Close();
+        }
     });
 
     let addMemberInput = document.getElementById('add-member-input')

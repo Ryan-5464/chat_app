@@ -9,139 +9,139 @@ import (
 )
 
 type UserRepository interface {
-	AddContact(contactId typ.ContactId, contactName string, contactEmail cred.Email, userId typ.UserId) (*ent.Contact, error)
-	FindUser(email cred.Email) (*model.User, error)
-	FindUsers(emails []cred.Email) ([]ent.User, error)
-	GetChatUsers(chatId typ.ChatId) ([]ent.User, error)
-	GetContact(chatId typ.ChatId, userId typ.UserId) (*ent.Contact, error)
-	GetContacts(userId typ.UserId) ([]ent.Contact, error)
-	GetUser(userId typ.UserId) (*ent.User, error)
-	GetUsers(userIds []typ.UserId) ([]ent.User, error)
-	NewUser(userName string, userEmail cred.Email, pwdHash cred.PwdHash) (*ent.User, error)
-	RemoveContact(contactId typ.ContactId, userId typ.UserId) error
-	EditUserName(name string, userId typ.UserId) error
-	GetUserByEmail(email cred.Email) (*ent.User, error)
+	AddContact(ct typ.ContactId, contactname string, ce cred.Email, u typ.UserId) (*ent.Contact, error)
+	FindUser(e cred.Email) (*model.User, error)
+	FindUsers(es []cred.Email) ([]ent.User, error)
+	GetChatUsers(c typ.ChatId) ([]ent.User, error)
+	GetContact(c typ.ChatId, u typ.UserId) (*ent.Contact, error)
+	GetContacts(u typ.UserId) ([]ent.Contact, error)
+	GetUser(u typ.UserId) (*ent.User, error)
+	GetUsers(us []typ.UserId) ([]ent.User, error)
+	NewUser(username string, e cred.Email, p cred.PwdHash) (*ent.User, error)
+	RemoveContact(ct typ.ContactId, u typ.UserId) error
+	EditUserName(username string, u typ.UserId) error
+	GetUserByEmail(e cred.Email) (*ent.User, error)
 }
 
 type ChatRepository interface {
-	DeleteChat(chatId typ.ChatId) error
-	GetChat(chatId typ.ChatId) (*ent.Chat, error)
-	GetChats(userId typ.UserId) ([]ent.Chat, error)
-	NewChat(chatName string, adminId typ.UserId) (*ent.Chat, error)
-	NewMember(chatId typ.ChatId, userId typ.UserId) error
-	GetMember(chatId typ.ChatId, userId typ.UserId) (*ent.Member, error)
-	GetMembers(chatId typ.ChatId) ([]ent.Member, error)
-	RemoveChatMember(chatId typ.ChatId, userId typ.UserId) error
-	NewChatAdmin(chatId typ.ChatId, newAdminId typ.UserId) error
-	VerifyChatAdmin(chatId typ.ChatId, userId typ.UserId) (bool, error)
-	EditChatName(newName string, chatId typ.ChatId) error
-	GetChatMemberships(userId typ.UserId) ([]ent.Member, error)
+	DeleteChat(c typ.ChatId) error
+	GetChat(c typ.ChatId) (*ent.Chat, error)
+	GetChats(u typ.UserId) ([]ent.Chat, error)
+	NewChat(chatname string, adminId typ.UserId) (*ent.Chat, error)
+	NewMember(c typ.ChatId, u typ.UserId) error
+	GetMember(c typ.ChatId, u typ.UserId) (*ent.Member, error)
+	GetMembers(c typ.ChatId) ([]ent.Member, error)
+	RemoveChatMember(c typ.ChatId, u typ.UserId) error
+	NewChatAdmin(c typ.ChatId, newAdminId typ.UserId) error
+	VerifyChatAdmin(c typ.ChatId, u typ.UserId) (bool, error)
+	EditChatName(newname string, c typ.ChatId) error
+	GetChatMemberships(u typ.UserId) ([]ent.Member, error)
 	GetUnreadMessageCount(lastReadMsgId typ.MessageId, c typ.ChatId) (int64, error)
 }
 
 type MessageRepository interface {
-	GetChatMessages(chatId typ.ChatId) ([]ent.Message, error)
-	GetContactMessages(chatId typ.ChatId) ([]ent.Message, error)
-	NewContactMessage(userId typ.UserId, chatId typ.ChatId, replyId *typ.MessageId, text string) (*ent.Message, error)
-	NewMessage(userId typ.UserId, chatId typ.ChatId, replyId *typ.MessageId, text string) (*ent.Message, error)
-	DeleteMessage(messageId typ.MessageId) error
-	GetMessage(msgId typ.MessageId) (*ent.Message, error)
-	EditMessage(msgText string, msgId typ.MessageId) error
-	UpdateLastReadMsgId(lastReadMsgId typ.MessageId, chatId typ.ChatId, userId typ.UserId) error
-	GetLatestChatMessageId(chatId typ.ChatId) (typ.MessageId, error)
+	GetChatMessages(c typ.ChatId) ([]ent.Message, error)
+	GetContactMessages(c typ.ChatId) ([]ent.Message, error)
+	NewContactMessage(u typ.UserId, c typ.ChatId, replyId *typ.MessageId, text string) (*ent.Message, error)
+	NewMessage(u typ.UserId, c typ.ChatId, replyId *typ.MessageId, text string) (*ent.Message, error)
+	DeleteMessage(m typ.MessageId) error
+	GetMessage(m typ.MessageId) (*ent.Message, error)
+	EditMessage(msgText string, m typ.MessageId) error
+	UpdateLastReadMsgId(lastReadMsgId typ.MessageId, c typ.ChatId, u typ.UserId) error
+	GetLatestChatMessageId(c typ.ChatId) (typ.MessageId, error)
 }
 
 type DbService interface {
-	FindUser(email cred.Email) (*model.User, error)
-	FindUsers(emails []cred.Email) ([]model.User, error)
+	FindUser(e cred.Email) (*model.User, error)
+	FindUsers(es []cred.Email) ([]model.User, error)
 
-	CreateUser(userName string, email cred.Email, pwdHash cred.PwdHash) (typ.LastInsertId, error)
-	GetUser(usrIds typ.UserId) (*model.User, error)
-	GetUsers(usrIds []typ.UserId) ([]model.User, error)
-	UpdateUserName(name string, userId typ.UserId) error
-	GetUserByEmail(email cred.Email) (*model.User, error)
+	CreateUser(un string, e cred.Email, p cred.PwdHash) (typ.LastInsertId, error)
+	GetUser(us typ.UserId) (*model.User, error)
+	GetUsers(us []typ.UserId) ([]model.User, error)
+	UpdateUserName(name string, u typ.UserId) error
+	GetUserByEmail(e cred.Email) (*model.User, error)
 
-	CreateMember(chatId typ.ChatId, userId typ.UserId) error
-	DeleteMember(chatId typ.ChatId, userId typ.UserId) error
-	GetMember(chatId typ.ChatId, userId typ.UserId) (*model.Member, error)
-	GetMembers(chatId typ.ChatId) ([]model.Member, error)
-	GetMemberships(userId typ.UserId) ([]model.Member, error)
+	CreateMember(c typ.ChatId, u typ.UserId) error
+	DeleteMember(c typ.ChatId, u typ.UserId) error
+	GetMember(c typ.ChatId, u typ.UserId) (*model.Member, error)
+	GetMembers(c typ.ChatId) ([]model.Member, error)
+	GetMemberships(u typ.UserId) ([]model.Member, error)
 
-	CreateChat(chatName string, adminId typ.UserId) (typ.LastInsertId, error)
-	DeleteChat(chatId typ.ChatId) error
-	GetChat(chatId typ.ChatId) (*model.Chat, error)
-	GetChats(chatId []typ.ChatId) ([]model.Chat, error)
-	GetUserChats(userId typ.UserId) ([]model.Chat, error)
-	UpdateChatAdmin(chatId typ.ChatId, userId typ.UserId) error
-	UpdateChatName(newName string, chatId typ.ChatId) error
+	CreateChat(chatname string, adminId typ.UserId) (typ.LastInsertId, error)
+	DeleteChat(c typ.ChatId) error
+	GetChat(c typ.ChatId) (*model.Chat, error)
+	GetChats(c []typ.ChatId) ([]model.Chat, error)
+	GetUserChats(u typ.UserId) ([]model.Chat, error)
+	UpdateChatAdmin(c typ.ChatId, u typ.UserId) error
+	UpdateChatName(newname string, c typ.ChatId) error
 
-	CreateContactMessage(userId typ.UserId, chatId typ.ChatId, replyId *typ.MessageId, text string) (typ.LastInsertId, error)
-	CreateMessage(userId typ.UserId, chatId typ.ChatId, replyId *typ.MessageId, text string) (typ.LastInsertId, error)
-	DeleteMessage(messageId typ.MessageId) error
-	GetChatMessages(chatId typ.ChatId) ([]model.Message, error)
-	GetContactMessage(messageId typ.MessageId) (*model.Message, error)
-	GetContactMessages(chatId typ.ChatId) ([]model.Message, error)
-	GetMessage(msgId typ.MessageId) (*model.Message, error)
+	CreateContactMessage(u typ.UserId, c typ.ChatId, replyId *typ.MessageId, text string) (typ.LastInsertId, error)
+	CreateMessage(u typ.UserId, c typ.ChatId, replyId *typ.MessageId, text string) (typ.LastInsertId, error)
+	DeleteMessage(m typ.MessageId) error
+	GetChatMessages(c typ.ChatId) ([]model.Message, error)
+	GetContactMessage(m typ.MessageId) (*model.Message, error)
+	GetContactMessages(c typ.ChatId) ([]model.Message, error)
+	GetMessage(m typ.MessageId) (*model.Message, error)
 	GetMessages(msgIds []typ.MessageId) ([]model.Message, error)
-	UpdateMessage(msgtext string, msgId typ.MessageId) error
-	UpdateLastReadMsgId(lastReadMsgId typ.MessageId, chatId typ.ChatId, userId typ.UserId) error
+	UpdateMessage(msgtext string, m typ.MessageId) error
+	UpdateLastReadMsgId(lastReadMsgId typ.MessageId, c typ.ChatId, u typ.UserId) error
 	GetUnreadMessageCount(lastReadMsgId typ.MessageId, c typ.ChatId) (int64, error)
-	GetLatestChatMessageId(chatId typ.ChatId) (typ.MessageId, error)
+	GetLatestChatMessageId(c typ.ChatId) (typ.MessageId, error)
 
 	CreateContact(id1 typ.UserId, id2 typ.ContactId) (typ.LastInsertId, error)
-	GetContact(chatId typ.ChatId) (*model.Contact, error)
-	GetContacts(userId typ.UserId) ([]model.Contact, error)
-	DeleteContact(contactId typ.ContactId, userId typ.UserId) error
+	GetContact(c typ.ChatId) (*model.Contact, error)
+	GetContacts(u typ.UserId) ([]model.Contact, error)
+	DeleteContact(ct typ.ContactId, u typ.UserId) error
 
 	Close()
 }
 
 type AuthService interface {
-	NewSession(userId typ.UserId) (sess.Session, error)
+	NewSession(u typ.UserId) (sess.Session, error)
 	ValidateAndRefreshSession(JWEtoken string) (sess.Session, error)
 }
 
 type ChatService interface {
-	GetChats(userId typ.UserId) ([]ent.Chat, error)
-	NewChat(chatName string, adminId typ.UserId) (*ent.Chat, error)
-	LeaveChat(chatId typ.ChatId, userId typ.UserId) ([]ent.Chat, error)
-	EditChatName(newName string, chatId typ.ChatId, userId typ.UserId) error
-	GetChatMembers(chatId typ.ChatId) ([]ent.Member, error)
-	AddMember(email cred.Email, chatId typ.ChatId) (typ.UserId, error)
-	GetChatMember(chatId typ.ChatId, userId typ.UserId) (*ent.Member, error)
-	RemoveMember(chatId typ.ChatId, userId typ.UserId, adminId typ.UserId) error
-	GetUnreadMessageCount(chatId typ.ChatId, userId typ.UserId) (int64, error)
+	GetChats(u typ.UserId) ([]ent.Chat, error)
+	NewChat(chatname string, adminId typ.UserId) (*ent.Chat, error)
+	LeaveChat(c typ.ChatId, u typ.UserId) ([]ent.Chat, error)
+	EditChatName(newname string, c typ.ChatId, u typ.UserId) error
+	GetChatMembers(c typ.ChatId) ([]ent.Member, error)
+	AddMember(e cred.Email, c typ.ChatId) (typ.UserId, error)
+	GetChatMember(c typ.ChatId, u typ.UserId) (*ent.Member, error)
+	RemoveMember(c typ.ChatId, u typ.UserId, adminId typ.UserId) error
+	GetUnreadMessageCount(c typ.ChatId, u typ.UserId) (int64, error)
 }
 
 type MessageService interface {
-	GetChatMessages(chatId typ.ChatId, userId typ.UserId) ([]ent.Message, error)
-	GetContactMessages(chatId typ.ChatId, userId typ.UserId) ([]ent.Message, error)
+	GetChatMessages(c typ.ChatId, u typ.UserId) ([]ent.Message, error)
+	GetContactMessages(c typ.ChatId, u typ.UserId) ([]ent.Message, error)
 	HandleNewContactMessage(u typ.UserId, c typ.ChatId, replyId *typ.MessageId, msgText string) error
 	HandleNewMessage(u typ.UserId, c typ.ChatId, replyId *typ.MessageId, msgText string) error
-	DeleteMessage(messageId typ.MessageId) error
-	EditMessage(msgText string, msgId typ.MessageId) (*ent.Message, error)
-	UpdateLastReadMsgId(lastReadMsgId typ.MessageId, chatId typ.ChatId, userId typ.UserId) error
-	GetLatestChatMessageId(chatId typ.ChatId) (typ.MessageId, error)
+	DeleteMessage(m typ.MessageId) error
+	EditMessage(msgText string, m typ.MessageId) (*ent.Message, error)
+	UpdateLastReadMsgId(lastReadMsgId typ.MessageId, c typ.ChatId, u typ.UserId) error
+	GetLatestChatMessageId(c typ.ChatId) (typ.MessageId, error)
 }
 
 type UserService interface {
 	AddContact(e cred.Email, u typ.UserId) (*ent.Contact, error)
-	FindUsers(emails []cred.Email) ([]ent.User, error)
-	GetChatUsers(chatId typ.ChatId) ([]ent.User, error)
-	GetContact(chatId typ.ChatId, userId typ.UserId) (*ent.Contact, error)
-	GetContacts(userId typ.UserId) ([]ent.Contact, error)
-	GetUser(userId typ.UserId) (*ent.User, error)
-	GetUsers(userId []typ.UserId) ([]ent.User, error)
+	FindUsers(es []cred.Email) ([]ent.User, error)
+	GetChatUsers(c typ.ChatId) ([]ent.User, error)
+	GetContact(c typ.ChatId, u typ.UserId) (*ent.Contact, error)
+	GetContacts(u typ.UserId) ([]ent.Contact, error)
+	GetUser(u typ.UserId) (*ent.User, error)
+	GetUsers(u []typ.UserId) ([]ent.User, error)
 	NewUser(name string, e cred.Email, p cred.PwdHash) (*ent.User, error)
-	RemoveContact(contactId typ.ContactId, userId typ.UserId) error
-	EditUserName(name string, userId typ.UserId) error
-	GetUserByEmail(email cred.Email) (*ent.User, error)
+	RemoveContact(ct typ.ContactId, u typ.UserId) error
+	EditUserName(name string, u typ.UserId) error
+	GetUserByEmail(e cred.Email) (*ent.User, error)
 }
 
 type ConnectionService interface {
-	DisconnectUser(userId typ.UserId)
-	GetConnection(userId typ.UserId) Socket
-	StoreConnection(conn Socket, userId typ.UserId)
+	DisconnectUser(u typ.UserId)
+	GetConnection(u typ.UserId) Socket
+	StoreConnection(conn Socket, u typ.UserId)
 	GetActiveConnections() map[typ.UserId]Socket
 }
 

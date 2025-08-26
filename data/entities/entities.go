@@ -27,6 +27,7 @@ type Chat struct {
 	MemberCount        int64
 	UnreadMessageCount int64
 	CreatedAt          time.Time
+	UserIsAdmin        bool
 }
 
 type User struct {

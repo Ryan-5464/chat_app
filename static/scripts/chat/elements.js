@@ -4,7 +4,9 @@ function ChatElement(chat) {
     chatElem.setAttribute('data-chatid', chat.Id)
     chatElem.setAttribute('data-adminid', chat.AdminId)
     chatElem.setAttribute('data-createdat', chat.CreatedAt)
-
+    if (chat.UserIsAdmin) {
+        chatElem.classList.add('me')
+    }
     const chatHeader = document.createElement('div')
     chatHeader.classList.add('chat-header')
     chatElem.appendChild(chatHeader)

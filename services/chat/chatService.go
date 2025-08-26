@@ -25,7 +25,13 @@ type ChatService struct {
 
 func (c *ChatService) NewChat(chatName string, adminId typ.UserId) (*ent.Chat, error) {
 	util.Log.FunctionInfo()
-	return c.chatR.NewChat(chatName, adminId)
+	chat, err := c.chatR.NewChat(chatName, adminId)
+	if err != nil {
+		return nil, err
+	}
+
+	chat.UserIsAdmin = true
+	return chat, nil
 }
 
 func (c *ChatService) GetChats(userId typ.UserId) ([]ent.Chat, error) {
@@ -39,6 +45,10 @@ func (c *ChatService) GetChats(userId typ.UserId) ([]ent.Chat, error) {
 		chats[i].UnreadMessageCount, err = c.GetUnreadMessageCount(chats[i].Id, userId)
 		if err != nil {
 			util.Log.Infof("Unable to get unread message count for chat id %v => error: %v", chats[i].Id, err)
+		}
+
+		if chats[i].AdminId == userId {
+			chats[i].UserIsAdmin = true
 		}
 	}
 

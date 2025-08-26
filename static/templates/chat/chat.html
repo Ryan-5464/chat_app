@@ -1,6 +1,6 @@
-r{{ define "chat" }}
+{{ define "chat" }}
 <div 
-    class="chat sidebar-elem {{if eq .Chat.Id .ActiveChatId}}active{{end}}" 
+    class="chat sidebar-elem {{if eq .Chat.Id .ActiveChatId}}active{{end}} {{if .Chat.UserIsAdmin}}me{{end}}" 
     data-chatid="{{ .Chat.Id }}" 
     data-createdat="{{ .Chat.CreatedAt }}"
 >

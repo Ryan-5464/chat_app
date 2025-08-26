@@ -3,13 +3,11 @@ chat styling
 contact online status
 contact known since time format
 contact profile
-fix bug where non admins can interact with admin options for chats and members
+online status
+
 themes?
 optimizations?
 caching?
 
-
-refactor interfaces
-
-
+fix bug with panic in getlatestchatmessageid when trying to add member to new chat (user does get added to chat)
 

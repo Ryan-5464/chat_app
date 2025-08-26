@@ -8,12 +8,22 @@ function addChatModalListenerToChatContainer() {
     container.addEventListener("contextmenu", (e) => {
         e.preventDefault();
         e.stopPropagation();
+
+        const editButton = document.getElementById('chat-edit-btn')
+        const chat = e.target.closest('.chat')
+
+        if (chat.classList.contains('me')) {
+            editButton.classList.remove('hidden')
+        } else {
+            editButton.classList.add('hidden') 
+        }
+
         const chatId = e.target.closest('[data-chatid]')?.getAttribute('data-chatid');
         if (!chatId) return;
         modal.__controller.OpenAt(e.clientX, e.clientY);
         configureEditButton(chatId);
         configureLeaveButton(chatId);
-        configureMembersButton(chatId);
+        configureMembersButton(chatId, chat);
     });
 };
 
@@ -40,14 +50,23 @@ function ConfigureLeaveButton(chatModalController) {
 function ConfigureMembersButton(chatModalController) {
     const membersButton = document.getElementById('chat-members-btn');
     let currentChatId = null;
+    let chatElem = null;
 
     membersButton.addEventListener('click', () => {
         if (!currentChatId) return;
+        const addMember = document.getElementById('add-member')
+        
+        if (chatElem.classList.contains('me')) {
+            addMember.classList.remove('hidden')
+        } else {
+            addMember.classList.add('hidden') 
+        }
+
         const addMemberInput = document.getElementById('add-member-input')
         addMemberInput.setAttribute('data-chatid', currentChatId)
         chatModalController.DisplayMemberList(currentChatId);
     });
-    return (chatId) => {currentChatId = chatId}
+    return (chatId, chat) => {currentChatId = chatId; chatElem = chat}
 }
 
 function ConfigureChatModal() {
