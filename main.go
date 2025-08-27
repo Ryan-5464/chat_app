@@ -44,7 +44,7 @@ func main() {
 
 	authS := sauth.NewAuthService()
 	connS := sconn.NewConnectionService()
-	userS := suser.NewUserService(userR)
+	userS := suser.NewUserService(userR, connS)
 	msgS := smsg.NewMessageService(msgR, userS, connS, nil)
 	chatS := schat.NewChatService(chatR, msgS, userS)
 	msgS.SetChatService(chatS)

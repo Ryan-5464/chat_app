@@ -54,3 +54,7 @@
 .stealth {
     color: var(--stealth-col);
 }
+
+.offline {
+    color: var(--offline-col);
+}

@@ -75,4 +75,16 @@ function RenderOnlineStatus(status) {
     if (status == "Away") { statusElem.classList.add('away') }
     if (status == "Busy") { statusElem.classList.add('busy') }
     if (status == "Stealth") { statusElem.classList.add('stealth') }
+    if (status == "Offline") { statusElem.classList.add('offline') }
+}
+
+function RenderContactOnlineStatus(status) {
+    const onlineStatus = contact.querySelector('.contact-status')
+    onlineStatus.innerHTML = status
+    onlineStatus.classList.value = ''
+    if (status == "Online") { onlineStatus.classList.add('online') }
+    if (status == "Away") { onlineStatus.classList.add('away') }
+    if (status == "Busy") { onlineStatus.classList.add('busy') }
+    if (status == "Stealth") { onlineStatus.classList.add('stealth') }
+    if (status == "Offline") { onlineStatus.classList.add('offline') }
 }

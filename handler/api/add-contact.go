@@ -68,13 +68,6 @@ func (h addContact) handleRequest(req acrequest, userId typ.UserId) (acresponse,
 		return res, errors.New("failed to add contact")
 	}
 
-	conn := h.connS.GetConnection(typ.UserId(contact.Id))
-	if conn == nil {
-		contact.OnlineStatus = false
-	} else {
-		contact.OnlineStatus = true
-	}
-
 	res = acresponse{
 		Contacts: []ent.Contact{*contact},
 	}

@@ -44,7 +44,7 @@ type Contact struct {
 	Name          string
 	Email         cred.Email
 	KnownSince    time.Time
-	OnlineStatus  bool
+	OnlineStatus  string
 	ContactChatId typ.ChatId
 }
 

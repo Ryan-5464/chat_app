@@ -8,14 +8,16 @@ import (
 	"server/util"
 )
 
-func NewUserService(u i.UserRepository) *UserService {
+func NewUserService(u i.UserRepository, cn i.ConnectionService) *UserService {
 	return &UserService{
-		usrR: u,
+		usrR:  u,
+		connS: cn,
 	}
 }
 
 type UserService struct {
-	usrR i.UserRepository
+	usrR  i.UserRepository
+	connS i.ConnectionService
 }
 
 func (u *UserService) GetUser(userId typ.UserId) (*ent.User, error) {
@@ -81,16 +83,29 @@ func (u *UserService) FindUsers(emails []cred.Email) ([]ent.User, error) {
 func (u *UserService) AddContact(email cred.Email, userId typ.UserId) (*ent.Contact, error) {
 	util.Log.FunctionInfo()
 
-	contact, err := u.usrR.FindUser(email)
+	ct, err := u.usrR.FindUser(email)
 	if err != nil {
 		return nil, err
 	}
 
-	if contact == nil {
+	if ct == nil {
 		return nil, nil
 	}
 
-	return u.usrR.AddContact(typ.ContactId(contact.Id), contact.Name, contact.Email, userId)
+	contact, err := u.usrR.AddContact(typ.ContactId(ct.Id), ct.Name, ct.Email, userId)
+	if err != nil {
+		return nil, err
+	}
+
+	status := u.connS.GetOnlineStatus(typ.UserId(contact.Id))
+
+	if status == "" || status == "stealth" {
+		status = "Offline"
+	}
+
+	contact.OnlineStatus = status
+
+	return contact, nil
 }
 
 func (u *UserService) EditUserName(name string, userId typ.UserId) error {
@@ -100,13 +115,40 @@ func (u *UserService) EditUserName(name string, userId typ.UserId) error {
 
 func (u *UserService) GetContacts(userId typ.UserId) ([]ent.Contact, error) {
 	util.Log.FunctionInfo()
-	return u.usrR.GetContacts(userId)
+	contacts, err := u.usrR.GetContacts(userId)
+	if err != nil {
+		return nil, err
+	}
+
+	for i := range contacts {
+		status := u.connS.GetOnlineStatus(typ.UserId(contacts[i].Id))
+
+		if status == "" || status == "Stealth" {
+			status = "Offline"
+		}
+
+		contacts[i].OnlineStatus = status
+	}
+
+	return contacts, nil
 }
 
 func (u *UserService) GetContact(chatId typ.ChatId, userId typ.UserId) (*ent.Contact, error) {
 	util.Log.FunctionInfo()
-	return u.usrR.GetContact(chatId, userId)
+	contact, err := u.usrR.GetContact(chatId, userId)
+	if err != nil {
+		return nil, err
+	}
 
+	status := u.connS.GetOnlineStatus(typ.UserId(contact.Id))
+
+	if status == "" || status == "stealth" {
+		status = "Offline"
+	}
+
+	contact.OnlineStatus = status
+
+	return contact, nil
 }
 
 func (u *UserService) RemoveContact(contactId typ.ContactId, userId typ.UserId) error {

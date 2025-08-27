@@ -85,7 +85,13 @@ document.addEventListener("DOMContentLoaded", function() {
     })
 
     document.querySelectorAll('.contact').forEach(contact => {
-        formatContactDates(contact)
+        const onlineStatus = contact.querySelector('.contact-status')
+        const status = onlineStatus.innerHTML
+        onlineStatus.classList.value = ''
+        if (status == "Online") { onlineStatus.classList.add('online') }
+        if (status == "Away") { onlineStatus.classList.add('away') }
+        if (status == "Busy") { onlineStatus.classList.add('busy') }
+        if (status == "Offline") { onlineStatus.classList.add('offline') }
     })
 
     AutoScrollToBottom()
@@ -209,12 +215,4 @@ function formatMessageDates(messageElem) {
     }
 
     messageElem.insertBefore(header, messageElem.querySelector('.message-text'))
-}
-
-function formatContactDates(contactElem) {
-    console.log("CONTACT £££ ", contactElem.children)
-    const contactSince = contactElem.querySelector('.contact-since')
-    console.log("CONTACTSINCE £££ ", contactSince)
-    const formatKnownSince = new Date(contactSince.innerHTML)
-    contactSince.innerHTML = `Known Since: ${formatKnownSince.toLocaleString()}`
 }
