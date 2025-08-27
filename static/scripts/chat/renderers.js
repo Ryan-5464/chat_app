@@ -47,10 +47,11 @@ function SetChatToActive(activeChatId) {
         });
     }
     const chat = document.querySelector(`[data-chatid="${activeChatId}"]`);
-    const umc = chat.querySelectorAll('.chat-unread-message-count');
-    if (umc) {
-        umc[0].innerHTML = 0;
-    }
+    umc = chat.querySelectorAll('.chat-unread-message-count');
+    if (!umc) { return; }
+    umc = umc[0]
+    umc.innerHTML = 0;
+    umc.classList.add('hidden')
     chat.classList.add('active');
     AutoScrollToBottom()
 }

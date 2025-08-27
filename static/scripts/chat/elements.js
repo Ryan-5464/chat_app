@@ -25,6 +25,9 @@ function ChatElement(chat) {
     const unreadMessageCount = document.createElement('div')
     unreadMessageCount.classList.add('chat-unread-message-count')
     unreadMessageCount.innerHTML = chat.UnreadMessageCount
+    if (chat.UnreadMessageCount == 0) {
+        unreadMessageCount.classList.add('hidden')
+    }
     chatHeader.appendChild(unreadMessageCount)
 
     const chatFooter = document.createElement('div')

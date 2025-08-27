@@ -15,10 +15,21 @@ socket.onmessage = function (event) {
     if (payload.Chats != null) {
         Object.values(payload.Chats).forEach(chat => {
             const chatElem = document.querySelector(`[data-chatid="${chat.Id}"]`);
-            const umc = chatElem.querySelectorAll('.chat-unread-message-count');
-            if (umc && !chatElem.classList.contains('active')) {
-                umc[0].innerHTML = chat.UnreadMessageCount;
+            let umc = chatElem.querySelectorAll('.chat-unread-message-count');
+            if (!umc) { return; }
+            umc = umc[0]
+            if (umc.innerHTML == 0) {
+                umc.classList.add('hidden')
+                return
             }
+            if (chatElem.classList.contains('active')) { return; }
+            if (umc.innerHTML === chat.UnreadMessageCount) { return; }
+
+            umc.classList.remove('hidden')
+            umc.innerHTML = chat.UnreadMessageCount;
+            umc.classList.remove('pulse')
+            void umc.offsetWidth; 
+            umc.classList.add('pulse')
         })
     }
 

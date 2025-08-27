@@ -6,7 +6,7 @@
 >
     <div class="chat-header">
         <div class="chat-name">{{ .Chat.Name }}</div>
-        <div class="chat-unread-message-count">{{ .Chat.UnreadMessageCount }}</div>
+        <div class="chat-unread-message-count {{if eq .Chat.UnreadMessageCount 0 }}hidden{{end}}">{{ .Chat.UnreadMessageCount }}</div>
     </div>
     <div class="chat-footer">
     </div>
