@@ -10,6 +10,7 @@ const EDIT_MESSAGE_ENDPOINT = '/api/message/edit';
 const GET_MEMBERS_ENDPOINT = '/api/chat/members';
 const ADD_MEMBER_ENDPOINT = '/api/chat/members/add';
 const REMOVE_MEMBER_ENDPOINT = '/api/chat/member/remove';
+const ONLINE_STATUS_ENDPOINT = '/api/status';
 
 const AddContactRequest = (email) => safeRequest(() => POST(ADD_CONTACT_ENDPOINT, { Email: email }));
 
@@ -34,6 +35,8 @@ const GetMemberListRequest = (chatId) => safeRequest(() => GET(GET_MEMBERS_ENDPO
 const AddMemberToChatRequest = (email, chatId) => safeRequest(() => POST(ADD_MEMBER_ENDPOINT, { Email: email, ChatId: chatId }))
 
 const RemoveMemberRequest = (chatId, userId) => safeRequest(() => DELETE(REMOVE_MEMBER_ENDPOINT, { ChatId: chatId, UserId: userId }))
+
+const ChangeOnlineStatusRequest = (status) => safeRequest(() => GET(ONLINE_STATUS_ENDPOINT, { Status: status }))
 
 async function safeRequest(reqFunc) {
     console.log("safe request: ", reqFunc)

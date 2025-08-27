@@ -66,3 +66,13 @@ function SetContactChatToActive(activeContactChatId) {
     const chat = document.querySelector(`[data-contactchatid="${activeContactChatId}"]`);
     chat.classList.add('active')
 }
+
+function RenderOnlineStatus(status) {
+    const status = document.getElementById('online-status')
+    status.innerHTML = status
+    status.classList.value = ''
+    if (status == "Online") { status.classList.add('online') }
+    if (status == "Away") { status.classList.add('away') }
+    if (status == "Busy") { status.classList.add('busy') }
+    if (status == "Stealth") { status.classList.add('stealth') }
+}

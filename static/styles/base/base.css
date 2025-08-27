@@ -13,6 +13,10 @@
   --bdr-col-hgl: #ecf0f1;
   --hgl-col-prim: #ecf0f1;
   --hgl-col-snd: #a8c7ff;
+  --online-col: lime;
+  --away-col: yellow;
+  --busy-col: red;
+  --stealth-col: #7f8c8d;
 }
 
 .jura {

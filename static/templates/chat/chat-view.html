@@ -6,6 +6,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <link rel="stylesheet" href="/static/styles/base/base.css">
+    <link rel="stylesheet" href="/static/styles/base/dropdown.css">
     <link rel="stylesheet" href="/static/styles/base/nav.css">
     <link rel="stylesheet" href="/static/styles/base/scroll.css">
     <link rel="stylesheet" href="/static/styles/base/button-elem.css">
@@ -33,16 +34,24 @@
 
 <div id="header-container">
 <nav>
-    <a>Status</a>
-    <a>{{ .User.Name }}</a>
-    <a href="/profile">Profile</a>
+    <!-- <a>Status</a> -->
+    <div class="dropdown">
+        <a id="online-status" class="dropbtn">Status</a>
+        <div class="dropdown-content">
+            <a href="#" onclick="ChangeOnlineStatusRequest('Online')" class="online">Online</a>
+            <a href="#" onclick="ChangeOnlineStatusRequest('Away')" class="away">Away</a>
+            <a href="#" onclick="ChangeOnlineStatusRequest('Busy')" class="busy">Busy</a>
+            <a href="#" onclick="ChangeOnlineStatusRequest('Stealth')" class="stealth">Stealth</a>
+        </div>
+    </div>
+    <a href="/profile">{{ .User.Name }}</a>
     <a id="logout" href="/api/logout">Logout</a>
 </nav>
 </div>
 
 <div id="main-container">
 
-    <div id="left-sidebar">
+    <div id="left-sidebar" class="scroll">
 
         <div id="sidebar-container">
 
@@ -64,7 +73,7 @@
     
     <div id="content-container">
 
-        <div id="messages-container">
+        <div id="messages-container" class="scroll">
             {{ template "messages" . }}
         </div>
 

@@ -90,6 +90,13 @@ function HandleAddMemberResponse(data) {
     return HandleResponse(data, callbacks);
 }
 
+function HandleChangeOnlineStatusResponse(data) {
+    const callbacks = {
+        Status: (data) => RenderOnlineStatus(data)
+    };
+    return HandleResponse(data, callbacks);
+};
+
 function HandleResponse(data, callbacks) {
     Object.entries(data).forEach(([key, value]) => {
         console.log("key, value = ", key, value);

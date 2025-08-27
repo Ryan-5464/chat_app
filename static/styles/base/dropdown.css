@@ -1,0 +1,57 @@
+/* Container for dropdown */
+.dropdown {
+    position: relative;
+    display: inline-block;
+}
+
+/* The dropdown content (initially hidden) */
+.dropdown-content {
+    display: none;
+    position: absolute;
+    background-color: var(--bg); /* Match your theme */
+    /* min-width: 160px; */
+    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.3);
+    z-index: 1;
+    border-radius: 4px;
+    top: 100%; /* Place below the trigger */
+    right: 0;
+}
+
+/* Links inside the dropdown */
+.dropdown-content a {
+    /* color: white; */
+    padding: 5px 10px;
+    text-decoration: none;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    font-size: 15px;
+}
+
+/* Hover styles for dropdown items */
+/* .dropdown-content a:hover {
+    background-color: #2a2a2a;
+    color: #a8c7ff;
+} */
+
+/* Show dropdown on hover */
+.dropdown:hover .dropdown-content {
+    display: block;
+}
+
+.online {
+    color: var(--online-col);
+}
+
+.away {
+    color:var(--away-col);
+}
+
+.busy {
+    color:var(--busy-col);
+}
+
+.stealth {
+    color: var(--stealth-col);
+}

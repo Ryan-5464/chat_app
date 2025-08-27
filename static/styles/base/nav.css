@@ -9,16 +9,42 @@ nav {
     border-bottom-width: 1px;
 }
 
+/* Remove underline from all anchor tags */
 a {
-    margin: 0px 15px 0px 15px;
+    margin: 0px 15px;
     color: var(--font-col-snd);
+    text-decoration: none; /* Removes underline */
+    position: relative;    /* Required for pseudo-element positioning */
 }
 
-
-a:hover{
+/* Hover text color */
+a:hover {
     color: #a8c7ff;
 }
 
+/* Pseudo-element for the animated underline */
+a::after {
+    content: '';
+    position: absolute;
+    bottom: -4px; /* Adjust distance below text */
+    left: 50%;
+    transform: translateX(-50%) scaleX(0); /* Start small from center */
+    transform-origin: center;
+    width: 100%;
+    height: 2px;
+    background: white;
+    box-shadow: 0 0 6px white; /* Glow effect */
+    transition: transform 0.3s ease, opacity 0.3s ease;
+    opacity: 0; /* Hidden initially */
+}
+
+/* Animate the underline on hover */
+a:hover::after {
+    transform: translateX(-50%) scaleX(1); /* Expand from center */
+    opacity: 1;
+}
+
+/* Special margin for logout */
 #logout {
-    margin-left:80px;
+    margin-left: 80px;
 }

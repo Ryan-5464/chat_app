@@ -143,6 +143,7 @@ type ConnectionService interface {
 	GetConnection(u typ.UserId) Socket
 	StoreConnection(conn Socket, u typ.UserId)
 	GetActiveConnections() map[typ.UserId]Socket
+	ChangeOnlineStatus(status string, u typ.UserId)
 }
 
 type Socket interface {
