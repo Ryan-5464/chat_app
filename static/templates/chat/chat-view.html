@@ -36,12 +36,12 @@
 <nav>
     <!-- <a>Status</a> -->
     <div class="dropdown">
-        <a id="online-status" class="dropbtn">Status</a>
+        <a id="online-status" class="dropbtn"></a>
         <div class="dropdown-content">
-            <a href="#" onclick="ChangeOnlineStatusRequest('Online')" class="online">Online</a>
-            <a href="#" onclick="ChangeOnlineStatusRequest('Away')" class="away">Away</a>
-            <a href="#" onclick="ChangeOnlineStatusRequest('Busy')" class="busy">Busy</a>
-            <a href="#" onclick="ChangeOnlineStatusRequest('Stealth')" class="stealth">Stealth</a>
+            <a href="#" onclick="ChangeOnlineStatusHandler('Online')" class="online">Online</a>
+            <a href="#" onclick="ChangeOnlineStatusHandler('Away')" class="away">Away</a>
+            <a href="#" onclick="ChangeOnlineStatusHandler('Busy')" class="busy">Busy</a>
+            <a href="#" onclick="ChangeOnlineStatusHandler('Stealth')" class="stealth">Stealth</a>
         </div>
     </div>
     <a href="/profile">{{ .User.Name }}</a>

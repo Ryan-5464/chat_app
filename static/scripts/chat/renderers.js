@@ -68,11 +68,11 @@ function SetContactChatToActive(activeContactChatId) {
 }
 
 function RenderOnlineStatus(status) {
-    const status = document.getElementById('online-status')
-    status.innerHTML = status
-    status.classList.value = ''
-    if (status == "Online") { status.classList.add('online') }
-    if (status == "Away") { status.classList.add('away') }
-    if (status == "Busy") { status.classList.add('busy') }
-    if (status == "Stealth") { status.classList.add('stealth') }
+    const statusElem = document.getElementById('online-status')
+    statusElem.innerHTML = status
+    statusElem.classList.value = ''
+    if (status == "Online") { statusElem.classList.add('online') }
+    if (status == "Away") { statusElem.classList.add('away') }
+    if (status == "Busy") { statusElem.classList.add('busy') }
+    if (status == "Stealth") { statusElem.classList.add('stealth') }
 }

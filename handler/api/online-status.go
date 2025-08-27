@@ -2,6 +2,7 @@ package api
 
 import (
 	"net/http"
+	"server/handler/ctxutil"
 	mw "server/handler/middleware"
 	i "server/interfaces"
 	ss "server/services/auth/session"
@@ -22,7 +23,7 @@ type onlineStatus struct {
 func (o onlineStatus) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	util.Log.FunctionInfo()
 
-	session := r.Context().Value("session").(ss.Session)
+	session := r.Context().Value(ctxutil.SessionKey).(ss.Session)
 
 	query := r.URL.Query()
 

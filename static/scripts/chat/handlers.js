@@ -82,6 +82,24 @@ function SwitchChatHandler(chatId) {
     });
 };
 
+function ChangeOnlineStatusHandler(status) {
+    ChangeOnlineStatusRequest(status).then(data => {
+        console.log("change online status response handler: ", data);
+        HandleChangeOnlineStatusResponse(data);
+    }).catch(error => {
+        console.error("change online status failed => error: ", error);
+    });
+}
+
+function GetOnlineStatusHandler() {
+    GetOnlineStatusRequest().then(data => {
+        console.log("get online status response handler: ", data);
+        HandleGetOnlineStatusResponse(data);
+    }).catch(error => {
+        console.error("get online status failed => error: ", error);
+    });
+}
+
 function SwitchContactChatHandler(contactChatId) {
     SwitchContactChatRequest(contactChatId).then(data => {
         console.log("switch contact chat response handler: ", data);

@@ -38,6 +38,13 @@ function HandleEditChatNameResponse(data) {
     return HandleResponse(data, callbacks);
 };
 
+function HandleGetOnlineStatusResponse(data) {
+    const callbacks = {
+        OnlineStatus: (data) => RenderOnlineStatus(data),
+    };
+    return HandleResponse(data, callbacks);
+};
+
 function HandleEditMessageResponse(data) {
     const callbacks = {
         MsgText: (data) => RenderMessageTextElement(data),

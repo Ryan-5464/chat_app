@@ -5,6 +5,7 @@ const socket = new WebSocket('ws://localhost:8081/ws');
 
 socket.onopen = function () {
     console.log("WebSocket connection established.");
+    GetOnlineStatusHandler()
 }
 
 socket.onmessage = function (event) {

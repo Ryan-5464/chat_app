@@ -12,11 +12,12 @@ import (
 	"server/util"
 )
 
-func Chat(a i.AuthService, c i.ChatService, m i.MessageService, u i.UserService) http.Handler {
+func Chat(a i.AuthService, c i.ChatService, m i.MessageService, u i.UserService, cn i.ConnectionService) http.Handler {
 	h := chatView{
 		chatS: c,
 		msgS:  m,
 		userS: u,
+		connS: cn,
 	}
 	return mw.AddMiddleware(h, mw.WithAuth(a), mw.WithMethod(mw.GET))
 }
@@ -25,6 +26,7 @@ type chatView struct {
 	chatS i.ChatService
 	msgS  i.MessageService
 	userS i.UserService
+	connS i.ConnectionService
 }
 
 func (h chatView) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -69,7 +71,6 @@ func (h chatView) getChatTemplateData(userId typ.UserId) (tmplData, error) {
 	// Setting to zero since active chat will always display latest message
 	// Must do this because chats are retrieved before latest message id is updated so active chatid
 	// is outdated.
-	util.Log.Dbugf("CHATS BEFORE => %v", chats)
 
 	if len(chats) != 0 {
 		for i := range chats {
@@ -80,8 +81,6 @@ func (h chatView) getChatTemplateData(userId typ.UserId) (tmplData, error) {
 		}
 		chats[0].UnreadMessageCount = 0
 	}
-
-	util.Log.Dbugf("CHATS AFTER => %v", chats)
 
 	latestMsgId := findLastestMessageId(messages)
 

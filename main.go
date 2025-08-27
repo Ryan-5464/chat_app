@@ -51,6 +51,7 @@ func main() {
 
 	fs := http.FileServer(http.Dir("./static"))
 	http.Handle("/static/", http.StripPrefix("/static/", fs))
+	http.Handle("/favicon.ico", http.NotFoundHandler())
 
 	http.Handle("/api/chat/members", api.GetMembers(authS, chatS))
 	http.Handle("/api/chat/switch", api.SwitchChat(authS, msgS))
@@ -63,7 +64,8 @@ func main() {
 	http.Handle("/api/chat/contact/add", api.AddContact(authS, connS, userS))
 	http.Handle("/api/chat/members/add", api.AddMember(authS, chatS))
 	http.Handle("/api/logout", api.Logout(authS))
-	http.Handle("api/status", api.OnlineStatus(authS, connS))
+	http.Handle("/api/status", api.OnlineStatus(authS, connS))
+	http.Handle("/api/status/get", api.GetOnlineStatus(authS, connS))
 
 	http.Handle("/api/message/delete", api.DeleteMessage(authS, msgS))
 	http.Handle("/api/message/edit", api.EditMessage(authS, msgS))
@@ -73,8 +75,8 @@ func main() {
 	http.Handle("/api/login", api.Login(authS, userS))
 
 	http.Handle("/profile", view.Profile(authS, userS))
-	http.Handle("/chat", view.Chat(authS, chatS, msgS, userS))
 	http.Handle("/ws", socket.Chat(authS, connS, msgS))
+	http.Handle("/chat", view.Chat(authS, chatS, msgS, userS, connS))
 	http.Handle("/register", view.Register())
 	http.Handle("/login", view.Login())
 	http.Handle("/", view.Index())

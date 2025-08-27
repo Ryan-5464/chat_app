@@ -22,7 +22,9 @@ func (c *ConnectionService) StoreConnection(conn i.Socket, userId typ.UserId) {
 	util.Log.FunctionInfo()
 	util.Log.Dbugf("New User Connection: Id = %v", userId.String())
 	c.pool[userId] = conn
-	c.status[userId] = "Online"
+	if c.status[userId] == "" {
+		c.status[userId] = "Online"
+	}
 }
 
 func (c *ConnectionService) GetConnection(userId typ.UserId) i.Socket {
@@ -33,7 +35,6 @@ func (c *ConnectionService) GetConnection(userId typ.UserId) i.Socket {
 func (c *ConnectionService) DisconnectUser(userId typ.UserId) {
 	util.Log.FunctionInfo()
 	delete(c.pool, userId)
-	delete(c.status, userId)
 	util.Log.Dbugf("User disconnected: Id = %v", userId.String())
 }
 
@@ -43,4 +44,8 @@ func (c *ConnectionService) GetActiveConnections() map[typ.UserId]i.Socket {
 
 func (c *ConnectionService) ChangeOnlineStatus(status string, userId typ.UserId) {
 	c.status[userId] = status
+}
+
+func (c *ConnectionService) GetOnlineStatus(userId typ.UserId) string {
+	return c.status[userId]
 }
