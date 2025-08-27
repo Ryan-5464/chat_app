@@ -62,11 +62,6 @@ function ContactElement(contact) {
     messageFooter.classList.add('contact-footer')
     contactElem.appendChild(messageFooter)
 
-    const knownSince = document.createElement('div')
-    knownSince.classList.add('contact-since')
-    knownSince.innerHTML = contact.KnownSince
-    messageFooter.appendChild(knownSince)
-
     const onlineStatus = document.createElement('div')
     onlineStatus.classList.add('contact-status')
     onlineStatus.innerHTML = contact.OnlineStatus

@@ -1,6 +1,5 @@
 message reply
 chat styling
-contact online status
 contact known since time format
 contact profile
 online status

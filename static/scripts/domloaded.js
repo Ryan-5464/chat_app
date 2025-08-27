@@ -84,6 +84,10 @@ document.addEventListener("DOMContentLoaded", function() {
         formatMessageDates(msg)
     })
 
+    document.querySelectorAll('.contact').forEach(contact => {
+        formatContactDates(contact)
+    })
+
     AutoScrollToBottom()
 
 })
@@ -119,7 +123,7 @@ function addNewMsgListenerToMsgInput() {
             const replyId = null
             const msgText = input.value.trim()
             const chat = document.querySelector(".active")
-            chatId = chat.getAttribute("data-chatid")
+            const chatId = chat.getAttribute("data-chatid")
             if (chatId == null) {
                 chatId = chat.getAttribute("data-contactchatid")
                 sendContactMessage(msgText, chatId, replyId)
@@ -205,4 +209,12 @@ function formatMessageDates(messageElem) {
     }
 
     messageElem.insertBefore(header, messageElem.querySelector('.message-text'))
+}
+
+function formatContactDates(contactElem) {
+    console.log("CONTACT £££ ", contactElem.children)
+    const contactSince = contactElem.querySelector('.contact-since')
+    console.log("CONTACTSINCE £££ ", contactSince)
+    const formatKnownSince = new Date(contactSince.innerHTML)
+    contactSince.innerHTML = `Known Since: ${formatKnownSince.toLocaleString()}`
 }
