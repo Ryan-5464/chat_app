@@ -13,6 +13,14 @@ socket.onmessage = function (event) {
     const payload = JSON.parse(event.data);
     console.log(":: payload, ", payload);
 
+    if (payload.OnlineStatus != null) {
+        const contact = document.querySelector(`[data-contactid="${payload.UserId}"]`)
+        console.log("CONTACT ----> ", contact)
+        console.log("ONLINE STATUS ----> ", payload.OnlineStatus)
+        RenderContactOnlineStatus(payload.OnlineStatus, contact);
+        return;
+    };
+
     if (payload.Chats != null) {
         Object.values(payload.Chats).forEach(chat => {
             const chatElem = document.querySelector(`[data-chatid="${chat.Id}"]`);
@@ -88,6 +96,7 @@ document.addEventListener("DOMContentLoaded", function() {
         const onlineStatus = contact.querySelector('.contact-status')
         const status = onlineStatus.innerHTML
         onlineStatus.classList.value = ''
+        onlineStatus.classList.add('contact-status')
         if (status == "Online") { onlineStatus.classList.add('online') }
         if (status == "Away") { onlineStatus.classList.add('away') }
         if (status == "Busy") { onlineStatus.classList.add('busy') }

@@ -5,11 +5,15 @@
     margin-bottom: 4px;
 }
 
-.contact-email,
-.contact-since,
-.contact-status {
+.contact-email{
     font-size: 13px;
     color: var(--font-col-snd);
+    margin-top: 2px;
+    transition: color 0.3s ease;
+}
+
+.contact-status {
+    font-size: 13px;
     margin-top: 2px;
     transition: color 0.3s ease;
 }

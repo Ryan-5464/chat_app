@@ -6,16 +6,22 @@ import (
 	"server/util"
 )
 
-func NewConnectionService() *ConnectionService {
+func NewConnectionService(u i.UserService) *ConnectionService {
 	return &ConnectionService{
 		pool:   make(map[typ.UserId]i.Socket),
 		status: make(map[typ.UserId]string),
+		userS:  u,
 	}
 }
 
 type ConnectionService struct {
 	pool   map[typ.UserId]i.Socket
 	status map[typ.UserId]string
+	userS  i.UserService
+}
+
+func (c *ConnectionService) SetUserService(userS i.UserService) {
+	c.userS = userS
 }
 
 func (c *ConnectionService) StoreConnection(conn i.Socket, userId typ.UserId) {
@@ -42,8 +48,38 @@ func (c *ConnectionService) GetActiveConnections() map[typ.UserId]i.Socket {
 	return c.pool
 }
 
-func (c *ConnectionService) ChangeOnlineStatus(status string, userId typ.UserId) {
+func (c *ConnectionService) ChangeOnlineStatus(status string, userId typ.UserId) error {
 	c.status[userId] = status
+
+	contacts, err := c.userS.GetContacts(userId)
+	if err != nil {
+		return err
+	}
+
+	for _, contact := range contacts {
+		conn := c.GetConnection(typ.UserId(contact.Id))
+
+		if conn == nil {
+			continue
+		}
+
+		payload := struct {
+			Type         int
+			OnlineStatus string
+			UserId       typ.UserId
+		}{
+			Type:         11,
+			OnlineStatus: status,
+			UserId:       userId,
+		}
+
+		if err := conn.WriteJSON(payload); err != nil {
+			util.Log.Errorf("failed to write to websocket connection: %v", err)
+			return err
+		}
+
+	}
+	return nil
 }
 
 func (c *ConnectionService) GetOnlineStatus(userId typ.UserId) string {

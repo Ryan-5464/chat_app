@@ -43,8 +43,9 @@ func main() {
 	msgR := repo.NewMessageRepository(dbService)
 
 	authS := sauth.NewAuthService()
-	connS := sconn.NewConnectionService()
+	connS := sconn.NewConnectionService(nil)
 	userS := suser.NewUserService(userR, connS)
+	connS.SetUserService(userS)
 	msgS := smsg.NewMessageService(msgR, userS, connS, nil)
 	chatS := schat.NewChatService(chatR, msgS, userS)
 	msgS.SetChatService(chatS)

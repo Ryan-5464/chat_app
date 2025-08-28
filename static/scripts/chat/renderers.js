@@ -78,13 +78,18 @@ function RenderOnlineStatus(status) {
     if (status == "Offline") { statusElem.classList.add('offline') }
 }
 
-function RenderContactOnlineStatus(status) {
+function RenderContactOnlineStatus(status, contact) {
     const onlineStatus = contact.querySelector('.contact-status')
-    onlineStatus.innerHTML = status
+    if (status == "Stealth") {
+        onlineStatus.innerHTML = "Offline"
+    } else {
+        onlineStatus.innerHTML = status
+    }
     onlineStatus.classList.value = ''
+    onlineStatus.classList.add('contact-status')
     if (status == "Online") { onlineStatus.classList.add('online') }
     if (status == "Away") { onlineStatus.classList.add('away') }
     if (status == "Busy") { onlineStatus.classList.add('busy') }
-    if (status == "Stealth") { onlineStatus.classList.add('stealth') }
+    if (status == "Stealth") { onlineStatus.classList.add('offline') }
     if (status == "Offline") { onlineStatus.classList.add('offline') }
 }
