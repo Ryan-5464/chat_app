@@ -1,30 +1,32 @@
 function addSwitchChatControllerToChatsContainer() {
     const chatContainer = ConfigureChatsController();
     chatContainer.addEventListener('click', (e) => {
-        const chatId = e.target.closest('[data-chatid]')?.getAttribute('data-chatid');
-        chatContainer.__controller.SwitchChat(chatId)
+        const chat = GetClosestTargetByData(e, APP.DATA.CHAT.ID)
+        const chatId = GetDataAttribute(chat, APP.DATA.CHAT.ID);
+        chatContainer.__controller.SwitchChat(chatId);
     }); 
 };
 
 function ConfigureChatsController() {
-    const chatsContainer = document.getElementById('chats-container')
+    const chatsContainer = document.getElementById(APP.CLS.CHAT.CONTAINER);
     chatsContainer.__controller = {
         SwitchChat: (chatId) => SwitchChatHandler(chatId),
     };
-    return chatsContainer
+    return chatsContainer;
 };
 
 
 function addSwitchContactChatControllerToContactsContainer() {
     const contactContainer = ConfigureContactsController();
     contactContainer.addEventListener('click', (e) => {
-        const contactChatId = e.target.closest('[data-contactchatid]')?.getAttribute('data-contactchatid');
-        contactContainer.__controller.SwitchContactChat(contactChatId)
+        const contact = GetClosestTargetByData(e, APP.DATA.CONTACT.CHATID);
+        const contactChatId = GetDataAttribute(contact, APP.DATA.CONTACT.CHATID);
+        contactContainer.__controller.SwitchContactChat(contactChatId);
     }); 
 };
 
 function ConfigureContactsController() {
-    const contactsContainer = document.getElementById('contacts-container')
+    const contactsContainer = document.getElementById(APP.CLS.CONTACT.CONTAINER)
     contactsContainer.__controller = {
         SwitchContactChat: (contactChatId) => SwitchContactChatHandler(contactChatId),
     };

@@ -130,9 +130,9 @@ function AddMemberToChatHandler(email, chatId) {
 function RemoveMemberHandler(chatId, userId) {
     RemoveMemberRequest(chatId, userId).then(data => {
         console.log("remove member from chat: ", data)
-        const members = document.querySelectorAll('.member')
+        const members = QSelectAllByClass(document, APP.CLS.MEMBER.TAG)
         Object.values(members).forEach(member => {
-            if (member.getAttribute('data-userid') === userId) {
+            if (GetDataAttribute(member, APP.DATA.USER.ID) === userId) {
                 member.remove()
             }
         })

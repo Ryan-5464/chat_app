@@ -9,7 +9,7 @@ function addNewChatEventListenerToNewChatInput() {
 };
 
 function ConfigureNewChatInput () {
-    const newChatInput = document.getElementById('new-chat-input');
+    const newChatInput = document.getElementById(APP.ID.CHAT.NEW_INPUT);
     newChatInput.__controller = {
         NewChat: (input) => NewChatHandler(input),
     };

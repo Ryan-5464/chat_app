@@ -6,19 +6,15 @@ const configureRemoveMemberButton = ConfigureRemoveMemberButton(modal.__controll
 
 function AddMemberModalToMemberListModal(memberListModal) {
 
-    console.log("add modal to member list => modal:", memberListModal)
-
     memberListModal.addEventListener("contextmenu", (e) => {
         e.preventDefault()
         e.stopPropagation()
 
-        const member = e.target.closest('.member')
+        const member = e.target.closest(`.${APP.CLS.MEMBER.TAG}`)
         if (!member) return
-        console.log(member)
-        console.log(member.children)
         const email  = member.children[1].innerHTML
-        const chatId = member.getAttribute('data-chatid') 
-        const userId = member.getAttribute('data-userid')
+        const chatId = GetDataAttribute(member, APP.DATA.CHAT.ID) 
+        const userId = GetDataAttribute(member, APP.DATA.USER.ID)
         if (!chatId || !userId) return;
         modal.__controller.OpenAt(e.clientX, e.clientY)
         configureAddContactButton(email)
@@ -28,7 +24,7 @@ function AddMemberModalToMemberListModal(memberListModal) {
 
 
 function ConfigureAddContactButton(memberModalController) {
-    let addContactBtn = document.getElementById('add-contact-btn')
+    let addContactBtn = document.getElementById(APP.ID.MEMBER.ADD_CONTACT_BTN)
     let currentEmail = null
     addContactBtn = RemoveAllListeners(addContactBtn);
     addContactBtn.addEventListener('click', (e) => {
@@ -40,7 +36,7 @@ function ConfigureAddContactButton(memberModalController) {
 }
 
 function ConfigureRemoveMemberButton(memberModalController) {
-    let removeMemberButton = document.getElementById('member-del-btn')
+    let removeMemberButton = document.getElementById(APP.ID.MEMBER.DEL_BTN)
     let currentChatId, currentUserId = null
     removeMemberButton = RemoveAllListeners(removeMemberButton);
     removeMemberButton.addEventListener('click', (e) => {
@@ -52,7 +48,7 @@ function ConfigureRemoveMemberButton(memberModalController) {
 }
 
 function ConfigureMemberModal() {
-    const modal = document.getElementById('memberModal')
+    const modal = document.getElementById(APP.ID.MODAL.MEMBER)
     modal.__controller = {
         Close: () => CloseModal(modal),
         OpenAt: (clientX, clientY) => OpenModalAt(modal, clientX, clientY),

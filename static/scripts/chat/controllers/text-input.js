@@ -1,23 +1,21 @@
 
 function replaceTextInputWithText(openInput, textDivId) {
     if (!openInput) { return; }
-    const openInputText = document.createElement('div');
-    openInputText.classList.add(textDivId);
-    openInputText.innerHTML = openInput.__oldtext;
+    const openInputText = CreateElement({classes:[textDivId], innerHTML:openInput.__oldtext});
     openInput.replaceWith(openInputText);
-}
+};
 
 function replaceTextWithTextInput(container, textDivId, inputId, isMsg) {
-    const elemText = container.querySelector(`.${textDivId}`);
+    const elemText = QSelectByClass(container, textDivId);
     let input
     if (isMsg) {
         input = replaceWithTextArea(elemText, elemText.textContent, inputId);
     } else {
         input = replaceWithInput(elemText, elemText.textContent, inputId);
-    }
+    };
     input.focus();
     return input;
-}
+};
 
 function textInputController(container, submitTextHandler, inputId, textDivId, isMsg=false) {
     const openInput = document.getElementById(inputId)
