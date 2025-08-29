@@ -1,14 +1,14 @@
 window.addEventListener("click", function (e) {
     QSelectAllByClass(document, APP.CLS.MODAL.TAG).forEach(modal => {
         const modalContent = modal.querySelector(APP.CLS.MODAL.CONTENT);
-        if (modal.classList.contains(APP.CLS.OPEN) && !modalContent.contains(e.target)) {
+        if (modal.classList.contains(APP.CLS.GEN.OPEN) && !modalContent.contains(e.target)) {
             modal.__controller.Close();
         };
     });
 });
 
 function replaceWithInput(elem, placeholder, id) {
-    const input = CreateElement({elemType:'input', id:id, classes:[APP.CLS.INPUT_ELEM]});
+    const input = CreateElement({elemType:'input', id:id, classes:[APP.CLS.GEN.INPUT_ELEM]});
     input.__oldtext = elem.textContent;
     input.type = 'text';
     input.name = 'Name';
@@ -19,7 +19,7 @@ function replaceWithInput(elem, placeholder, id) {
 };
 
 function replaceWithTextArea(elem, placeholder, id) {
-    const textarea = CreateElement({elemType:'textarea', id:id, classes:[APP.CLS.INPUT_ELEM, APP.CLS.TEXT_AREA]});
+    const textarea = CreateElement({elemType:'textarea', id:id, classes:[APP.CLS.GEN.INPUT_ELEM, APP.CLS.GEN.TEXT_AREA]});
     textarea.name = 'Name';
     textarea.value = placeholder;
     textarea.required = true;

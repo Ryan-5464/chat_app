@@ -8,7 +8,7 @@ function addSwitchChatControllerToChatsContainer() {
 };
 
 function ConfigureChatsController() {
-    const chatsContainer = document.getElementById(APP.CLS.CHAT.CONTAINER);
+    const chatsContainer = document.getElementById(APP.ID.CHAT.CONTAINER);
     chatsContainer.__controller = {
         SwitchChat: (chatId) => SwitchChatHandler(chatId),
     };
@@ -26,7 +26,7 @@ function addSwitchContactChatControllerToContactsContainer() {
 };
 
 function ConfigureContactsController() {
-    const contactsContainer = document.getElementById(APP.CLS.CONTACT.CONTAINER)
+    const contactsContainer = document.getElementById(APP.ID.CONTACT.CONTAINER)
     contactsContainer.__controller = {
         SwitchContactChat: (contactChatId) => SwitchContactChatHandler(contactChatId),
     };

@@ -1,6 +1,6 @@
 function addContactModalListenerToContactContainer() {
     const modal = ConfigureContactModal();
-    const container = document.getElementById(APP.CLS.CONTACT.CONTAINER);
+    const container = document.getElementById(APP.ID.CONTACT.CONTAINER);
     const configureRemoveContactButton = ConfigureRemoveContactButton(modal.__controller);
     
     container.addEventListener("contextmenu", (e) => {
@@ -36,7 +36,7 @@ function ConfigureContactModal() {
 };
 
 function RemoveContact(contactId, closeModal) {
-    const activeContactChat = QSelectByClass(document, APP.CLS.ACTIVE);
+    const activeContactChat = QSelectByClass(document, APP.CLS.GEN.ACTIVE);
     const activeContactId = GetDataAttribute(activeContactChat, APP.DATA.CONTACT.ID);
     const isActive = contactId === activeContactId;
     closeModal();

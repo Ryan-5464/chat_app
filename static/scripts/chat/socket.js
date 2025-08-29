@@ -17,7 +17,7 @@ socket.onmessage = function (e) {
     if (!payload.Messages) return;
     const messageChatId = payload.Messages[0].ChatId;
     
-    const activeChat = QSelectByClass(document, APP.CLS.ACTIVE);
+    const activeChat = QSelectByClass(document, APP.CLS.GEN.ACTIVE);
     if (!activeChat) { throw new Error("no active chat found"); };
 
     const activeChatId = getActiveChatId(activeChat)
@@ -42,7 +42,7 @@ function updateUnreadMessageCount(chat) {
     let umc = QSelectByClass(chatElem, APP.CLS.CHAT.UNREAD_MSG_CNT);
     if (!umc) { return; }
     if (umc.innerHTML == 0) { HideElement(umc); return; };
-    if (chatElem.classList.contains(APP.CLS.ACTIVE)) { return; };
+    if (chatElem.classList.contains(APP.CLS.GEN.ACTIVE)) { return; };
     if (umc.innerHTML === chat.UnreadMessageCount) { return; };
     umc.innerHTML = chat.UnreadMessageCount;
     ShowElement(umc);
@@ -53,7 +53,7 @@ const sendContactMessage = (data) => socketSendMessage(data, APP.MSG_TYPE.NEW_CO
 const sendChatMessage = (data) => socketSendMessage(data, APP.MSG_TYPE.NEW_MSG);
 
 function socketSendMessage(data, msgType) {
-    if (msgText) {
+    if (data.MsgText) {
         payload = {Type: msgType, Data: data };
         socket.send(JSON.stringify(payload));
     };

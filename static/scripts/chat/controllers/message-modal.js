@@ -1,6 +1,6 @@
 function addMessageModalListenerToMessageContainer() {
     const modal = ConfigureMessageModal();
-    const container = document.getElementById(APP.CLS.MESSAGE.CONTAINER);
+    const container = document.getElementById(APP.ID.MESSAGE.CONTAINER);
     const configureEditMsgButton = ConfigureEditMsgButton(modal.__controller);
     const configureDeleteMsgButton = ConfigureDeleteMsgButton(modal.__controller);
     
@@ -10,13 +10,13 @@ function addMessageModalListenerToMessageContainer() {
 
         const editButton = document.getElementById(APP.ID.MODAL.MSG_EDIT_BTN);
         const deleteButton = document.getElementById(APP.ID.MODAL.MSG_DEL_BTN);
-        editButton.classList.add(APP.CLS.HIDDEN);
-        deleteButton.classList.add(APP.CLS.HIDDEN);
+        editButton.classList.add(APP.CLS.GEN.HIDDEN);
+        deleteButton.classList.add(APP.CLS.GEN.HIDDEN);
 
         const message = e.target.closest(`.${APP.CLS.MESSAGE.TAG}`);
-        if (message.classList.contains(APP.CLS.ME)) {
-            editButton.classList.remove(APP.CLS.HIDDEN);
-            deleteButton.classList.remove(APP.CLS.HIDDEN);
+        if (message.classList.contains(APP.CLS.GEN.ME)) {
+            editButton.classList.remove(APP.CLS.GEN.HIDDEN);
+            deleteButton.classList.remove(APP.CLS.GEN.HIDDEN);
         }
         const m = GetClosestTargetByData(e, APP.DATA.MESSAGE.ID)
         if (!m) { return; }

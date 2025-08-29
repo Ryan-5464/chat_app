@@ -34,6 +34,6 @@ function HandleEditUserNameResponse(data) {
 };
 
 function RenderUserName(name) {
-    const currentName = document.getElementById(APP.ID.CURRENT_VALUE)
+    const currentName = document.getElementById(APP.ID.GEN.CURRENT_VALUE)
     currentName.innerHTML = name
 };

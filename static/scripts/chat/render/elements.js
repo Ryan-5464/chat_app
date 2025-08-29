@@ -1,10 +1,10 @@
 function ChatElement(chat) {
     const chatElem = CreateElement({
-        classes:[APP.CLS.CHAT.TAG, APP.CLS.SIDEBAR_ELEM], 
+        classes:[APP.CLS.CHAT.TAG, APP.CLS.GEN.SIDEBAR_ELEM], 
         data:{
-            [APP.DATA.CHAT.ID]: contact.Id,
-            [APP.DATA.CHAT.ADMINID]: contact.AdminId,
-            [APP.DATA.CREATED]: contact.CreatedAt,
+            [APP.DATA.CHAT.ID]: chat.Id,
+            [APP.DATA.CHAT.ADMINID]: chat.AdminId,
+            [APP.DATA.CREATED]: chat.CreatedAt,
         },
     });
     if (chat.UserIsAdmin) {
@@ -25,7 +25,7 @@ function ChatElement(chat) {
 
 function ContactElement(contact) {
     const contactElem = CreateElement({
-        classes:[APP.CLS.CONTACT.TAG, APP.CLS.SIDEBAR_ELEM], 
+        classes:[APP.CLS.CONTACT.TAG, APP.CLS.GEN.SIDEBAR_ELEM], 
         data:{
             [APP.DATA.CONTACT.ID]: contact.Id,
             [APP.DATA.CONTACT.CHATID]: contact.ContactChatId,
@@ -51,7 +51,7 @@ function MessageElement(message) {
         },
     });
     if (message.IsUserMessage) {
-        messageElem.classList.add(APP.CLS.ME);
+        messageElem.classList.add(APP.CLS.GEN.ME);
     };
     const messageHeader = CreateElement({classes:[APP.CLS.MESSAGE.HEADER]});
     const messageFooter = CreateElement({classes:[APP.CLS.MESSAGE.FOOTER]});

@@ -34,19 +34,19 @@ function SetChatToActive(activeChatId) {
     umc = QSelectByClass(chat, APP.CLS.CHAT.UNREAD_MSG_CNT);
     if (!umc) { return; };
     umc.innerHTML = 0;
-    umc.classList.add(APP.CLS.HIDDEN);
-    chat.classList.add(APP.CLS.ACTIVE);
+    umc.classList.add(APP.CLS.GEN.HIDDEN);
+    chat.classList.add(APP.CLS.GEN.ACTIVE);
     AutoScrollToBottom();
 };
 
 function SetContactChatToActive(activeContactChatId) {
     RemoveActiveFromChat();
     const chat = GetElemByDataTag(APP.DATA.CONTACT.CHATID, activeContactChatId);
-    chat.classList.add(APP.CLS.ACTIVE);
+    chat.classList.add(APP.CLS.GEN.ACTIVE);
 };
 
 function RenderOnlineStatus(status) {
-    const onlineStatus = QSelectByClass(document, APP.CLS.STATUS.STATUS);
+    const onlineStatus = document.getElementById(APP.ID.GEN.STATUS);
     onlineStatus.innerHTML = status;
     onlineStatus.classList.value = '';
     changeOnlineStatus(onlineStatus, status);
@@ -73,15 +73,15 @@ function changeOnlineStatus(elem, status) {
 };
 
 function HideElement(elem) {
-    elem.classList.add(APP.CLS.HIDDEN);
+    elem.classList.add(APP.CLS.GEN.HIDDEN);
 };
 
 function ShowElement(elem) {
-    elem.classList.remove(APP.CLS.HIDDEN);
+    elem.classList.remove(APP.CLS.GEN.HIDDEN);
 };
 
 function RemoveActiveFromChat() {
-    const activeChat = QSelectByClass(document, APP.CLS.ACTIVE);
+    const activeChat = QSelectByClass(document, APP.CLS.GEN.ACTIVE);
     if (!activeChat) { return; };
-    activeChat.classList.remove(APP.CLS.ACTIVE);
+    activeChat.classList.remove(APP.CLS.GEN.ACTIVE);
 };

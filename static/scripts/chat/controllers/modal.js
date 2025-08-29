@@ -1,11 +1,11 @@
 function CloseModal (modal) {
     const modalContent = QSelectByClass(modal, APP.CLS.MODAL.CONTENT)
-    modalContent.classList.remove(APP.CLS.OPENING);
-    modalContent.classList.add(APP.CLS.CLOSING);
+    modalContent.classList.remove(APP.CLS.GEN.OPENING);
+    modalContent.classList.add(APP.CLS.GEN.CLOSING);
 
     setTimeout(() => {
-        modal.classList.remove(APP.CLS.OPEN);
-        modalContent.classList.remove(APP.CLS.CLOSING);
+        modal.classList.remove(APP.CLS.GEN.OPEN);
+        modalContent.classList.remove(APP.CLS.GEN.CLOSING);
     }, MODAL_CLOSE_DELAY);
 }
 
@@ -24,11 +24,11 @@ function OpenModalAt(modal, clientX, clientY) {
     modalContent.style.left = Math.min(clientX, maxLeft) + "px";
     modalContent.style.top = Math.min(clientY, maxTop) + "px";
 
-    modalContent.classList.remove(APP.CLS.OPENING, APP.CLS.CLOSING);
+    modalContent.classList.remove(APP.CLS.GEN.OPENING, APP.CLS.GEN.CLOSING);
     void modalContent.offsetWidth; 
 
-    modal.classList.add(APP.CLS.OPEN);
-    modalContent.classList.add(APP.CLS.OPENING);
+    modal.classList.add(APP.CLS.GEN.OPEN);
+    modalContent.classList.add(APP.CLS.GEN.OPENING);
 };
 
 

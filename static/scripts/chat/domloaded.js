@@ -12,7 +12,7 @@ function formatMessageDate(msgElem) {
 };
 
 function createMessageDate(msgElem) {
-    const createdAt = new Date(msgElem.dataset[APP.DATA.CREATED]);
+    const createdAt = new Date(msgElem.dataset[APP.DATA.GEN.CREATED]);
     const lastEditAt = new Date(msgElem.dataset[APP.DATA.MESSAGE.LAST_EDIT]);
     if (createdAt < lastEditAt) {
         return CreateElement({
@@ -22,7 +22,7 @@ function createMessageDate(msgElem) {
     } else {
         return CreateElement({
             classes:[APP.CLS.MESSAGE.CREATED], 
-            innerHTML:`Sent: ${FormatDate(msgElem.dataset[APP.DATA.CREATED])}`,
+            innerHTML:`Sent: ${FormatDate(msgElem.dataset[APP.DATA.GEN.CREATED])}`,
         });
     };
 };
@@ -50,7 +50,7 @@ function addNewMsgListenerToMsgInput() {
     input.addEventListener('keydown', function (event) {
         if (event.key === "Enter") {
             const msgText = input.value.trim();
-            const chat = QSelectByClass(document, APP.CLS.ACTIVE);
+            const chat = QSelectByClass(document, APP.CLS.GEN.ACTIVE);
             let chatId = GetDataAttribute(chat, APP.DATA.CHAT.ID);
             if (chatId == null) {
                 chatId = GetDataAttribute(chat, APP.DATA.CONTACT.CHATID);
@@ -68,7 +68,7 @@ function addNewMsgListenerToSendMsgButton() {
     button.addEventListener('click', function () {
         const input = document.getElementById(APP.ID.MESSAGE.INPUT);
         const msgText = input.value.trim();
-        const chat = QSelectByClass(document, APP.CLS.ACTIVE);
+        const chat = QSelectByClass(document, APP.CLS.GEN.ACTIVE);
         let chatId = GetDataAttribute(chat, APP.DATA.CHAT.ID);
         if (chatId == null) {
             chatId = GetDataAttribute(chat, APP.DATA.CONTACT.CHATID);

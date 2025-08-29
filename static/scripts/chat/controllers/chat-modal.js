@@ -10,12 +10,12 @@ function addChatModalListenerToChatContainer() {
         e.stopPropagation();
 
         const editButton = document.getElementById(APP.ID.CHAT.EDIT_BTN)
-        const chat = e.target.closest(".".concat(APP.CLS.CHAT))
+        const chat = e.target.closest(".".concat(APP.CLS.CHAT.TAG))
 
-        if (chat.classList.contains(APP.CLS.ME)) {
-            editButton.classList.remove(APP.CLS.HIDDEN)
+        if (chat.classList.contains(APP.CLS.GEN.ME)) {
+            editButton.classList.remove(APP.CLS.GEN.HIDDEN)
         } else {
-            editButton.classList.add(APP.CLS.HIDDEN) 
+            editButton.classList.add(APP.CLS.GEN.HIDDEN) 
         }
 
         const c = GetClosestTargetByData(e, APP.DATA.CHAT.ID)
@@ -56,15 +56,15 @@ function ConfigureMembersButton(chatModalController) {
 
     membersButton.addEventListener('click', () => {
         if (!currentChatId) return;
-        const addMember = document.getElementById(APP.ID.CHAT.ADD)
+        const addMember = document.getElementById(APP.ID.MEMBER.ADD)
         
-        if (chatElem.classList.contains(APP.CLS.ME)) {
-            addMember.classList.remove(APP.CLS.HIDDEN)
+        if (chatElem.classList.contains(APP.CLS.GEN.ME)) {
+            addMember.classList.remove(APP.CLS.GEN.HIDDEN)
         } else {
-            addMember.classList.add(APP.CLS.HIDDEN) 
+            addMember.classList.add(APP.CLS.GEN.HIDDEN) 
         }
 
-        const addMemberInput = document.getElementById(APP.ID.CHAT.INPUT)
+        const addMemberInput = document.getElementById(APP.ID.MEMBER.INPUT)
         addMemberInput.setAttribute(`data-${APP.DATA.CHAT.ID}`, currentChatId)
         chatModalController.DisplayMemberList(currentChatId);
     });
@@ -91,7 +91,7 @@ function EditChatName(chatId, closeModal) {
 };
 
 function LeaveChat(chatId, closeModal) {
-    const activeChat = QSelectByClass(document, APP.CLS.ACTIVE);
+    const activeChat = QSelectByClass(document, APP.CLS.GEN.ACTIVE);
     if (!activeChat) { return; }
     const activeChatId = GetDataAttribute(activeChat, APP.DATA.CHAT.ID);
     const isActive = chatId === activeChatId;

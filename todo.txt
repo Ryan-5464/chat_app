@@ -1,8 +1,6 @@
 message reply
 chat styling
-contact known since time format
 contact profile
-online status
 
 themes?
 optimizations?
@@ -10,3 +8,4 @@ caching?
 
 fix bug with panic in getlatestchatmessageid when trying to add member to new chat (user does get added to chat)
 
+change contact online status when someone logs in (chat page renders)

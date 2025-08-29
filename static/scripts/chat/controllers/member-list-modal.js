@@ -11,7 +11,7 @@ function ConfigureMemberListModal() {
 
     document.addEventListener("click", (e) => {
         const modal = document.getElementById(APP.ID.MODAL.CHAT_MEMBER);
-        if (!modal.classList.contains(APP.CLS.OPEN)) return; 
+        if (!modal.classList.contains(APP.CLS.GEN.OPEN)) return; 
 
         if (!e.target.closest(`.${APP.CLS.MODAL.CONTENT}`)) {
             modal.__controller.Close();

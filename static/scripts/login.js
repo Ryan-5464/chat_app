@@ -1,8 +1,8 @@
 document.getElementById('login-btn').addEventListener('click', function (e) {
     e.preventDefault();
 
-    const email = document.getElementById(APP.ID.EMAIL).value.trim();
-    const password = document.getElementById(APP.ID.PASSWORD).value.trim();
+    const email = document.getElementById(APP.ID.GEN.EMAIL).value.trim();
+    const password = document.getElementById(APP.ID.GEN.PASSWORD).value.trim();
 
     attemptLogin(email, password)
 });
@@ -23,7 +23,7 @@ function attemptLogin(email, password) {
         }
 
         if (responsePayload.NoError == false) {
-            const errorElement = document.getElementById(APP.ID.ERROR)
+            const errorElement = document.getElementById(APP.ID.GEN.ERROR)
             errorElement.textContent = responsePayload.ErrorMessage
         }
     })
