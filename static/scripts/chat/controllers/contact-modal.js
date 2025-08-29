@@ -15,7 +15,7 @@ function addContactModalListenerToContactContainer() {
 };
 
 function ConfigureRemoveContactButton(contactModalController) {
-    const removeButton = document.getElementById(APP.ID.CONTACT.REMOVE_BTN);
+    const removeButton = document.getElementById(APP.ID.MODAL.CONTACT.BTN.REMOVE_CONTACT);
     let currentContactId = null;
     removeButton.addEventListener('click', () => {
         if (!currentContactId) return;
@@ -25,7 +25,7 @@ function ConfigureRemoveContactButton(contactModalController) {
 };
 
 function ConfigureContactModal() {
-    const modal = document.getElementById(APP.ID.MODAL.CONTACT);
+    const modal = document.getElementById(APP.ID.MODAL.CONTACT.MODAL);
     const contactModalController = {
         Close: () => CloseModal(modal),
         OpenAt: (clientX, clientY) => OpenModalAt(modal, clientX, clientY),

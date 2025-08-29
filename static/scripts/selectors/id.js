@@ -2,7 +2,7 @@ window.APP = window.APP || {};
 APP.ID = APP.ID || {}; 
 
 APP.ID.GEN = {
-    CURRENT_VALUE: 'current-value',
+    PFL_USERNAME: 'username',
     EMAIL: 'email',
     ERROR: 'error',
     PASSWORD: 'password',
@@ -11,44 +11,76 @@ APP.ID.GEN = {
 
 APP.ID.CHAT = {
     CONTAINER: 'chats-container',
-    NAME_INPUT: 'chat-name-input',
-    NEW_INPUT: 'new-chat-input',
-    EDIT_BTN: 'chat-edit-btn',
-    LEAVE_BTN: 'chat-leave-btn',
-    MEMBER_BTN: 'chat-members-btn',
+    INPUT: {
+        EDIT_NAME: 'chat-name-input',
+        NEW_CHAT: 'new-chat-input',
+    },
 }
 
 APP.ID.CONTACT = {
     CONTAINER: 'contacts-container',
-    REMOVE_BTN: 'contact-remove-btn',
-    EMAIL_INPUT: 'contact-email-input',
+    INPUT: {
+        NEW_CONTACT_EMAIL: 'contact-email-input',
+    },
 }
 
 APP.ID.MEMBER = {
-    CONTAINER: 'member-list-container',
-    ADD: 'add-member',
-    INPUT: 'add-member-input',
-    DEL_BTN: 'member-del-btn',
-    ADD_CONTACT_BTN: 'add-contact-btn',
 }
 
 APP.ID.MESSAGE = {
     CONTAINER: 'messages-container',
-    EDIT_INPUT: 'edit-message-input',
-    INPUT: 'message-input',
-    SEND_BTN: 'send-message-button', 
+    INPUT: {
+        EDIT_MSG: 'edit-message-input',
+        NEW_MSG: 'message-input',
+    },
+    BTN: {
+        SEND: 'send-message-button', 
+    },
 }
 
 APP.ID.MODAL = {
-    CHAT: 'chatModal',
-    CONTACT: 'contactModal',
-    CHAT_MEMBER: 'chatMemberModal',
-    MEMBER: 'memberModal',
-    MESSAGE: 'messageModal',
-    MSG_EDIT_BTN: 'msg-edit-btn',
-    MSG_DEL_BTN: 'msg-del-btn',
+    CHAT: {
+        MODAL: 'chatModal',
+        BTN : {
+            EDIT: 'chat-edit-btn',
+            LEAVE: 'chat-leave-btn',
+            MEMBER: 'chat-members-btn',
+        },
+    },
+    CONTACT: {
+        MODAL: 'contactModal',
+        BTN: {
+            REMOVE_CONTACT: 'contact-remove-btn',
+        },
+
+    },
+    MEMBERLIST: {
+        MODAL: 'chatMemberModal',
+        CONTAINER: 'member-list-container',
+
+        INPUT: {
+            ADD_MEMBER: 'add-member-input',
+        },
+        TITLE: {
+            ADD_MEMBER: 'add-member',
+        },
+        MEMBER: {
+            MODAL: 'memberModal',
+            BTN : {
+                REMOVE_MEMBER: 'member-del-btn',
+                ADD_CONTACT: 'add-contact-btn',
+            },
+        },
+    },
+    MESSAGE: {
+        MODAL: 'messageModal',
+        BTN: {
+            EDIT_MSG: 'msg-edit-btn',
+            DELETE_MSG: 'msg-del-btn',
+        }
+    }
 }
 
 APP.ID.USER = {
-    NAME: 'username',
+    NAME: 'username-input',
 }

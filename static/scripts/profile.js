@@ -1,12 +1,14 @@
 
 document.addEventListener("DOMContentLoaded", function() {
-    addEditUserNameListener()
+    addEditUserNameListener();
+    GetOnlineStatusHandler();
 
 })
 
 function addEditUserNameListener() {
     const userNameInput = document.getElementById(APP.ID.USER.NAME) 
     userNameInput.addEventListener('keydown', function (e) {
+        console.log("edit username")
         if (e.key !== 'Enter') return;
         e.preventDefault();
         EditUserNameHandler(userNameInput.value);
@@ -34,6 +36,6 @@ function HandleEditUserNameResponse(data) {
 };
 
 function RenderUserName(name) {
-    const currentName = document.getElementById(APP.ID.GEN.CURRENT_VALUE)
+    const currentName = document.getElementById(APP.ID.GEN.PFL_USERNAME)
     currentName.innerHTML = name
 };

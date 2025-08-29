@@ -6,6 +6,6 @@
     >
         <div class="contact-name">{{ .Name }}</div>
         <div class="contact-email">{{ .Email }}</div>
-        <div class="contact-status">{{ .OnlineStatus }}</div>
+        <div class="contact-status {{ .OnlineStatus }}">{{ .OnlineStatus }}</div>
     </div>
 {{ end }}

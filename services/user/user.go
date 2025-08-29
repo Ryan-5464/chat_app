@@ -92,6 +92,10 @@ func (u *UserService) AddContact(email cred.Email, userId typ.UserId) (*ent.Cont
 		return nil, nil
 	}
 
+	if ct.Id == userId {
+		return nil, nil
+	}
+
 	contact, err := u.usrR.AddContact(typ.ContactId(ct.Id), ct.Name, ct.Email, userId)
 	if err != nil {
 		return nil, err
@@ -100,7 +104,7 @@ func (u *UserService) AddContact(email cred.Email, userId typ.UserId) (*ent.Cont
 	status := u.connS.GetOnlineStatus(typ.UserId(contact.Id))
 
 	if status == "" || status == "stealth" {
-		status = "Offline"
+		status = "offline"
 	}
 
 	contact.OnlineStatus = status
@@ -123,8 +127,8 @@ func (u *UserService) GetContacts(userId typ.UserId) ([]ent.Contact, error) {
 	for i := range contacts {
 		status := u.connS.GetOnlineStatus(typ.UserId(contacts[i].Id))
 
-		if status == "" || status == "Stealth" {
-			status = "Offline"
+		if status == "" || status == "stealth" {
+			status = "offline"
 		}
 
 		contacts[i].OnlineStatus = status
@@ -143,7 +147,7 @@ func (u *UserService) GetContact(chatId typ.ChatId, userId typ.UserId) (*ent.Con
 	status := u.connS.GetOnlineStatus(typ.UserId(contact.Id))
 
 	if status == "" || status == "stealth" {
-		status = "Offline"
+		status = "offline"
 	}
 
 	contact.OnlineStatus = status

@@ -7,11 +7,13 @@ function replaceTextInputWithText(openInput, textDivId) {
 
 function replaceTextWithTextInput(container, textDivId, inputId, isMsg) {
     const elemText = QSelectByClass(container, textDivId);
+    const placeholder = elemText.textContent
+    elemText.innerHTML = ''
     let input
     if (isMsg) {
-        input = replaceWithTextArea(elemText, elemText.textContent, inputId);
+        input = replaceWithTextArea(elemText, placeholder, inputId);
     } else {
-        input = replaceWithInput(elemText, elemText.textContent, inputId);
+        input = replaceWithInput(elemText, placeholder, inputId);
     };
     input.focus();
     return input;

@@ -1,5 +1,5 @@
 function ConfigureMemberListModal() {
-    const modal = document.getElementById(APP.ID.MODAL.CHAT_MEMBER);
+    const modal = document.getElementById(APP.ID.MODAL.MEMBERLIST.MODAL);
     
     modal.__controller = {
         Close: () => CloseModal(modal),
@@ -10,7 +10,7 @@ function ConfigureMemberListModal() {
     AddMemberModalToMemberListModal(modal);
 
     document.addEventListener("click", (e) => {
-        const modal = document.getElementById(APP.ID.MODAL.CHAT_MEMBER);
+        const modal = document.getElementById(APP.ID.MODAL.MEMBERLIST.MODAL);
         if (!modal.classList.contains(APP.CLS.GEN.OPEN)) return; 
 
         if (!e.target.closest(`.${APP.CLS.MODAL.CONTENT}`)) {
@@ -18,7 +18,7 @@ function ConfigureMemberListModal() {
         };
     });
 
-    let addMemberInput = document.getElementById(APP.ID.MEMBER.INPUT);
+    let addMemberInput = document.getElementById(APP.ID.MODAL.MEMBERLIST.INPUT.ADD_MEMBER);
     addMemberInput = RemoveAllListeners(addMemberInput);
     addMemberInput.addEventListener('keydown', (e) => {
         if (e.key !== 'Enter') return;

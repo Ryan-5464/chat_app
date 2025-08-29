@@ -9,7 +9,7 @@ function addAddContactEventListenerToAddContactInput() {
 };
 
 function ConfigureAddContactInput () {
-    const addContactInput = document.getElementById(APP.ID.CONTACT.EMAIL_INPUT);
+    const addContactInput = document.getElementById(APP.ID.CONTACT.INPUT.NEW_CONTACT_EMAIL);
     addContactInput.__controller = {
         AddContact: (input) => AddContactHandler(input),
     };

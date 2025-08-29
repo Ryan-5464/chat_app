@@ -14,11 +14,9 @@ function ChatElement(chat) {
     const chatFooter = CreateElement({classes:[APP.CLS.CHAT.FOOTER]});
     const chatName = CreateElement({id: `chat${chat.Id}`, classes:[APP.CLS.CHAT.NAME], innerHTML:chat.Name});
     const unreadMessageCount = CreateElement({classes:[APP.CLS.CHAT.UNREAD_MSG_CNT], innerHTML:chat.UnreadMessageCount});
-    if (chat.UnreadMessageCount == 0) {
-        unreadMessageCount.classList.add(APP.CLS.HIDDEN);
-    };
-    chatElem.appendChild(chatHeader, chatFooter);
-    chatHeader.appendChild(chatName, unreadMessageCount);
+    chatElem.append(chatHeader, chatFooter);
+    chatHeader.append(chatName, unreadMessageCount);
+    updateUnreadMessageCount(chatElem)
     return chatElem;
 };
 
@@ -35,9 +33,9 @@ function ContactElement(contact) {
     const contactFooter = CreateElement({classes:[APP.CLS.CONTACT.FOOTER]});
     const name = CreateElement({classes:[APP.CLS.CONTACT.NAME], innerHTML:contact.Name});
     const email = CreateElement({classes:[APP.CLS.CONTACT.EMAIL], innerHTML:contact.Email});
-    const onlineStatus = CreateElement({classes:[APP.CLS.CONTACT.STATUS], innerHTML:contact.OnlineStatus});
-    contactElem.appendChild(contactHeader, contactFooter);
-    contactHeader.appendChild(name, email, onlineStatus);
+    const onlineStatus = CreateElement({classes:[APP.CLS.CONTACT.STATUS, contact.OnlineStatus], innerHTML:contact.OnlineStatus});
+    contactElem.append(contactHeader, contactFooter);
+    contactHeader.append(name, email, onlineStatus);
     return contactElem;
 };
 
@@ -65,8 +63,8 @@ function MessageElement(message) {
     } else {
         date = CreateElement({classes:[APP.CLS.MESSAGE.CREATED], innerHTML:`Sent: ${FormatDate(message.CreatedAt)}`});
     };
-    messageElem.appendChild(messageHeader, messageFooter);
-    messageHeader.appendChild(author, date, messageText);
+    messageElem.append(messageHeader, messageFooter);
+    messageHeader.append(author, date, messageText);
     return messageElem;
 };
 
@@ -80,7 +78,7 @@ function MemberElement(member) {
     });
     const name = CreateElement({classes:[APP.CLS.MEMBER.NAME], innerHTML:member.Name})
     const email = CreateElement({classes:[APP.CLS.MEMBER.EMAIL], innerHTML:member.Email})
-    memberElem.appendChild(name, email);
+    memberElem.append(name, email);
     return memberElem;
 };
 
@@ -113,4 +111,15 @@ function CreateElement(
 function FormatDate(date) {
     const formatDate = new Date(date);
     return `${formatDate.toLocaleString()}`;
+};
+
+function updateUnreadMessageCount(elem) {
+    let umc = QSelectByClass(elem, APP.CLS.CHAT.UNREAD_MSG_CNT);
+    if (!umc) { return; }
+    if (umc.innerHTML == 0) { HideElement(umc); return; };
+    if (elem.classList.contains(APP.CLS.GEN.ACTIVE)) { return; };
+    if (umc.innerHTML === chat.UnreadMessageCount) { return; };
+    umc.innerHTML = chat.UnreadMessageCount;
+    ShowElement(umc);
+    PulseElement(umc);
 };

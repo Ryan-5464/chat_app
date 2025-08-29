@@ -6,7 +6,7 @@ function CloseModal (modal) {
     setTimeout(() => {
         modal.classList.remove(APP.CLS.GEN.OPEN);
         modalContent.classList.remove(APP.CLS.GEN.CLOSING);
-    }, MODAL_CLOSE_DELAY);
+    }, APP.CONST.MODAL_CLOSE_DELAY);
 }
 
 function OpenModalAt(modal, clientX, clientY) {

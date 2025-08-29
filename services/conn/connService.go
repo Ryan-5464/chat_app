@@ -29,7 +29,7 @@ func (c *ConnectionService) StoreConnection(conn i.Socket, userId typ.UserId) {
 	util.Log.Dbugf("New User Connection: Id = %v", userId.String())
 	c.pool[userId] = conn
 	if c.status[userId] == "" {
-		c.status[userId] = "Online"
+		c.status[userId] = "online"
 	}
 }
 

@@ -46,7 +46,7 @@ function SetupListeners() {
 };
 
 function addNewMsgListenerToMsgInput() {
-    const input = document.getElementById(APP.ID.MESSAGE.INPUT);
+    const input = document.getElementById(APP.ID.MESSAGE.INPUT.NEW_MSG);
     input.addEventListener('keydown', function (event) {
         if (event.key === "Enter") {
             const msgText = input.value.trim();
@@ -64,9 +64,9 @@ function addNewMsgListenerToMsgInput() {
 };
 
 function addNewMsgListenerToSendMsgButton() {
-    const button = document.getElementById(APP.ID.MESSAGE.SEND_BTN);
+    const button = document.getElementById(APP.ID.MESSAGE.BTN.SEND);
     button.addEventListener('click', function () {
-        const input = document.getElementById(APP.ID.MESSAGE.INPUT);
+        const input = document.getElementById(APP.ID.MESSAGE.INPUT.NEW_MSG);
         const msgText = input.value.trim();
         const chat = QSelectByClass(document, APP.CLS.GEN.ACTIVE);
         let chatId = GetDataAttribute(chat, APP.DATA.CHAT.ID);

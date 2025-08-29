@@ -3,8 +3,8 @@
 <html lang="en">
 
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="stylesheet" href="/static/styles/base/base.css">
     <link rel="stylesheet" href="/static/styles/base/dropdown.css">
     <link rel="stylesheet" href="/static/styles/base/nav.css">
@@ -24,94 +24,96 @@
     <link rel="stylesheet" href="/static/styles/chat/sidebar-elem.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&display=swap" rel="stylesheet">
-  <title>Chat Window</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&display=swap"
+        rel="stylesheet">
+    <title>Chat Window</title>
 </head>
 
 <body class="jura">
 
-<div id="header-container">
-<nav>
-    <!-- <a>Status</a> -->
-    <div class="dropdown">
-        <a id="online-status" class="dropbtn"></a>
-        <div class="dropdown-content">
-            <a href="#" onclick="ChangeOnlineStatusHandler('Online')" class="online">Online</a>
-            <a href="#" onclick="ChangeOnlineStatusHandler('Away')" class="away">Away</a>
-            <a href="#" onclick="ChangeOnlineStatusHandler('Busy')" class="busy">Busy</a>
-            <a href="#" onclick="ChangeOnlineStatusHandler('Stealth')" class="stealth">Stealth</a>
-        </div>
-    </div>
-    <a href="/profile">{{ .User.Name }}</a>
-    <a id="logout" href="/api/logout">Logout</a>
-</nav>
-</div>
-
-<div id="main-container">
-
-    <div id="left-sidebar" class="scroll">
-
-        <div id="sidebar-container">
-
-            <div id="chats-header">
-                <div id="new-chat-input-container">
-                    <input id="new-chat-input" class="input-elem" type="text" placeholder="Enter chat name..." />
+    <div id="header-container">
+        <nav>
+            <div class="dropdown">
+                <a id="online-status" class="dropbtn"></a>
+                <div class="dropdown-content">
+                    <a href="#" onclick="ChangeOnlineStatusHandler('online')" class="online">Online</a>
+                    <a href="#" onclick="ChangeOnlineStatusHandler('away')" class="away">Away</a>
+                    <a href="#" onclick="ChangeOnlineStatusHandler('busy')" class="busy">Busy</a>
+                    <a href="#" onclick="ChangeOnlineStatusHandler('stealth')" class="stealth">Stealth</a>
                 </div>
             </div>
+            <a href="/profile">{{ .User.Name }}</a>
+            <a id="logout" href="/api/logout">Logout</a>
+        </nav>
+    </div>
 
-            <div id="chats-container">
-                {{ template "chats" . }}
+    <div id="main-container">
+
+        <div id="left-sidebar" class="scroll">
+
+            <div id="sidebar-container">
+
+                <div id="chats-header">
+                    <div id="new-chat-input-container">
+                        <input id="new-chat-input" class="input-elem" type="text" placeholder="Enter chat name..." />
+                    </div>
+                </div>
+
+                <div id="chats-container">
+                    {{ template "chats" . }}
+                </div>
+
+                {{ template "chat-modal" }}
+
             </div>
 
-            {{ template "chat-modal" }}
+        </div>
+
+        <div id="content-container">
+
+            <div id="messages-container" class="scroll">
+                {{ template "messages" . }}
+            </div>
+
+            {{ template "message-modal" }}
+
+            <div id="message-input-container">
+                <input id="message-input" class="input-elem" type="text" placeholder="Type your message..." />
+                <button id="send-message-button" class="button-elem">Send</button>
+            </div>
+
+        </div>
+
+        <div id="right-sidebar">
+
+            <div id="right-siderbar-container">
+
+                <div id="contacts-header">
+
+                    <div id="add-contact-input-container">
+                        <input id="contact-email-input" class="input-elem" type="text"
+                            placeholder="Type contact email..." />
+                    </div>
+
+                </div>
+
+                <div id="contacts-container">
+                    {{ template "contacts" . }}
+                </div>
+
+                {{ template "contact-modal" }}
+
+            </div>
 
         </div>
 
     </div>
-    
-    <div id="content-container">
 
-        <div id="messages-container" class="scroll">
-            {{ template "messages" . }}
-        </div>
+    {{ template "member-list-modal" }}
+    {{ template "member-modal" }}
 
-        {{ template "message-modal" }}
-
-        <div id="message-input-container">
-            <input id="message-input" class="input-elem" type="text" placeholder="Type your message..." />
-            <button id="send-message-button" class="button-elem">Send</button> 
-        </div>
-
-    </div>
-
-    <div id="right-sidebar">
-
-        <div id="right-siderbar-container">
-
-            <div id="contacts-header">
-
-            <div id="add-contact-input-container">
-                <input id="contact-email-input" class="input-elem" type="text" placeholder="Type contact email..." />
-            </div>
-
-            </div>
-
-            <div id="contacts-container">
-                {{ template "contacts" . }}
-            </div>
-
-            {{ template "contact-modal" }}
-
-        </div>
-
-    </div>
-    
-</div>
-
-{{ template "member-list-modal" }}
-{{ template "member-modal" }}
-
-<div id="footer-container"></div>
+    <div id="footer-container"></div>
 
 </body>
 
@@ -140,6 +142,7 @@
 <script src="/static/scripts/chat/domloaded.js" defer></script>
 <script src="/static/scripts/chat/socket.js" defer></script>
 <script src="/static/scripts/modals.js" defer></script>
+
 </html>
 
 {{ end }}

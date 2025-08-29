@@ -9,7 +9,7 @@ function addChatModalListenerToChatContainer() {
         e.preventDefault();
         e.stopPropagation();
 
-        const editButton = document.getElementById(APP.ID.CHAT.EDIT_BTN)
+        const editButton = document.getElementById(APP.ID.MODAL.CHAT.BTN.EDIT)
         const chat = e.target.closest(".".concat(APP.CLS.CHAT.TAG))
 
         if (chat.classList.contains(APP.CLS.GEN.ME)) {
@@ -30,7 +30,7 @@ function addChatModalListenerToChatContainer() {
 };
 
 function ConfigureEditButton(chatModalController) {
-    const editNameButton = document.getElementById(APP.ID.CHAT.EDIT_BTN);
+    const editNameButton = document.getElementById(APP.ID.MODAL.CHAT.BTN.EDIT);
     let currentChatId = null;
     editNameButton.addEventListener('click', () => {
         if (!currentChatId) return;
@@ -40,7 +40,7 @@ function ConfigureEditButton(chatModalController) {
 };
 
 function ConfigureLeaveButton(chatModalController) {
-    const leaveButton = document.getElementById(APP.ID.CHAT.LEAVE_BTN);
+    const leaveButton = document.getElementById(APP.ID.MODAL.CHAT.BTN.LEAVE);
     let currentChatId = null;
     leaveButton.addEventListener('click', () => {
         if (!currentChatId) return;
@@ -50,13 +50,13 @@ function ConfigureLeaveButton(chatModalController) {
 };
 
 function ConfigureMembersButton(chatModalController) {
-    const membersButton = document.getElementById(APP.ID.CHAT.MEMBER_BTN);
+    const membersButton = document.getElementById(APP.ID.MODAL.CHAT.BTN.MEMBER);
     let currentChatId = null;
     let chatElem = null;
 
     membersButton.addEventListener('click', () => {
         if (!currentChatId) return;
-        const addMember = document.getElementById(APP.ID.MEMBER.ADD)
+        const addMember = document.getElementById(APP.ID.MODAL.MEMBERLIST.TITLE.ADD_MEMBER)
         
         if (chatElem.classList.contains(APP.CLS.GEN.ME)) {
             addMember.classList.remove(APP.CLS.GEN.HIDDEN)
@@ -64,7 +64,7 @@ function ConfigureMembersButton(chatModalController) {
             addMember.classList.add(APP.CLS.GEN.HIDDEN) 
         }
 
-        const addMemberInput = document.getElementById(APP.ID.MEMBER.INPUT)
+        const addMemberInput = document.getElementById(APP.ID.MODAL.MEMBERLIST.INPUT.ADD_MEMBER)
         addMemberInput.setAttribute(`data-${APP.DATA.CHAT.ID}`, currentChatId)
         chatModalController.DisplayMemberList(currentChatId);
     });
@@ -72,7 +72,7 @@ function ConfigureMembersButton(chatModalController) {
 }
 
 function ConfigureChatModal() {
-    const modal = document.getElementById(APP.ID.MODAL.CHAT);
+    const modal = document.getElementById(APP.ID.MODAL.CHAT.MODAL);
     modal.__controller = {
         Close: () => CloseModal(modal),
         OpenAt: (clientX, clientY) => OpenModalAt(modal, clientX, clientY),
@@ -87,7 +87,7 @@ function EditChatName(chatId, closeModal) {
     const chat = GetElemByDataTag(APP.DATA.CHAT.ID, chatId);
     const editChatNameHandler = (inputText) => { EditChatNameHandler(inputText, chatId) }
     closeModal();
-    textInputController(chat, editChatNameHandler, APP.ID.CHAT.NAME_INPUT, APP.CLS.CHAT.NAME)
+    textInputController(chat, editChatNameHandler, APP.ID.CHAT.INPUT.EDIT_NAME, APP.CLS.CHAT.NAME)
 };
 
 function LeaveChat(chatId, closeModal) {

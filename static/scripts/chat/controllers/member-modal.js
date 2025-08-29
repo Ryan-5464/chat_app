@@ -24,7 +24,7 @@ function AddMemberModalToMemberListModal(memberListModal) {
 
 
 function ConfigureAddContactButton(memberModalController) {
-    let addContactBtn = document.getElementById(APP.ID.MEMBER.ADD_CONTACT_BTN)
+    let addContactBtn = document.getElementById(APP.ID.MODAL.MEMBERLIST.MEMBER.BTN.ADD_CONTACT)
     let currentEmail = null
     addContactBtn = RemoveAllListeners(addContactBtn);
     addContactBtn.addEventListener('click', (e) => {
@@ -36,7 +36,7 @@ function ConfigureAddContactButton(memberModalController) {
 }
 
 function ConfigureRemoveMemberButton(memberModalController) {
-    let removeMemberButton = document.getElementById(APP.ID.MEMBER.DEL_BTN)
+    let removeMemberButton = document.getElementById(APP.ID.MODAL.MEMBERLIST.MEMBER.BTN.REMOVE_MEMBER)
     let currentChatId, currentUserId = null
     removeMemberButton = RemoveAllListeners(removeMemberButton);
     removeMemberButton.addEventListener('click', (e) => {
@@ -48,7 +48,7 @@ function ConfigureRemoveMemberButton(memberModalController) {
 }
 
 function ConfigureMemberModal() {
-    const modal = document.getElementById(APP.ID.MODAL.MEMBER)
+    const modal = document.getElementById(APP.ID.MODAL.MEMBERLIST.MEMBER.MODAL)
     modal.__controller = {
         Close: () => CloseModal(modal),
         OpenAt: (clientX, clientY) => OpenModalAt(modal, clientX, clientY),

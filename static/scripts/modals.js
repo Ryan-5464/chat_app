@@ -1,6 +1,6 @@
 window.addEventListener("click", function (e) {
     QSelectAllByClass(document, APP.CLS.MODAL.TAG).forEach(modal => {
-        const modalContent = modal.querySelector(APP.CLS.MODAL.CONTENT);
+        const modalContent = QSelectByClass(modal, APP.CLS.MODAL.CONTENT);
         if (modal.classList.contains(APP.CLS.GEN.OPEN) && !modalContent.contains(e.target)) {
             modal.__controller.Close();
         };
@@ -9,7 +9,7 @@ window.addEventListener("click", function (e) {
 
 function replaceWithInput(elem, placeholder, id) {
     const input = CreateElement({elemType:'input', id:id, classes:[APP.CLS.GEN.INPUT_ELEM]});
-    input.__oldtext = elem.textContent;
+    input.__oldtext = placeholder;
     input.type = 'text';
     input.name = 'Name';
     input.value = placeholder;
@@ -20,6 +20,7 @@ function replaceWithInput(elem, placeholder, id) {
 
 function replaceWithTextArea(elem, placeholder, id) {
     const textarea = CreateElement({elemType:'textarea', id:id, classes:[APP.CLS.GEN.INPUT_ELEM, APP.CLS.GEN.TEXT_AREA]});
+    textarea.__oldtext = placeholder;
     textarea.name = 'Name';
     textarea.value = placeholder;
     textarea.required = true;

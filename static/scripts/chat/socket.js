@@ -10,7 +10,8 @@ socket.onmessage = function (e) {
 
     if (payload.Chats != null) {
         Object.values(payload.Chats).forEach(chat => { 
-            updateUnreadMessageCount(chat);
+            const chatElem = GetElemByDataTag(APP.DATA.CHAT.ID, chat.Id)
+            updateUnreadMessageCount(chatElem);
         });
     };
 
@@ -37,12 +38,11 @@ function getActiveChatId(activeChat) {
     };
 };
 
-function updateUnreadMessageCount(chat) {
-    const chatElem = GetElemByDataTag(APP.DATA.CHAT.ID, chat.Id)
-    let umc = QSelectByClass(chatElem, APP.CLS.CHAT.UNREAD_MSG_CNT);
+function updateUnreadMessageCount(elem) {
+    let umc = QSelectByClass(elem, APP.CLS.CHAT.UNREAD_MSG_CNT);
     if (!umc) { return; }
     if (umc.innerHTML == 0) { HideElement(umc); return; };
-    if (chatElem.classList.contains(APP.CLS.GEN.ACTIVE)) { return; };
+    if (elem.classList.contains(APP.CLS.GEN.ACTIVE)) { return; };
     if (umc.innerHTML === chat.UnreadMessageCount) { return; };
     umc.innerHTML = chat.UnreadMessageCount;
     ShowElement(umc);

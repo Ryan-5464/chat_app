@@ -1,6 +1,4 @@
-message reply
 chat styling
-contact profile
 
 themes?
 optimizations?
@@ -9,3 +7,18 @@ caching?
 fix bug with panic in getlatestchatmessageid when trying to add member to new chat (user does get added to chat)
 
 change contact online status when someone logs in (chat page renders)
+
+
+TODO: unread message count for contacts
+TODO: contact profile
+TODO: chat-styling
+TODO: contact-styling
+TODO: add status to member list
+TODO: remove member modal from user and color user differently
+
+BUG: lastreadmessageid not updating when user creates a new message. when page is refreshed, counts
+    user messages as unread.
+
+
+BUG: status not updating in real time
+BUG: unread message count not updating in real time.

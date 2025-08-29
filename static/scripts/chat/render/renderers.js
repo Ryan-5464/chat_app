@@ -2,9 +2,9 @@
 const RenderChatElements = (data, overwrite) => RenderElements(APP.ID.CHAT.CONTAINER, ChatElement, data, overwrite);
 const RenderMessageElements = (data, overwrite) => RenderElements(APP.ID.MESSAGE.CONTAINER, MessageElement, data, overwrite);
 const RenderContactElements = (data, overwrite) => RenderElements(APP.ID.CONTACT.CONTAINER, ContactElement, data, overwrite);
-const RenderChatMemberElements = (data, overwrite) => RenderElements(APP.ID.MEMBER.CONTAINER, MemberElement, data, overwrite);
-const RenderChatNameElement = (data) => ReplaceElement(APP.ID.CHAT.NAME_INPUT, ChatNameElement, data);
-const RenderMessageTextElement = (data) => ReplaceElement(APP.ID.MESSAGE.EDIT_INPUT, MessageTextElement, data)
+const RenderChatMemberElements = (data, overwrite) => RenderElements(APP.ID.MODAL.MEMBERLIST.CONTAINER, MemberElement, data, overwrite);
+const RenderChatNameElement = (data) => ReplaceElement(APP.ID.CHAT.INPUT.EDIT_NAME, ChatNameElement, data);
+const RenderMessageTextElement = (data) => ReplaceElement(APP.ID.MESSAGE.INPUT.EDIT_MSG, MessageTextElement, data)
 
 const DeleteMessageElement = (data) => DeleteElementByDataTag(APP.DATA.MESSAGE.ID, data);
 const DeleteChatElement = (data) => DeleteElementByDataTag(APP.DATA.CHAT.ID, data);
@@ -55,7 +55,7 @@ function RenderOnlineStatus(status) {
 function RenderContactOnlineStatus(status, contact) {
     const onlineStatus = QSelectByClass(contact, APP.CLS.CONTACT.STATUS);
     if (status == APP.CLS.STATUS.STEALTH) {
-        onlineStatus.innerHTML = "Offline";
+        onlineStatus.innerHTML = "offline";
     } else {
         onlineStatus.innerHTML = status;
     };
@@ -65,11 +65,11 @@ function RenderContactOnlineStatus(status, contact) {
 };
 
 function changeOnlineStatus(elem, status) {
-    if (status == APP.CLS.STATUS.ONLINE) { elem.classList.add(APP.CLS.STATUS.ONLINE) };
-    if (status == APP.CLS.STATUS.AWAY) { elem.classList.add(APP.CLS.STATUS.AWAY) };
-    if (status == APP.CLS.STATUS.BUSY) { elem.classList.add(APP.CLS.STATUS.BUSY) };
-    if (status == APP.CLS.STATUS.STEALTH) { elem.classList.add(APP.CLS.STATUS.OFFLINE) };
-    if (status == APP.CLS.STATUS.OFFLINE) { elem.classList.add(APP.CLS.STATUS.OFFLINE) };
+    if (status == APP.CLS.STATUS.STEALTH) { 
+        elem.classList.add(APP.CLS.STATUS.OFFLINE);
+        return;
+    };
+    elem.classList.add(status)
 };
 
 function HideElement(elem) {
