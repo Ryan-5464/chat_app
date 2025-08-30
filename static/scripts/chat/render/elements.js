@@ -16,7 +16,7 @@ function ChatElement(chat) {
     const unreadMessageCount = CreateElement({classes:[APP.CLS.CHAT.UNREAD_MSG_CNT], innerHTML:chat.UnreadMessageCount});
     chatElem.append(chatHeader, chatFooter);
     chatHeader.append(chatName, unreadMessageCount);
-    updateUnreadMessageCount(chatElem)
+    updateUnreadMessageCount(chatElem, chat)
     return chatElem;
 };
 
@@ -113,10 +113,10 @@ function FormatDate(date) {
     return `${formatDate.toLocaleString()}`;
 };
 
-function updateUnreadMessageCount(elem) {
+function updateUnreadMessageCount(elem, chat) {
     let umc = QSelectByClass(elem, APP.CLS.CHAT.UNREAD_MSG_CNT);
     if (!umc) { return; }
-    if (umc.innerHTML == 0) { HideElement(umc); return; };
+    if (chat.UnreadMessageCount == 0) { HideElement(umc); return; };
     if (elem.classList.contains(APP.CLS.GEN.ACTIVE)) { return; };
     if (umc.innerHTML === chat.UnreadMessageCount) { return; };
     umc.innerHTML = chat.UnreadMessageCount;

@@ -83,4 +83,5 @@ APP.ID.MODAL = {
 
 APP.ID.USER = {
     NAME: 'username-input',
+    LOGGEDIN: 'user-loggedin',
 }

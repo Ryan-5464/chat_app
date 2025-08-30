@@ -6,9 +6,9 @@ const RenderChatMemberElements = (data, overwrite) => RenderElements(APP.ID.MODA
 const RenderChatNameElement = (data) => ReplaceElement(APP.ID.CHAT.INPUT.EDIT_NAME, ChatNameElement, data);
 const RenderMessageTextElement = (data) => ReplaceElement(APP.ID.MESSAGE.INPUT.EDIT_MSG, MessageTextElement, data)
 
-const DeleteMessageElement = (data) => DeleteElementByDataTag(APP.DATA.MESSAGE.ID, data);
-const DeleteChatElement = (data) => DeleteElementByDataTag(APP.DATA.CHAT.ID, data);
-const DeleteContactElement = (data) => DeleteElementByDataTag(APP.DATA.CONTACT.ID, data);
+const DeleteMessageElement = (data) => DeleteElementByDataTag(document, APP.DATA.MESSAGE.ID, data);
+const DeleteChatElement = (data) => DeleteElementByDataTag(document, APP.DATA.CHAT.ID, data);
+const DeleteContactElement = (data) => DeleteElementByDataTag(document, APP.DATA.CONTACT.ID, data);
 
 function RenderElements(containerId, elemFactory, data, overwrite) {
     const container = document.getElementById(containerId);
@@ -30,7 +30,7 @@ function ReplaceElement(elementId, elemFactory, data) {
 
 function SetChatToActive(activeChatId) {
     RemoveActiveFromChat();
-    const chat = GetElemByDataTag(APP.DATA.CHAT.ID, activeChatId);
+    const chat = GetElemByDataTag(document, APP.DATA.CHAT.ID, activeChatId);
     umc = QSelectByClass(chat, APP.CLS.CHAT.UNREAD_MSG_CNT);
     if (!umc) { return; };
     umc.innerHTML = 0;
@@ -41,7 +41,7 @@ function SetChatToActive(activeChatId) {
 
 function SetContactChatToActive(activeContactChatId) {
     RemoveActiveFromChat();
-    const chat = GetElemByDataTag(APP.DATA.CONTACT.CHATID, activeContactChatId);
+    const chat = GetElemByDataTag(document, APP.DATA.CONTACT.CHATID, activeContactChatId);
     chat.classList.add(APP.CLS.GEN.ACTIVE);
 };
 

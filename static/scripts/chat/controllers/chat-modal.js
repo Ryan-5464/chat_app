@@ -84,7 +84,7 @@ function ConfigureChatModal() {
 };
 
 function EditChatName(chatId, closeModal) {
-    const chat = GetElemByDataTag(APP.DATA.CHAT.ID, chatId);
+    const chat = GetElemByDataTag(document, APP.DATA.CHAT.ID, chatId);
     const editChatNameHandler = (inputText) => { EditChatNameHandler(inputText, chatId) }
     closeModal();
     textInputController(chat, editChatNameHandler, APP.ID.CHAT.INPUT.EDIT_NAME, APP.CLS.CHAT.NAME)

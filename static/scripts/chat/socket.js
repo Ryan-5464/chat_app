@@ -8,11 +8,34 @@ socket.onopen = function () {
 socket.onmessage = function (e) {
     const payload = JSON.parse(e.data);
 
+    if (payload.Type == "OnlineStatus") {
+        const contact = GetElemByDataTag(document, APP.DATA.CONTACT.ID, payload.UserId)
+        RenderContactOnlineStatus(payload.OnlineStatus, contact)
+        return;
+    }
+
+    if (payload.Type == "RemoveMember") {
+        const chatContainer = document.getElementById(APP.ID.CHAT.CONTAINER)
+        DeleteElementByDataTag(chatContainer, APP.DATA.CHAT.ID, payload.ChatId)
+    }
+
+    if (payload.Type == "AddMember") {
+        const activeChat = QSelectByClass(document, APP.CLS.GEN.ACTIVE);
+        const activeChatId = GetDataAttribute(activeChat, APP.DATA.CHAT.ID)
+        RenderChatElements(payload.Chats, true);
+        SetChatToActive(activeChatId)
+        return;
+    }
+
     if (payload.Chats != null) {
-        Object.values(payload.Chats).forEach(chat => { 
-            const chatElem = GetElemByDataTag(APP.DATA.CHAT.ID, chat.Id)
-            updateUnreadMessageCount(chatElem);
-        });
+        if (payload.Messages) {
+            if (!payload.Messages[0].IsUserMessage) {
+                Object.values(payload.Chats).forEach(chat => { 
+                    const chatElem = GetElemByDataTag(document, APP.DATA.CHAT.ID, chat.Id)
+                    UpdateUnreadMessageCount(chatElem, chat);
+                });
+            }
+        }
     };
 
     if (!payload.Messages) return;
@@ -38,10 +61,10 @@ function getActiveChatId(activeChat) {
     };
 };
 
-function updateUnreadMessageCount(elem) {
+function UpdateUnreadMessageCount(elem, chat) {
     let umc = QSelectByClass(elem, APP.CLS.CHAT.UNREAD_MSG_CNT);
     if (!umc) { return; }
-    if (umc.innerHTML == 0) { HideElement(umc); return; };
+    if (chat.UnreadMessageCount == 0) { HideElement(umc); return; };
     if (elem.classList.contains(APP.CLS.GEN.ACTIVE)) { return; };
     if (umc.innerHTML === chat.UnreadMessageCount) { return; };
     umc.innerHTML = chat.UnreadMessageCount;

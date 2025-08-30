@@ -14,8 +14,7 @@
     box-sizing: border-box;
     scroll-behavior: smooth;
     overflow-y: auto;
-    height: 90%;
-    max-height:90%;
+    height: 60vh;
     margin-top: 100px;
 }
 

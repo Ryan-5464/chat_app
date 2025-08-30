@@ -65,7 +65,7 @@ function ConfigureMessageModal() {
 };
 
 function EditMessage(messageId, closeModal) {
-    const message = GetElemByDataTag(APP.DATA.MESSAGE.ID, messageId);
+    const message = GetElemByDataTag(document, APP.DATA.MESSAGE.ID, messageId);
     const userId = GetDataAttribute(message, APP.DATA.USER.ID);
     const editMessageHandler = (inputText) => { EditMessageHandler(inputText, messageId, userId) }
     closeModal();

@@ -15,9 +15,25 @@ function AddMemberModalToMemberListModal(memberListModal) {
         const email  = member.children[1].innerHTML
         const chatId = GetDataAttribute(member, APP.DATA.CHAT.ID) 
         const userId = GetDataAttribute(member, APP.DATA.USER.ID)
+        const user = document.getElementById(APP.ID.USER.LOGGEDIN)
+        const userLoginId = GetDataAttribute(user, APP.DATA.USER.ID)
+        if (userLoginId == userId) { return; }
         if (!chatId || !userId) return;
         modal.__controller.OpenAt(e.clientX, e.clientY)
         configureAddContactButton(email)
+        const chatContainer = document.getElementById(APP.ID.CHAT.CONTAINER)
+        console.log("CONTAINER => : ", chatContainer, chatId)
+        const chat = GetElemByDataTag(chatContainer, APP.DATA.CHAT.ID, chatId)
+        console.log("CHAT => : ", chat)
+        const adminId = GetDataAttribute(chat, APP.DATA.CHAT.ADMINID)
+        console.log("ADMINID => : ", adminId, userLoginId)
+        const removeBtn = document.getElementById(APP.ID.MODAL.MEMBERLIST.MEMBER.BTN.REMOVE_MEMBER)
+        HideElement(removeBtn)
+        if (adminId !== userLoginId) {
+            return; 
+        }
+        ShowElement(removeBtn)
+        console.log("TRIGGERED")
         configureRemoveMemberButton(chatId, userId)
     })
 }

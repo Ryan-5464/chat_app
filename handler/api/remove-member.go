@@ -10,9 +10,10 @@ import (
 	"server/util"
 )
 
-func RemoveMember(a i.AuthService, c i.ChatService) http.Handler {
+func RemoveMember(a i.AuthService, c i.ChatService, cn i.ConnectionService) http.Handler {
 	h := removeMember{
 		chatS: c,
+		connS: cn,
 	}
 	return mw.AddMiddleware(h, mw.WithAuth(a), mw.WithMethod(mw.DELETE))
 
@@ -20,6 +21,7 @@ func RemoveMember(a i.AuthService, c i.ChatService) http.Handler {
 
 type removeMember struct {
 	chatS i.ChatService
+	connS i.ConnectionService
 }
 
 func (h removeMember) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -59,6 +61,21 @@ func (h removeMember) handleRequest(req rmrequest, adminId typ.UserId) (rmrespon
 	}
 
 	if err := h.chatS.RemoveMember(chatId, memberId, adminId); err != nil {
+		return rmresponse{}, err
+	}
+
+	conn := h.connS.GetConnection(memberId)
+
+	payload := struct {
+		Type   string
+		ChatId typ.ChatId
+	}{
+		Type:   "RemoveMember",
+		ChatId: chatId,
+	}
+
+	if err := conn.WriteJSON(payload); err != nil {
+		util.Log.Errorf("failed to write to websocket connection: %v", err)
 		return rmresponse{}, err
 	}
 

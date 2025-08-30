@@ -1,14 +1,15 @@
 #left-sidebar {
     background-color: var(--bg);
     height: 100vh;
-    overflow-y: auto;
     padding: 8px 0;
-    scroll-behavior: smooth;
     transition: background-color 0.5s ease;
 }
 
 #chats-container {
     width: 100%;
+    height: 80vh;
+    overflow-y: auto;
+    scroll-behavior: smooth;
 }
 
 .chat-header {

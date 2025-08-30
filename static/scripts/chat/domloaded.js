@@ -8,7 +8,7 @@ function formatMessageDate(msgElem) {
     const dateElem = createMessageDate(msgElem);
     const header = CreateElement({classes:[APP.CLS.MESSAGE.HEADER]});
     header.appendChild(dateElem);
-    msgElem.insertBefore(header, msgElem.querySelector(APP.CLS.MESSAGE.TEXT));
+    msgElem.insertBefore(header, QSelectByClass(msgElem, APP.CLS.MESSAGE.TEXT));
 };
 
 function createMessageDate(msgElem) {

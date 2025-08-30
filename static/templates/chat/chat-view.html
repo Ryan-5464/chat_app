@@ -43,14 +43,14 @@
                     <a href="#" onclick="ChangeOnlineStatusHandler('stealth')" class="stealth">Stealth</a>
                 </div>
             </div>
-            <a href="/profile">{{ .User.Name }}</a>
+            <a id="user-loggedin" href="/profile" data-userid="{{ .UserId }}">{{ .User.Name }}</a>
             <a id="logout" href="/api/logout">Logout</a>
         </nav>
     </div>
 
     <div id="main-container">
 
-        <div id="left-sidebar" class="scroll">
+        <div id="left-sidebar" >
 
             <div id="sidebar-container">
 
@@ -60,7 +60,7 @@
                     </div>
                 </div>
 
-                <div id="chats-container">
+                <div id="chats-container" class="scroll">
                     {{ template "chats" . }}
                 </div>
 
@@ -98,7 +98,7 @@
 
                 </div>
 
-                <div id="contacts-container">
+                <div id="contacts-container" class="scroll">
                     {{ template "contacts" . }}
                 </div>
 

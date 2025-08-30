@@ -4,8 +4,8 @@ function RemoveAllListeners(elem) {
     return newElem
 }
 
-function GetElemByDataTag(tag, val) {
-    return document.querySelector(`[data-${tag}="${val}"]`);
+function GetElemByDataTag(elem, tag, val) {
+    return elem.querySelector(`[data-${tag}="${val}"]`);
 };
 
 function GetDataAttribute(elem, tag) {
@@ -28,11 +28,11 @@ function QSelectAllById(elem, id) {
     return elem.querySelectorAll("#".concat(id));
 };
 
-function DeleteElementByDataTag(tagName, tagVal) {
+function DeleteElementByDataTag(elem, tagName, tagVal) {
     idStr = `[data-${tagName}="${tagVal}"]`
-    const elem = document.querySelector(idStr);
-    if (elem) {
-        elem.remove();
+    const el = elem.querySelector(idStr);
+    if (el) {
+        el.remove();
     } else {
         throw new Error(`Failed to find element for identifier = ${idStr}`);
     };

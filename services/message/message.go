@@ -76,6 +76,10 @@ func (m *MessageService) HandleNewMessage(userId typ.UserId, chatId typ.ChatId, 
 		return fmt.Errorf("failed to create new message: %w", err)
 	}
 
+	if err := m.msgR.UpdateLastReadMsgId(msg.Id, msg.ChatId, msg.UserId); err != nil {
+		return err
+	}
+
 	user, err := m.usrS.GetUser(msg.UserId)
 	if err != nil {
 		return err
@@ -136,10 +140,6 @@ func (m *MessageService) broadcastMessage(userId typ.UserId, chats []ent.Chat, c
 		util.Log.Errorf("failed to write to websocket connection: %v", err)
 		return err
 	}
-
-	// if err := m.msgR.UpdateLastReadMsgId(msg.Id, msg.ChatId, userId); err != nil {
-	// 	return err
-	// }
 
 	return nil
 }
