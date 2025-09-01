@@ -1,20 +1,8 @@
-chat styling
-
-themes?
-optimizations?
-caching?
 
 fix bug with panic in getlatestchatmessageid when trying to add member to new chat (user does get added to chat)
 
 
 
 TODO: unread message count for contacts
-TODO: contact profile
-TODO: chat-styling
-TODO: contact-styling
-TODO: add status to member list
-TODO: remove member modal from user and color user differently
 
 
-
-BUG: delete message isnt updated in real time

@@ -7,6 +7,7 @@ function addContactModalListenerToContactContainer() {
         e.preventDefault();
         e.stopPropagation();
         const contact = GetClosestTargetByData(e, APP.DATA.CONTACT.ID);
+        if (!contact) { return; }
         const contactId = GetDataAttribute(contact, APP.DATA.CONTACT.ID);
         if (!contactId) return;
         modal.__controller.OpenAt(e.clientX, e.clientY);

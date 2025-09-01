@@ -8,6 +8,12 @@ socket.onopen = function () {
 socket.onmessage = function (e) {
     const payload = JSON.parse(e.data);
 
+    if (payload.Type == "DeleteMessage") {
+        console.log("deleteing message...")
+        DeleteElementByDataTag(document, APP.DATA.MESSAGE.ID, payload.MessageId);
+        return;
+    }
+
     if (payload.Type == "OnlineStatus") {
         const contact = GetElemByDataTag(document, APP.DATA.CONTACT.ID, payload.UserId)
         RenderContactOnlineStatus(payload.OnlineStatus, contact)

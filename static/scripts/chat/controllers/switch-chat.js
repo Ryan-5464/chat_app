@@ -2,6 +2,7 @@ function addSwitchChatControllerToChatsContainer() {
     const chatContainer = ConfigureChatsController();
     chatContainer.addEventListener('click', (e) => {
         const chat = GetClosestTargetByData(e, APP.DATA.CHAT.ID)
+        if (!chat) { return; }
         const chatId = GetDataAttribute(chat, APP.DATA.CHAT.ID);
         chatContainer.__controller.SwitchChat(chatId);
     }); 
@@ -20,6 +21,7 @@ function addSwitchContactChatControllerToContactsContainer() {
     const contactContainer = ConfigureContactsController();
     contactContainer.addEventListener('click', (e) => {
         const contact = GetClosestTargetByData(e, APP.DATA.CONTACT.CHATID);
+        if (!contact) { return; }
         const contactChatId = GetDataAttribute(contact, APP.DATA.CONTACT.CHATID);
         contactContainer.__controller.SwitchContactChat(contactChatId);
     }); 

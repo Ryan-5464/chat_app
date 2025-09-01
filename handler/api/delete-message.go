@@ -1,6 +1,7 @@
 package api
 
 import (
+	"log"
 	"net/http"
 	"server/handler/ctxutil"
 	mw "server/handler/middleware"
@@ -10,15 +11,19 @@ import (
 	"server/util"
 )
 
-func DeleteMessage(a i.AuthService, s i.MessageService) http.Handler {
+func DeleteMessage(a i.AuthService, m i.MessageService, c i.ChatService, cn i.ConnectionService) http.Handler {
 	h := deleteMessage{
-		msgS: s,
+		msgS:  m,
+		chatS: c,
+		connS: cn,
 	}
 	return mw.AddMiddleware(h, mw.WithAuth(a), mw.WithMethod(mw.DELETE))
 }
 
 type deleteMessage struct {
-	msgS i.MessageService
+	msgS  i.MessageService
+	chatS i.ChatService
+	connS i.ConnectionService
 }
 
 func (h deleteMessage) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -42,6 +47,7 @@ func (h deleteMessage) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	req := dmrequest{
 		MessageId: query.Get("MessageId"),
 		UserId:    query.Get("UserId"),
+		ChatId:    query.Get("ChatId"),
 	}
 
 	res, err := h.handleRequest(req)
@@ -68,7 +74,37 @@ func (h deleteMessage) handleRequest(req dmrequest) (dmresponse, error) {
 		return dmresponse{}, err
 	}
 
+	chatId, err := typ.ToChatId(req.ChatId)
+	if err != nil {
+		return dmresponse{}, err
+	}
+
+	members, err := h.chatS.GetChatMembers(chatId)
+	if err != nil {
+		return dmresponse{}, err
+	}
+
+	for _, member := range members {
+		conn := h.connS.GetConnection(member.UserId)
+		if conn == nil {
+			continue
+		}
+
+		res := dmresponse{
+			Type:      "DeleteMessage",
+			MessageId: messageId,
+		}
+
+		log.Println("DELETED MESSAGE", res)
+
+		if err := conn.WriteJSON(res); err != nil {
+			util.Log.Errorf("failed to write to websocket connection: %v", err)
+			return dmresponse{}, err
+		}
+	}
+
 	return dmresponse{
+		Type:      "DeleteMessage",
 		MessageId: messageId,
 	}, nil
 }
@@ -76,8 +112,10 @@ func (h deleteMessage) handleRequest(req dmrequest) (dmresponse, error) {
 type dmrequest struct {
 	MessageId string `json:"MessageId"`
 	UserId    string `json:"UserId"`
+	ChatId    string `json:"ChatId"`
 }
 
 type dmresponse struct {
+	Type      string
 	MessageId typ.MessageId
 }

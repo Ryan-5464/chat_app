@@ -11,6 +11,7 @@ function addChatModalListenerToChatContainer() {
 
         const editButton = document.getElementById(APP.ID.MODAL.CHAT.BTN.EDIT)
         const chat = e.target.closest(".".concat(APP.CLS.CHAT.TAG))
+        if (!chat) { return; }
 
         if (chat.classList.contains(APP.CLS.GEN.ME)) {
             editButton.classList.remove(APP.CLS.GEN.HIDDEN)

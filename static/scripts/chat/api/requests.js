@@ -2,7 +2,7 @@ const AddContactRequest = (email) => safeRequest(() => POST(APP.ENDPOINT.ADD_CON
 
 const RemoveContactRequest = (contactId) => safeRequest(() => DELETE(APP.ENDPOINT.REMOVE_CONTACT, { ContactId: contactId }));
 
-const DeleteMessageRequest = (messageId, userId) => safeRequest(() => DELETE(APP.ENDPOINT.DEL_MSG, { MessageId: messageId, UserId: userId }));
+const DeleteMessageRequest = (messageId, userId, chatId) => safeRequest(() => DELETE(APP.ENDPOINT.DEL_MSG, { MessageId: messageId, UserId: userId, ChatId: chatId }));
 
 const EditChatNameRequest = (newName, chatId) => safeRequest(() => POST(APP.ENDPOINT.EDIT_CHAT_NAME, { Name: newName, ChatId: chatId}));
 

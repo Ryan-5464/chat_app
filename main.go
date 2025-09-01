@@ -68,7 +68,7 @@ func main() {
 	http.Handle("/api/status", api.OnlineStatus(authS, connS))
 	http.Handle("/api/status/get", api.GetOnlineStatus(authS, connS))
 
-	http.Handle("/api/message/delete", api.DeleteMessage(authS, msgS))
+	http.Handle("/api/message/delete", api.DeleteMessage(authS, msgS, chatS, connS))
 	http.Handle("/api/message/edit", api.EditMessage(authS, msgS))
 
 	http.Handle("/api/profile/name/edit", api.EditUserName(authS, userS))

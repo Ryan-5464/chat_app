@@ -9,6 +9,7 @@ function addMessageModalListenerToMessageContainer() {
         e.stopPropagation();
 
         const message = e.target.closest(`.${APP.CLS.MESSAGE.TAG}`);
+        if (!message) { return; }
         if (!message.classList.contains(APP.CLS.GEN.ME)) { return; };
 
         const editButton = document.getElementById(APP.ID.MODAL.MESSAGE.BTN.EDIT_MSG);
@@ -22,13 +23,19 @@ function addMessageModalListenerToMessageContainer() {
         const m = GetClosestTargetByData(e, APP.DATA.MESSAGE.ID)
         if (!m) { return; }
         const messageId = GetDataAttribute(m, APP.DATA.MESSAGE.ID);
+
         const u = GetClosestTargetByData(e, APP.DATA.USER.ID);
         if (!u) { return; }
         const userId = GetDataAttribute(u, APP.DATA.USER.ID);
-        if (!messageId || !userId) return;
+
+        const c = GetClosestTargetByData(e, APP.DATA.CHAT.ID);
+        if (!c) { return; }
+        const chatId = GetDataAttribute(c, APP.DATA.CHAT.ID);
+
+        if (!messageId || !userId || !chatId) return;
         modal.__controller.OpenAt(e.clientX, e.clientY);
         configureEditMsgButton(messageId);
-        configureDeleteMsgButton(messageId, userId);
+        configureDeleteMsgButton(messageId, userId, chatId);
     });
 };
 
@@ -45,12 +52,14 @@ function ConfigureEditMsgButton(msgModalController) {
 
 function ConfigureDeleteMsgButton(msgModalController) {
     const deleteMessageButton = document.getElementById(APP.ID.MODAL.MESSAGE.BTN.DELETE_MSG);
-    let currentMsgId, currentUserId = null;
+    let currentMsgId = null;
+    let currentUserId = null;
+    let currentChatId = null;
     deleteMessageButton.addEventListener('click', () => {
-        if (!currentMsgId || !currentUserId) return;
-        msgModalController.DeleteMessage(currentMsgId, currentUserId);
+        if (!currentMsgId || !currentUserId || !currentChatId) return;
+        msgModalController.DeleteMessage(currentMsgId, currentUserId, currentChatId);
     });
-    return (messageId, userId) => {currentMsgId = messageId; currentUserId = userId };
+    return (messageId, userId, chatId) => {currentMsgId = messageId; currentUserId = userId; currentChatId = chatId };
 };
 
 function ConfigureMessageModal() {
@@ -59,7 +68,7 @@ function ConfigureMessageModal() {
         Close: () => CloseModal(modal),
         OpenAt: (clientX, clientY) => OpenModalAt(modal, clientX, clientY),
         EditMessage: (messageId) => EditMessage(messageId, () => CloseModal(modal)),
-        DeleteMessage: (chatId, messageId, userId) => DeleteMessage(chatId, messageId, userId, () => CloseModal(modal)),
+        DeleteMessage: (messageId, userId, chatId) => DeleteMessage(messageId, userId, chatId, () => CloseModal(modal)),
     };
     return modal;
 };
@@ -72,7 +81,8 @@ function EditMessage(messageId, closeModal) {
     textInputController(message, editMessageHandler, APP.ID.MESSAGE.INPUT.EDIT_MSG, APP.CLS.MESSAGE.TEXT, true)
 };
 
-function DeleteMessage(chatId, messageId, userId, closeModal) {
+function DeleteMessage(messageId, userId, chatId, closeModal) {
+    console.log("CHATID, ", chatId)
     closeModal();
-    DeleteMessageHandler(chatId, messageId, userId);
+    DeleteMessageHandler(messageId, userId, chatId);
 };

@@ -8,7 +8,7 @@ function ChatElement(chat) {
         },
     });
     if (chat.UserIsAdmin) {
-        chatElem.classList.add(APP.CLS.ME);
+        chatElem.classList.add(APP.CLS.GEN.ME);
     };
     const chatHeader = CreateElement({classes:[APP.CLS.CHAT.HEADER]});
     const chatFooter = CreateElement({classes:[APP.CLS.CHAT.FOOTER]});
