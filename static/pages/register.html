@@ -10,24 +10,29 @@
   <div class="container">
     <h1>Create an Account</h1>
 
-    <form id="registerForm" method="POST" action="/api/register">
+    <form id="registerForm">
       <input type="email" id="email" name="Email" placeholder="Enter email..." required>
+     
       <p>Password must contain at least 1 uppercase, lowercase, symbol and digit.</p>
       <input type="password" id="password" name="Password" placeholder="Enter password..." required>
+    
       <p>Username is limited to 20 characters. Only letters, digits and underscores allowed.</p>
       <input type="username" id="username" name="Name" placeholder="Enter name..." required>
-
-      {{ if .Error }}
-        <div id="error" class="error-message">{{ .Error }}</div>
-      {{ else }}
-        <div id="error" class="error-message"></div>
-      {{ end }}
+    
+      <div id="error" class="error-message"></div>
 
       <div class="buttons">
-        <button type="submit" class="btn btn-register">Register</button>
+        <button id="register-btn" type="submit" class="btn btn-register">Register</button>
         <button type="button" class="btn btn-login" onclick="location.href='/login'">Login</button>
       </div>
     </form>
   </div>
 </body>
+<script src="/static/scripts/selectors/id.js" defer></script>
+<script src="/static/scripts/selectors/cls.js" defer></script>
+<script src="/static/scripts/selectors/data.js" defer></script>
+<script src="/static/scripts/selectors/gen.js" defer></script>
+<script src="/static/scripts/selectors/url.js" defer></script>
+<script src="/static/scripts/funcs.js" defer></script>
+<script src="/static/scripts/register.js"></script>
 </html>

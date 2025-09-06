@@ -159,3 +159,8 @@ form input:focus {
     width: 100%;
   }
 }
+
+p {
+    font-size: 13px;
+    color: var(--font-col-snd);
+}

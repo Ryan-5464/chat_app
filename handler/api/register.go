@@ -1,6 +1,7 @@
 package api
 
 import (
+	"encoding/json"
 	"log"
 	"net/http"
 	mw "server/handler/middleware"
@@ -27,56 +28,52 @@ type register struct {
 func (h register) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	util.Log.FunctionInfo()
 
-	err := r.ParseForm()
-	if err != nil {
-		log.Printf("failed to parse form: %v", err)
-		http.Error(w, "Invalid form data", http.StatusBadRequest)
+	var req registerRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		util.Log.Errorf("failed to decode JSON request body: %v", err)
+		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
 		return
 	}
 
-	name := r.FormValue("Name")
-	emailStr := r.FormValue("Email")
-	passwordStr := r.FormValue("Password")
-
-	email, err := cred.NewEmail(emailStr)
+	email, err := cred.NewEmail(req.Email)
 	if err != nil {
 		util.Log.Errorf("invalid email: %v", err)
-		http.Error(w, "Invalid email", http.StatusBadRequest)
+		SendErrorResponse(w, "Invalid email format", false)
 		return
 	}
 
-	pwdBytes := []byte(passwordStr)
+	pwdBytes := []byte(req.Password)
 	pwdHash, err := cred.NewPwdHash(pwdBytes)
 	if err != nil {
 		util.Log.Errorf("invalid password: %v", err)
-		http.Error(w, "Invalid password", http.StatusBadRequest)
+		SendErrorResponse(w, "Invalid password format", false)
 		return
 	}
 
-	isValidName := cred.NewUsername(name)
+	log.Println("USername: ", req.Name)
+	isValidName := cred.NewUsername(req.Name)
 	if !isValidName {
-		util.Log.Errorf("invalid username: %v", name)
-		http.Error(w, "Invalid username", http.StatusBadRequest)
+		util.Log.Errorf("invalid username: %v", req.Name)
+		SendErrorResponse(w, "Invalid username format", false)
 		return
 	}
 
-	req := rrequest{
-		Name:    name,
+	re := rrequest{
+		Name:    req.Name,
 		Email:   email,
 		PwdHash: pwdHash,
 	}
 
-	session, err := h.handleRequest(req)
+	session, err := h.handleRequest(re)
 	if err != nil {
 		util.Log.Errorf("failed to register user: %v", err)
-		http.Error(w, "Invalid email", http.StatusBadRequest)
+		SendErrorResponse(w, "Username already exists!", false)
 		return
 
 	}
 
 	http.SetCookie(w, session.Cookie())
-
-	http.Redirect(w, r, "/chat", http.StatusSeeOther)
+	RegisterSuccessful(w)
 }
 
 func (h register) handleRequest(req rrequest) (ss.Session, error) {
@@ -90,6 +87,16 @@ func (h register) handleRequest(req rrequest) (ss.Session, error) {
 	util.Log.Info("successfully created new user")
 
 	return h.authS.NewSession(user.Id)
+}
+
+func RegisterSuccessful(w http.ResponseWriter) {
+	SendErrorResponse(w, "", true)
+}
+
+type registerRequest struct {
+	Name     string
+	Email    string
+	Password string
 }
 
 type rrequest struct {

@@ -8,6 +8,7 @@ APP.URL = {
 APP.ENDPOINT = {
     CHAT: '/chat',
     LOGIN: '/api/login',
+    REGISTER:'/api/register',
     EDIT_USERNAME: '/api/profile/name/edit',
     LEAVE_CHAT: '/api/chat/leave',
     DEL_MSG: '/api/message/delete',
