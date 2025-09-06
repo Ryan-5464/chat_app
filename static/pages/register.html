@@ -12,7 +12,9 @@
 
     <form id="registerForm" method="POST" action="/api/register">
       <input type="email" id="email" name="Email" placeholder="Enter email..." required>
+      <p>Password must contain at least 1 uppercase, lowercase, symbol and digit.</p>
       <input type="password" id="password" name="Password" placeholder="Enter password..." required>
+      <p>Username is limited to 20 characters. Only letters, digits and underscores allowed.</p>
       <input type="username" id="username" name="Name" placeholder="Enter name..." required>
 
       {{ if .Error }}

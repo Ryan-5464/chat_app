@@ -53,6 +53,13 @@ func (h register) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	isValidName := cred.NewUsername(name)
+	if !isValidName {
+		util.Log.Errorf("invalid username: %v", name)
+		http.Error(w, "Invalid username", http.StatusBadRequest)
+		return
+	}
+
 	req := rrequest{
 		Name:    name,
 		Email:   email,
