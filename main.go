@@ -25,7 +25,7 @@ func main() {
 	}
 
 	dbPath := cwd + "/data/database/app.db"
-	log.Println(dbPath)
+	log.Println("DB PATH :: ", dbPath)
 
 	config := prov.DbConfig{}
 	config.Add("driver", "sqlite3")
