@@ -16,6 +16,7 @@ body {
 
 #header-container,
 #footer-container {
+    display:block;
     height: 5%;
     background-color: var(--bg);
 }

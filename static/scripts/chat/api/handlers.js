@@ -32,8 +32,8 @@ function RemoveContactHandler(contactId, isActive) {
     });
 }
 
-function DeleteMessageHandler(messageId, userId) {
-    DeleteMessageRequest(messageId, userId).then(data => {
+function DeleteMessageHandler(messageId, userId, chatId) {
+    DeleteMessageRequest(messageId, userId, chatId).then(data => {
         console.log("delete messasge response handler: ", data)
         HandleDeleteMessageResponse(data);
     }).catch(error => {
@@ -130,9 +130,9 @@ function AddMemberToChatHandler(email, chatId) {
 function RemoveMemberHandler(chatId, userId) {
     RemoveMemberRequest(chatId, userId).then(data => {
         console.log("remove member from chat: ", data)
-        const members = document.querySelectorAll('.member')
+        const members = QSelectAllByClass(document, APP.CLS.MEMBER.TAG)
         Object.values(members).forEach(member => {
-            if (member.getAttribute('data-userid') === userId) {
+            if (GetDataAttribute(member, APP.DATA.USER.ID) === userId) {
                 member.remove()
             }
         })

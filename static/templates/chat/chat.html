@@ -2,6 +2,7 @@
 <div 
     class="chat sidebar-elem {{if eq .Chat.Id .ActiveChatId}}active{{end}} {{if .Chat.UserIsAdmin}}me{{end}}" 
     data-chatid="{{ .Chat.Id }}" 
+    data-adminid="{{ .Chat.AdminId }}"
     data-createdat="{{ .Chat.CreatedAt }}"
 >
     <div class="chat-header">

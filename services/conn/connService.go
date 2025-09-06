@@ -1,6 +1,7 @@
 package connservice
 
 import (
+	"log"
 	i "server/interfaces"
 	typ "server/types"
 	"server/util"
@@ -29,7 +30,7 @@ func (c *ConnectionService) StoreConnection(conn i.Socket, userId typ.UserId) {
 	util.Log.Dbugf("New User Connection: Id = %v", userId.String())
 	c.pool[userId] = conn
 	if c.status[userId] == "" {
-		c.status[userId] = "Online"
+		c.status[userId] = "online"
 	}
 }
 
@@ -58,20 +59,22 @@ func (c *ConnectionService) ChangeOnlineStatus(status string, userId typ.UserId)
 
 	for _, contact := range contacts {
 		conn := c.GetConnection(typ.UserId(contact.Id))
-
+		log.Println(contact.Id)
 		if conn == nil {
+			log.Println("conn is nil for ", contact.Id)
 			continue
 		}
 
 		payload := struct {
-			Type         int
+			Type         string
 			OnlineStatus string
 			UserId       typ.UserId
 		}{
-			Type:         11,
+			Type:         "OnlineStatus",
 			OnlineStatus: status,
 			UserId:       userId,
 		}
+		log.Println("payload ", payload)
 
 		if err := conn.WriteJSON(payload); err != nil {
 			util.Log.Errorf("failed to write to websocket connection: %v", err)

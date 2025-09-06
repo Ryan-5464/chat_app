@@ -9,18 +9,26 @@ import (
 	"server/util"
 )
 
-func Logout(a i.AuthService) http.Handler {
-	h := logout{}
+func Logout(a i.AuthService, cn i.ConnectionService) http.Handler {
+	h := logout{
+		connS: cn,
+	}
 	return mw.AddMiddleware(h, mw.WithAuth(a), mw.WithMethod(mw.GET))
 }
 
 type logout struct {
+	connS i.ConnectionService
 }
 
 func (h logout) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	util.Log.FunctionInfo()
 
 	session := r.Context().Value(ctxutil.SessionKey).(ss.Session)
+
+	if err := h.connS.ChangeOnlineStatus("offline", session.UserId()); err != nil {
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
+	}
 
 	session.InvalidateSession()
 

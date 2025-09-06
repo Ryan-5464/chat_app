@@ -6,7 +6,7 @@
   <title>Chat App</title>
   <link rel="stylesheet" href="/static/styles/index.css">
 </head>
-<body>
+<body class="jura">
   <div class="container">
     <h1>Welcome to ChatApp</h1>
 
@@ -23,12 +23,12 @@
   <script>
     function updateGMTTime() {
       const now = new Date();
-      const gmtTime = now.toUTCString().slice(17, 25); // e.g., "14:35:22"
+      const gmtTime = now.toUTCString().slice(17, 25); 
       document.getElementById('gmtTime').textContent = gmtTime;
     }
 
-    updateGMTTime(); // initial call
-    setInterval(updateGMTTime, 1000); // update every second
+    updateGMTTime(); 
+    setInterval(updateGMTTime, 1000); 
   </script>
 </body>
 </html>

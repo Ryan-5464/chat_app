@@ -3,8 +3,8 @@
 <html lang="en">
 
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="stylesheet" href="/static/styles/base/base.css">
     <link rel="stylesheet" href="/static/styles/base/dropdown.css">
     <link rel="stylesheet" href="/static/styles/base/nav.css">
@@ -24,103 +24,111 @@
     <link rel="stylesheet" href="/static/styles/chat/sidebar-elem.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&display=swap" rel="stylesheet">
-  <title>Chat Window</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&display=swap"
+        rel="stylesheet">
+    <title>Chat Window</title>
 </head>
 
 <body class="jura">
 
-<div id="header-container">
-<nav>
-    <!-- <a>Status</a> -->
-    <div class="dropdown">
-        <a id="online-status" class="dropbtn"></a>
-        <div class="dropdown-content">
-            <a href="#" onclick="ChangeOnlineStatusHandler('Online')" class="online">Online</a>
-            <a href="#" onclick="ChangeOnlineStatusHandler('Away')" class="away">Away</a>
-            <a href="#" onclick="ChangeOnlineStatusHandler('Busy')" class="busy">Busy</a>
-            <a href="#" onclick="ChangeOnlineStatusHandler('Stealth')" class="stealth">Stealth</a>
-        </div>
-    </div>
-    <a href="/profile">{{ .User.Name }}</a>
-    <a id="logout" href="/api/logout">Logout</a>
-</nav>
-</div>
-
-<div id="main-container">
-
-    <div id="left-sidebar" class="scroll">
-
-        <div id="sidebar-container">
-
-            <div id="chats-header">
-                <div id="new-chat-input-container">
-                    <input id="new-chat-input" class="input-elem" type="text" placeholder="Enter chat name..." />
+    <div id="header-container">
+        <nav>
+            <div class="dropdown">
+                <a id="online-status" class="dropbtn"></a>
+                <div class="dropdown-content">
+                    <a href="#" onclick="ChangeOnlineStatusHandler('online')" class="online">Online</a>
+                    <a href="#" onclick="ChangeOnlineStatusHandler('away')" class="away">Away</a>
+                    <a href="#" onclick="ChangeOnlineStatusHandler('busy')" class="busy">Busy</a>
+                    <a href="#" onclick="ChangeOnlineStatusHandler('stealth')" class="stealth">Stealth</a>
                 </div>
             </div>
+            <a id="user-loggedin" href="/profile" data-userid="{{ .UserId }}">{{ .User.Name }}</a>
+            <a id="logout" href="/api/logout">Logout</a>
+        </nav>
+    </div>
 
-            <div id="chats-container">
-                {{ template "chats" . }}
+    <div id="main-container">
+
+        <div id="left-sidebar" >
+
+            <div id="sidebar-container">
+
+                <div id="chats-header">
+                    <div id="new-chat-input-container">
+                        <input id="new-chat-input" class="input-elem" type="text" placeholder="Enter chat name..." />
+                    </div>
+                </div>
+
+                <div id="chats-container" class="scroll">
+                    {{ template "chats" . }}
+                </div>
+
+                {{ template "chat-modal" }}
+
             </div>
 
-            {{ template "chat-modal" }}
+        </div>
+
+        <div id="content-container">
+
+            <div id="messages-container" class="scroll">
+                {{ template "messages" . }}
+            </div>
+
+            {{ template "message-modal" }}
+
+            <div id="message-input-container">
+                <input id="message-input" class="input-elem" type="text" placeholder="Type your message..." />
+                <button id="send-message-button" class="button-elem">Send</button>
+            </div>
+
+        </div>
+
+        <div id="right-sidebar">
+
+            <div id="right-siderbar-container">
+
+                <div id="contacts-header">
+
+                    <div id="add-contact-input-container">
+                        <input id="contact-email-input" class="input-elem" type="text"
+                            placeholder="Type contact email..." />
+                    </div>
+
+                </div>
+
+                <div id="contacts-container" class="scroll">
+                    {{ template "contacts" . }}
+                </div>
+
+                {{ template "contact-modal" }}
+
+            </div>
 
         </div>
 
     </div>
-    
-    <div id="content-container">
 
-        <div id="messages-container" class="scroll">
-            {{ template "messages" . }}
-        </div>
+    {{ template "member-list-modal" }}
+    {{ template "member-modal" }}
 
-        {{ template "message-modal" }}
-
-        <div id="message-input-container">
-            <input id="message-input" class="input-elem" type="text" placeholder="Type your message..." />
-            <button id="send-message-button" class="button-elem">Send</button> 
-        </div>
-
-    </div>
-
-    <div id="right-sidebar">
-
-        <div id="right-siderbar-container">
-
-            <div id="contacts-header">
-
-            <div id="add-contact-input-container">
-                <input id="contact-email-input" class="input-elem" type="text" placeholder="Type contact email..." />
-            </div>
-
-            </div>
-
-            <div id="contacts-container">
-                {{ template "contacts" . }}
-            </div>
-
-            {{ template "contact-modal" }}
-
-        </div>
-
-    </div>
-    
-</div>
-
-{{ template "member-list-modal" }}
-{{ template "member-modal" }}
-
-<div id="footer-container"></div>
+    <div id="footer-container"></div>
 
 </body>
 
+<script src="/static/scripts/selectors/id.js" defer></script>
+<script src="/static/scripts/selectors/cls.js" defer></script>
+<script src="/static/scripts/selectors/data.js" defer></script>
+<script src="/static/scripts/selectors/gen.js" defer></script>
+<script src="/static/scripts/selectors/url.js" defer></script>
 <script src="/static/scripts/funcs.js" defer></script>
-<script src="/static/scripts/chat/renderers.js" defer></script>
-<script src="/static/scripts/chat/elements.js" defer></script>
-<script src="/static/scripts/chat/requests.js" defer></script>
-<script src="/static/scripts/chat/handlers.js" defer></script>
-<script src="/static/scripts/chat/responses.js" defer></script>
+<script src="/static/scripts/chat/render/animations.js" defer></script>
+<script src="/static/scripts/chat/render/renderers.js" defer></script>
+<script src="/static/scripts/chat/render/elements.js" defer></script>
+<script src="/static/scripts/chat/api/requests.js" defer></script>
+<script src="/static/scripts/chat/api/handlers.js" defer></script>
+<script src="/static/scripts/chat/api/responses.js" defer></script>
 <script src="/static/scripts/chat/controllers/text-input.js" defer></script>
 <script src="/static/scripts/chat/controllers/modal.js" defer></script>
 <script src="/static/scripts/chat/controllers/member-modal.js" defer></script>
@@ -131,10 +139,10 @@
 <script src="/static/scripts/chat/controllers/new-chat.js" defer></script>
 <script src="/static/scripts/chat/controllers/new-contact.js" defer></script>
 <script src="/static/scripts/chat/controllers/switch-chat.js" defer></script>
-<script src="/static/scripts/config.js" defer></script>
-<script src="/static/scripts/domloaded.js" defer></script>
+<script src="/static/scripts/chat/domloaded.js" defer></script>
+<script src="/static/scripts/chat/socket.js" defer></script>
 <script src="/static/scripts/modals.js" defer></script>
-<script src="/static/scripts/prototypes.js" defer></script>
+
 </html>
 
 {{ end }}

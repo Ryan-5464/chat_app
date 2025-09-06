@@ -7,6 +7,7 @@ nav {
     border-bottom-style: solid;
     border-bottom-color: var(--bdr-col);
     border-bottom-width: 1px;
+    margin-right:10px;
 }
 
 /* Remove underline from all anchor tags */

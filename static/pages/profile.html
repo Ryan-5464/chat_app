@@ -2,66 +2,75 @@
 <html lang="en">
 
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>User Profile</title>
-  <link rel="stylesheet" href="/static/styles/profile.css">
-  <link rel="stylesheet" href="/static/styles/base/nav.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Profile</title>
+    <link rel="stylesheet" href="/static/styles/base/base.css">
+    <link rel="stylesheet" href="/static/styles/base/nav.css">
+    <link rel="stylesheet" href="/static/styles/base/dropdown.css">
+    <link rel="stylesheet" href="/static/styles/profile.css">
 </head>
 
-<body>
+<body class="jura">
 
     <div id="header-container">
         <nav>
-            <a>Status</a>
-            <a>{{ .User.Name }}</a>
+            <div class="dropdown">
+                <a id="online-status" class="dropbtn"></a>
+                <div class="dropdown-content">
+                    <a href="#" onclick="ChangeOnlineStatusHandler('online')" class="online">Online</a>
+                    <a href="#" onclick="ChangeOnlineStatusHandler('away')" class="away">Away</a>
+                    <a href="#" onclick="ChangeOnlineStatusHandler('busy')" class="busy">Busy</a>
+                    <a href="#" onclick="ChangeOnlineStatusHandler('stealth')" class="stealth">Stealth</a>
+                </div>
+            </div>
             <a href="/chat">Chat</a>
             <a id="logout" href="/api/logout">Logout</a>
         </nav>
     </div>
 
+    <div id="main-container">
 
-  <div id="profile-container">
-    <h2>User Profile</h2>
+        <div id="profile-container">
+            <h2 class="title-font">User Profile</h2>
 
-    <!-- Username Box -->
-    <div class="profile-box">
-      <div class="form-box">
-        <div class="form-header">
-          <label for="username">Username</label>
-          <span id="current-value" class="current-value">{{ .User.Name }}</span>
+            <div class="profile-box">
+                <div class="setting-container">
+
+                    <div class="setting-header title-font">
+                        <label for="username">Username</label>
+                        <span id="username" class="setting-value">{{ .User.Name }}</span>
+                    </div>
+                    <div class="setting-footer">
+                        <input id="username-input" type="text" name="username" placeholder="Enter new username">
+                    </div>
+                </div>
+
+                <!-- <div class="setting-container">
+
+                    <div class="setting-header title-font">
+                        <label for="email">Email</label>
+                        <span id="email" class="setting-value">user@example.com</span>
+                    </div>
+                    <div class="setting-footer">
+                        <input id="email" type="email" name="email" placeholder="Enter new email">
+                    </div>
+                </div> -->
+            </div>
         </div>
-        <input id="username" type="text" name="username" placeholder="Enter new username">
-      </div>
     </div>
 
-    <!-- Email Box -->
-    <!-- <div class="profile-box">
-      <div class="form-box">
-        <div class="form-header">
-          <label for="email">Email</label>
-          <span class="current-value">user@example.com</span>
-        </div>
-        <input id="email" type="email" name="email" placeholder="Enter new email">
-      </div>
-    </div> -->
-
-    <!-- Status Box -->
-    <!-- <div class="profile-box">
-      <div class="form-box">
-        <div class="form-header">
-          <label for="status">Status</label>
-          <span class="current-value">Available</span>
-        </div>
-        <input id="status" type="text" name="status" placeholder="Enter new status">
-      </div>
-    </div> -->
-
-  </div>
-
 </body>
-<script src="/static/scripts/chat/requests.js" defer></script>
-<script src="/static/scripts/chat/handlers.js" defer></script>
-<script src="/static/scripts/chat/responses.js" defer></script>
+<script src="/static/scripts/selectors/id.js" defer></script>
+<script src="/static/scripts/selectors/cls.js" defer></script>
+<script src="/static/scripts/selectors/data.js" defer></script>
+<script src="/static/scripts/selectors/gen.js" defer></script>
+<script src="/static/scripts/selectors/url.js" defer></script>
+<script src="/static/scripts/funcs.js" defer></script>
+<script src="/static/scripts/chat/render/renderers.js" defer></script>
+<script src="/static/scripts/chat/api/requests.js" defer></script>
+<script src="/static/scripts/chat/api/handlers.js" defer></script>
+<script src="/static/scripts/chat/api/responses.js" defer></script>
 <script src="/static/scripts/profile.js" defer></script>
+
 </html>

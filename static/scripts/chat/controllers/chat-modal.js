@@ -1,6 +1,6 @@
 function addChatModalListenerToChatContainer() {
     const modal = ConfigureChatModal();
-    const container = document.getElementById('chats-container');
+    const container = document.getElementById(APP.ID.CHAT.CONTAINER);
     const configureEditButton = ConfigureEditButton(modal.__controller);
     const configureLeaveButton = ConfigureLeaveButton(modal.__controller);
     const configureMembersButton = ConfigureMembersButton(modal.__controller);
@@ -9,16 +9,19 @@ function addChatModalListenerToChatContainer() {
         e.preventDefault();
         e.stopPropagation();
 
-        const editButton = document.getElementById('chat-edit-btn')
-        const chat = e.target.closest('.chat')
+        const editButton = document.getElementById(APP.ID.MODAL.CHAT.BTN.EDIT)
+        const chat = e.target.closest(".".concat(APP.CLS.CHAT.TAG))
+        if (!chat) { return; }
 
-        if (chat.classList.contains('me')) {
-            editButton.classList.remove('hidden')
+        if (chat.classList.contains(APP.CLS.GEN.ME)) {
+            editButton.classList.remove(APP.CLS.GEN.HIDDEN)
         } else {
-            editButton.classList.add('hidden') 
+            editButton.classList.add(APP.CLS.GEN.HIDDEN) 
         }
 
-        const chatId = e.target.closest('[data-chatid]')?.getAttribute('data-chatid');
+        const c = GetClosestTargetByData(e, APP.DATA.CHAT.ID)
+        if (!c) { return; }
+        const chatId = GetDataAttribute(chat, APP.DATA.CHAT.ID);
         if (!chatId) return;
         modal.__controller.OpenAt(e.clientX, e.clientY);
         configureEditButton(chatId);
@@ -28,7 +31,7 @@ function addChatModalListenerToChatContainer() {
 };
 
 function ConfigureEditButton(chatModalController) {
-    const editNameButton = document.getElementById('chat-edit-btn');
+    const editNameButton = document.getElementById(APP.ID.MODAL.CHAT.BTN.EDIT);
     let currentChatId = null;
     editNameButton.addEventListener('click', () => {
         if (!currentChatId) return;
@@ -38,7 +41,7 @@ function ConfigureEditButton(chatModalController) {
 };
 
 function ConfigureLeaveButton(chatModalController) {
-    const leaveButton = document.getElementById('chat-leave-btn');
+    const leaveButton = document.getElementById(APP.ID.MODAL.CHAT.BTN.LEAVE);
     let currentChatId = null;
     leaveButton.addEventListener('click', () => {
         if (!currentChatId) return;
@@ -48,29 +51,29 @@ function ConfigureLeaveButton(chatModalController) {
 };
 
 function ConfigureMembersButton(chatModalController) {
-    const membersButton = document.getElementById('chat-members-btn');
+    const membersButton = document.getElementById(APP.ID.MODAL.CHAT.BTN.MEMBER);
     let currentChatId = null;
     let chatElem = null;
 
     membersButton.addEventListener('click', () => {
         if (!currentChatId) return;
-        const addMember = document.getElementById('add-member')
+        const addMember = document.getElementById(APP.ID.MODAL.MEMBERLIST.TITLE.ADD_MEMBER)
         
-        if (chatElem.classList.contains('me')) {
-            addMember.classList.remove('hidden')
+        if (chatElem.classList.contains(APP.CLS.GEN.ME)) {
+            addMember.classList.remove(APP.CLS.GEN.HIDDEN)
         } else {
-            addMember.classList.add('hidden') 
+            addMember.classList.add(APP.CLS.GEN.HIDDEN) 
         }
 
-        const addMemberInput = document.getElementById('add-member-input')
-        addMemberInput.setAttribute('data-chatid', currentChatId)
+        const addMemberInput = document.getElementById(APP.ID.MODAL.MEMBERLIST.INPUT.ADD_MEMBER)
+        addMemberInput.setAttribute(`data-${APP.DATA.CHAT.ID}`, currentChatId)
         chatModalController.DisplayMemberList(currentChatId);
     });
     return (chatId, chat) => {currentChatId = chatId; chatElem = chat}
 }
 
 function ConfigureChatModal() {
-    const modal = document.getElementById('chatModal');
+    const modal = document.getElementById(APP.ID.MODAL.CHAT.MODAL);
     modal.__controller = {
         Close: () => CloseModal(modal),
         OpenAt: (clientX, clientY) => OpenModalAt(modal, clientX, clientY),
@@ -82,15 +85,16 @@ function ConfigureChatModal() {
 };
 
 function EditChatName(chatId, closeModal) {
-    const chat = document.querySelector(`[data-chatid="${chatId}"]`);
+    const chat = GetElemByDataTag(document, APP.DATA.CHAT.ID, chatId);
     const editChatNameHandler = (inputText) => { EditChatNameHandler(inputText, chatId) }
     closeModal();
-    textInputController(chat, editChatNameHandler, 'chat-name-input', 'chat-name')
+    textInputController(chat, editChatNameHandler, APP.ID.CHAT.INPUT.EDIT_NAME, APP.CLS.CHAT.NAME)
 };
 
 function LeaveChat(chatId, closeModal) {
-    const activeChat = document.querySelector('.active');
-    const activeChatId = activeChat?.getAttribute("data-chatid");
+    const activeChat = QSelectByClass(document, APP.CLS.GEN.ACTIVE);
+    if (!activeChat) { return; }
+    const activeChatId = GetDataAttribute(activeChat, APP.DATA.CHAT.ID);
     const isActive = chatId === activeChatId;
     closeModal();
     console.log("is active", isActive)
@@ -98,10 +102,8 @@ function LeaveChat(chatId, closeModal) {
 };
 
 function DisplayMemberList(chatId, closeModal) {
-    closeModal(); // closes the chat options modal
+    closeModal(); 
     const memberModal = ConfigureMemberListModal();
     memberModal.__controller.OpenAt();
-
-    // Fetch & render members
     DisplayMemberListHandler(chatId);
 }

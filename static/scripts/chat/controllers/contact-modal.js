@@ -1,12 +1,14 @@
 function addContactModalListenerToContactContainer() {
     const modal = ConfigureContactModal();
-    const container = document.getElementById('contacts-container');
+    const container = document.getElementById(APP.ID.CONTACT.CONTAINER);
     const configureRemoveContactButton = ConfigureRemoveContactButton(modal.__controller);
     
     container.addEventListener("contextmenu", (e) => {
         e.preventDefault();
         e.stopPropagation();
-        const contactId = e.target.closest('[data-contactid]')?.dataset.contactid;
+        const contact = GetClosestTargetByData(e, APP.DATA.CONTACT.ID);
+        if (!contact) { return; }
+        const contactId = GetDataAttribute(contact, APP.DATA.CONTACT.ID);
         if (!contactId) return;
         modal.__controller.OpenAt(e.clientX, e.clientY);
         configureRemoveContactButton(contactId);
@@ -14,7 +16,7 @@ function addContactModalListenerToContactContainer() {
 };
 
 function ConfigureRemoveContactButton(contactModalController) {
-    const removeButton = document.getElementById('contact-remove-btn');
+    const removeButton = document.getElementById(APP.ID.MODAL.CONTACT.BTN.REMOVE_CONTACT);
     let currentContactId = null;
     removeButton.addEventListener('click', () => {
         if (!currentContactId) return;
@@ -24,7 +26,7 @@ function ConfigureRemoveContactButton(contactModalController) {
 };
 
 function ConfigureContactModal() {
-    const modal = document.getElementById('contactModal');
+    const modal = document.getElementById(APP.ID.MODAL.CONTACT.MODAL);
     const contactModalController = {
         Close: () => CloseModal(modal),
         OpenAt: (clientX, clientY) => OpenModalAt(modal, clientX, clientY),
@@ -35,8 +37,8 @@ function ConfigureContactModal() {
 };
 
 function RemoveContact(contactId, closeModal) {
-    const activeContactChat = document.querySelector('.active');
-    const activeContactId = activeContactChat?.dataset.contactid;
+    const activeContactChat = QSelectByClass(document, APP.CLS.GEN.ACTIVE);
+    const activeContactId = GetDataAttribute(activeContactChat, APP.DATA.CONTACT.ID);
     const isActive = contactId === activeContactId;
     closeModal();
     console.log("is active", isActive);

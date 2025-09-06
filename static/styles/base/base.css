@@ -20,11 +20,30 @@
   --offline-col: #7f8c8d;
 }
 
+html, body {
+  height: 100%;
+}
+
+body {
+  background-color: var(--bg);
+  color: var(--font-col-prim);
+  display: flex;
+  flex-direction: column;   
+  min-height: 100vh;        
+  overflow-y: auto;
+}
+
 .jura {
   font-family: "DM Sans", sans-serif;
   font-optical-sizing: auto;
   font-weight: normal;
   font-style: normal;
+}
+
+.title-font {
+    font-size: 18px;
+    color: var(--font-col-snd);
+    font-weight: normal;
 }
 
 .hidden {
@@ -35,7 +54,23 @@
 
 .text-header {
     font-size: 18px;
-    font-weight: bold;
+    font-weight: normal;
     color: var(--font-col-snd);
     margin: auto;
+}
+
+#header-container,
+#footer-container {
+    width: 100vw;
+    height: 50px; 
+    background-color: var(--bg);
+}
+
+#main-container {
+    width: 100vw;
+    background-color: var(--bg);
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
 }

@@ -50,6 +50,11 @@ func (h chatWebSocket) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	h.connS.StoreConnection(conn, userId)
 	defer h.connS.DisconnectUser(userId)
 
+	if err := h.connS.ChangeOnlineStatus("online", userId); err != nil {
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
+	}
+
 	util.Log.Dbugf("active connections : %v", h.connS.GetActiveConnections())
 
 	for {

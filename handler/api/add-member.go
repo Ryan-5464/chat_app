@@ -11,15 +11,17 @@ import (
 	"server/util"
 )
 
-func AddMember(a i.AuthService, c i.ChatService) http.Handler {
+func AddMember(a i.AuthService, c i.ChatService, cn i.ConnectionService) http.Handler {
 	h := addMember{
 		chatS: c,
+		connS: cn,
 	}
 	return mw.AddMiddleware(h, mw.WithAuth(a), mw.WithMethod(mw.POST))
 }
 
 type addMember struct {
 	chatS i.ChatService
+	connS i.ConnectionService
 }
 
 func (h addMember) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -65,6 +67,26 @@ func (h addMember) handleRequest(req amrequest) (amresponse, error) {
 
 	member, err := h.chatS.GetChatMember(chatId, memberId)
 	if err != nil {
+		return amresponse{}, err
+	}
+
+	chats, err := h.chatS.GetChats(memberId)
+	if err != nil {
+		return amresponse{}, err
+	}
+
+	conn := h.connS.GetConnection(memberId)
+
+	payload := struct {
+		Type  string
+		Chats []ent.Chat
+	}{
+		Type:  "AddMember",
+		Chats: chats,
+	}
+
+	if err := conn.WriteJSON(payload); err != nil {
+		util.Log.Errorf("failed to write to websocket connection: %v", err)
 		return amresponse{}, err
 	}
 
