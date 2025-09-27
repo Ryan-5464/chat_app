@@ -650,6 +650,32 @@ func (dbs *DbService) GetMember(chatId typ.ChatId, userId typ.UserId) (*model.Me
 	return populateMemberModel(rows), nil
 }
 
+func (dbs *DbService) GetLatestMessageId() (typ.MessageId, error) {
+	util.Log.FunctionInfo()
+
+	qb := qbuilder.NewQueryBuilder()
+
+	msgTbl := qb.Table(schema.MessageTable)
+	msgIdF := qb.Field(schema.MessageId)
+	query := qb.SELECT(msgIdF).FROM(msgTbl).LIMIT((1)).Build()
+
+	util.Log.Dbugf("query: %s", query)
+
+	rows, err := dbs.db.Read(query)
+	if err != nil {
+		return 0, err
+	}
+
+	util.Log.Dbugf("rows: %v", rows)
+
+	if len(rows) == 0 {
+		return 0, fmt.Errorf("no messages found")
+	}
+
+	messageId := rows[0][schema.MessageId].(int64)
+	return typ.MessageId(messageId), nil
+}
+
 func (dbs *DbService) GetLatestChatMessageId(chatId typ.ChatId) (typ.MessageId, error) {
 	util.Log.FunctionInfo()
 

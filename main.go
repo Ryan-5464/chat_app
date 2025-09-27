@@ -63,7 +63,7 @@ func main() {
 	http.Handle("/api/chat/edit", api.EditChatName(authS, chatS))
 	http.Handle("/api/chat/contact/switch", api.SwitchContactChat(authS, msgS))
 	http.Handle("/api/chat/contact/add", api.AddContact(authS, connS, userS))
-	http.Handle("/api/chat/members/add", api.AddMember(authS, chatS, connS))
+	http.Handle("/api/chat/members/add", api.AddMember(authS, chatS, connS, msgS))
 	http.Handle("/api/logout", api.Logout(authS, connS))
 	http.Handle("/api/status", api.OnlineStatus(authS, connS))
 	http.Handle("/api/status/get", api.GetOnlineStatus(authS, connS))

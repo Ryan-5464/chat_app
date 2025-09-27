@@ -11,10 +11,11 @@ import (
 	"server/util"
 )
 
-func AddMember(a i.AuthService, c i.ChatService, cn i.ConnectionService) http.Handler {
+func AddMember(a i.AuthService, c i.ChatService, cn i.ConnectionService, m i.MessageService) http.Handler {
 	h := addMember{
 		chatS: c,
 		connS: cn,
+		msgS:  m,
 	}
 	return mw.AddMiddleware(h, mw.WithAuth(a), mw.WithMethod(mw.POST))
 }
@@ -22,6 +23,7 @@ func AddMember(a i.AuthService, c i.ChatService, cn i.ConnectionService) http.Ha
 type addMember struct {
 	chatS i.ChatService
 	connS i.ConnectionService
+	msgS  i.MessageService
 }
 
 func (h addMember) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -67,6 +69,15 @@ func (h addMember) handleRequest(req amrequest) (amresponse, error) {
 
 	member, err := h.chatS.GetChatMember(chatId, memberId)
 	if err != nil {
+		return amresponse{}, err
+	}
+
+	lastestMsgId, err := h.msgS.GetLatestMessageId()
+	if err != nil {
+		return amresponse{}, err
+	}
+
+	if err := h.msgS.UpdateLastReadMsgId(lastestMsgId, chatId, memberId); err != nil {
 		return amresponse{}, err
 	}
 

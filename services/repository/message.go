@@ -118,6 +118,11 @@ func (m *MessageRepository) UpdateLastReadMsgId(lastReadMsgId typ.MessageId, cha
 	return m.dbS.UpdateLastReadMsgId(lastReadMsgId, chatId, userId)
 }
 
+func (m *MessageRepository) GetLatestMessageId() (typ.MessageId, error) {
+	util.Log.FunctionInfo()
+	return m.dbS.GetLatestMessageId()
+}
+
 func messageEntitiesFromModels(messages []model.Message) []ent.Message {
 	if len(messages) == 0 {
 		return []ent.Message{}

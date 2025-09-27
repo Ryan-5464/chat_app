@@ -32,6 +32,7 @@ socket.onmessage = function (e) {
     if (payload.Type == "RemoveMember") {
         const chatContainer = document.getElementById(APP.ID.CHAT.CONTAINER)
         DeleteElementByDataTag(chatContainer, APP.DATA.CHAT.ID, payload.ChatId)
+        return;
     }
 
     if (payload.Type == "AddMember") {
@@ -52,7 +53,7 @@ socket.onmessage = function (e) {
         return;
     }
 
-    if (payload.Chats != null) {
+    if (payload.Type == "NewMessage") {
         if (payload.Messages) {
             if (!payload.Messages[0].IsUserMessage) {
                 Object.values(payload.Chats).forEach(chat => { 

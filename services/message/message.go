@@ -127,11 +127,11 @@ func (m *MessageService) broadcastMessage(userId typ.UserId, chats []ent.Chat, c
 	messages := []ent.Message{msg}
 
 	payload := struct {
-		Type     int
+		Type     string
 		Chats    []ent.Chat
 		Messages []ent.Message
 	}{
-		Type:     1,
+		Type:     "NewMessage",
 		Chats:    chats,
 		Messages: messages,
 	}
@@ -142,6 +142,11 @@ func (m *MessageService) broadcastMessage(userId typ.UserId, chats []ent.Chat, c
 	}
 
 	return nil
+}
+
+func (m *MessageService) GetLatestMessageId() (typ.MessageId, error) {
+	util.Log.FunctionInfo()
+	return m.msgR.GetLatestMessageId()
 }
 
 func (m *MessageService) GetLatestChatMessageId(chatId typ.ChatId) (typ.MessageId, error) {

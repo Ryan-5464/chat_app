@@ -49,6 +49,7 @@ type MessageRepository interface {
 	EditMessage(msgText string, m typ.MessageId) error
 	UpdateLastReadMsgId(lastReadMsgId typ.MessageId, c typ.ChatId, u typ.UserId) error
 	GetLatestChatMessageId(c typ.ChatId) (typ.MessageId, error)
+	GetLatestMessageId() (typ.MessageId, error)
 }
 
 type DbService interface {
@@ -87,6 +88,7 @@ type DbService interface {
 	UpdateLastReadMsgId(lastReadMsgId typ.MessageId, c typ.ChatId, u typ.UserId) error
 	GetUnreadMessageCount(lastReadMsgId typ.MessageId, c typ.ChatId) (int64, error)
 	GetLatestChatMessageId(c typ.ChatId) (typ.MessageId, error)
+	GetLatestMessageId() (typ.MessageId, error)
 
 	CreateContact(id1 typ.UserId, id2 typ.ContactId) (typ.LastInsertId, error)
 	GetContact(c typ.ChatId) (*model.Contact, error)
@@ -122,6 +124,7 @@ type MessageService interface {
 	EditMessage(msgText string, m typ.MessageId) (*ent.Message, error)
 	UpdateLastReadMsgId(lastReadMsgId typ.MessageId, c typ.ChatId, u typ.UserId) error
 	GetLatestChatMessageId(c typ.ChatId) (typ.MessageId, error)
+	GetLatestMessageId() (typ.MessageId, error)
 }
 
 type UserService interface {
