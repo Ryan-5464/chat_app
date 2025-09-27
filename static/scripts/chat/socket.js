@@ -33,7 +33,7 @@ socket.onmessage = function (e) {
         return;
     }
 
-    if (payload.Type == "AddContact") {
+    if (payload.Type == "AddContact"  || payload.Type == "RemoveContact") {
         const activeChat = QSelectByClass(document, APP.CLS.GEN.ACTIVE);
         const activeChatId = GetDataAttribute(activeChat, APP.DATA.CHAT.ID)
         RenderContactElements(payload.Contacts, true);

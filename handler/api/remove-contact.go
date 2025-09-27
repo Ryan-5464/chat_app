@@ -11,11 +11,12 @@ import (
 	"server/util"
 )
 
-func RemoveContact(a i.AuthService, c i.ChatService, m i.MessageService, u i.UserService) http.Handler {
+func RemoveContact(a i.AuthService, c i.ChatService, m i.MessageService, u i.UserService, cn i.ConnectionService) http.Handler {
 	h := removeContact{
 		chatS: c,
 		msgS:  m,
 		userS: u,
+		connS: cn,
 	}
 	return mw.AddMiddleware(h, mw.WithAuth(a), mw.WithMethod(mw.DELETE))
 }
@@ -24,6 +25,7 @@ type removeContact struct {
 	chatS i.ChatService
 	msgS  i.MessageService
 	userS i.UserService
+	connS i.ConnectionService
 }
 
 func (h removeContact) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -75,8 +77,23 @@ func (h removeContact) handleRequest(req rcrequest, userId typ.UserId) (rcrespon
 		}
 	}
 
-	contacts, err := h.userS.GetContacts(userId)
+	contacts, err := h.userS.GetContacts(typ.UserId(contactId))
 	if err != nil {
+		return rcresponse{}, err
+	}
+
+	conn := h.connS.GetConnection(typ.UserId(contactId))
+
+	payload := struct {
+		Type     string
+		Contacts []ent.Contact
+	}{
+		Type:     "RemoveContact",
+		Contacts: contacts,
+	}
+
+	if err := conn.WriteJSON(payload); err != nil {
+		util.Log.Errorf("failed to write to websocket connection: %v", err)
 		return rcresponse{}, err
 	}
 
@@ -87,6 +104,17 @@ func (h removeContact) handleRequest(req rcrequest, userId typ.UserId) (rcrespon
 	}
 
 	return newChatResponse, nil
+}
+
+func (h removeContact) GetContactsForRemovedContact(contactId typ.UserId) ([]ent.Contact, error) {
+	util.Log.FunctionInfo()
+
+	contacts, err := h.userS.GetContacts(contactId)
+	if err != nil {
+		return nil, err
+	}
+
+	return contacts, nil
 }
 
 type rcrequest struct {
