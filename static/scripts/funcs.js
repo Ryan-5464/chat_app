@@ -9,6 +9,7 @@ function GetElemByDataTag(elem, tag, val) {
 };
 
 function GetDataAttribute(elem, tag) {
+        if (!elem) { return null; }
     return elem.dataset[tag];
 };
 

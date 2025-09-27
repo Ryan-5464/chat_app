@@ -11,15 +11,19 @@ import (
 	"server/util"
 )
 
-func EditMessage(a i.AuthService, m i.MessageService) http.Handler {
+func EditMessage(a i.AuthService, m i.MessageService, cn i.ConnectionService, u i.UserService) http.Handler {
 	h := editMessage{
-		msgS: m,
+		msgS:  m,
+		connS: cn,
+		usrS:  u,
 	}
 	return mw.AddMiddleware(h, mw.WithAuth(a), mw.WithMethod(mw.POST))
 }
 
 type editMessage struct {
-	msgS i.MessageService
+	msgS  i.MessageService
+	connS i.ConnectionService
+	usrS  i.UserService
 }
 
 func (h editMessage) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -70,6 +74,42 @@ func (h editMessage) handleRequest(req emrequest) (emresponse, error) {
 	msg, err := h.msgS.EditMessage(req.MsgText, messageId)
 	if err != nil {
 		return emresponse{}, err
+	}
+
+	users, err := h.usrS.GetChatUsers(msg.ChatId)
+	if err != nil {
+		return emresponse{}, err
+	}
+
+	usrConns := make(map[typ.UserId]i.Socket)
+	for _, u := range users {
+		conn := h.connS.GetConnection(u.Id)
+		usrConns[u.Id] = conn
+	}
+
+	for userId, conn := range usrConns {
+		if conn == nil {
+			util.Log.Infof("connection is nil for userId %v!", userId)
+			continue
+		}
+
+		payload := struct {
+			Type    string
+			MsgId   typ.MessageId
+			MsgText string
+		}{
+			Type:    "EditMessage",
+			MsgId:   msg.Id,
+			MsgText: msg.Text,
+		}
+
+		util.Log.Dbugf("broadcasting edit message to userId %v :: %v", userId, payload)
+
+		if err := conn.WriteJSON(payload); err != nil {
+			util.Log.Errorf("failed to write to websocket connection: %v", err)
+			return emresponse{}, err
+		}
+
 	}
 
 	return emresponse{

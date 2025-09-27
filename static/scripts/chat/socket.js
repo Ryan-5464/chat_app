@@ -14,6 +14,15 @@ socket.onmessage = function (e) {
         return;
     }
 
+    if (payload.Type == "EditMessage") {
+        console.log("editing message...")
+        const msgElem = GetElemByDataTag(document, APP.DATA.MESSAGE.ID, payload.MsgId);
+        if (!msgElem) { return; };
+        const msgTextElem = QSelectByClass(msgElem, APP.CLS.MESSAGE.TEXT);
+        msgTextElem.innerHTML = payload.MsgText;
+        return;
+    }
+
     if (payload.Type == "OnlineStatus") {
         const contact = GetElemByDataTag(document, APP.DATA.CONTACT.ID, payload.UserId)
         RenderContactOnlineStatus(payload.OnlineStatus, contact)
@@ -29,6 +38,7 @@ socket.onmessage = function (e) {
         const activeChat = QSelectByClass(document, APP.CLS.GEN.ACTIVE);
         const activeChatId = GetDataAttribute(activeChat, APP.DATA.CHAT.ID)
         RenderChatElements(payload.Chats, true);
+        if (!activeChatId) { return; };
         SetChatToActive(activeChatId)
         return;
     }
@@ -37,6 +47,7 @@ socket.onmessage = function (e) {
         const activeChat = QSelectByClass(document, APP.CLS.GEN.ACTIVE);
         const activeChatId = GetDataAttribute(activeChat, APP.DATA.CHAT.ID)
         RenderContactElements(payload.Contacts, true);
+        if (!activeChatId) { return; };
         SetChatToActive(activeChatId)
         return;
     }

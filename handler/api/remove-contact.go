@@ -67,14 +67,17 @@ func (h removeContact) handleRequest(req rcrequest, userId typ.UserId) (rcrespon
 		return rcresponse{}, err
 	}
 
-	newActiveChatId := chats[0].Id
+	var newActiveChatId typ.ChatId
 	var messages []ent.Message
 	if len(chats) != 0 {
-		chatId := newActiveChatId
-		messages, err = h.msgS.GetChatMessages(chatId, userId)
+		newActiveChatId = chats[0].Id
+		messages, err = h.msgS.GetChatMessages(newActiveChatId, userId)
 		if err != nil {
 			return rcresponse{}, err
 		}
+	} else {
+		newActiveChatId = typ.ChatId(0)
+		messages = []ent.Message{}
 	}
 
 	contacts, err := h.userS.GetContacts(typ.UserId(contactId))

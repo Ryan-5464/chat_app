@@ -6,7 +6,4 @@ fix bug with panic in getlatestchatmessageid when trying to add member to new ch
 TODO: unread message count for contacts
 
 
-TODO: real time update for delete contact
-TODO: real time update for edit message
 TODO: hide messages before member added for added member
-
