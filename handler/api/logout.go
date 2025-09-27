@@ -30,6 +30,8 @@ func (h logout) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	h.connS.DisconnectUser(session.UserId())
+
 	session.InvalidateSession()
 
 	http.SetCookie(w, session.Cookie())

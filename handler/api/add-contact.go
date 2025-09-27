@@ -68,11 +68,42 @@ func (h addContact) handleRequest(req acrequest, userId typ.UserId) (acresponse,
 		return res, errors.New("failed to add contact")
 	}
 
+	contacts, err := h.GetContactsForNewContact(typ.UserId(contact.Id))
+	if err != nil {
+		return res, err
+	}
+
+	conn := h.connS.GetConnection(typ.UserId(contact.Id))
+
+	payload := struct {
+		Type     string
+		Contacts []ent.Contact
+	}{
+		Type:     "AddContact",
+		Contacts: contacts,
+	}
+
+	if err := conn.WriteJSON(payload); err != nil {
+		util.Log.Errorf("failed to write to websocket connection: %v", err)
+		return acresponse{}, err
+	}
+
 	res = acresponse{
 		Contacts: []ent.Contact{*contact},
 	}
 
 	return res, nil
+}
+
+func (h addContact) GetContactsForNewContact(contactId typ.UserId) ([]ent.Contact, error) {
+	util.Log.FunctionInfo()
+
+	contacts, err := h.userS.GetContacts(contactId)
+	if err != nil {
+		return nil, err
+	}
+
+	return contacts, nil
 }
 
 type acrequest struct {

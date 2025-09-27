@@ -41,8 +41,14 @@ func (c *ConnectionService) GetConnection(userId typ.UserId) i.Socket {
 
 func (c *ConnectionService) DisconnectUser(userId typ.UserId) {
 	util.Log.FunctionInfo()
+	conn := c.pool[userId]
+	if conn == nil {
+		util.Log.Infof("No active connection found for userId: %v", userId)
+		return
+	}
+	conn.Close()
 	delete(c.pool, userId)
-	util.Log.Dbugf("User disconnected: Id = %v", userId.String())
+	util.Log.Infof("User disconnected: Id = %v", userId.String())
 }
 
 func (c *ConnectionService) GetActiveConnections() map[typ.UserId]i.Socket {

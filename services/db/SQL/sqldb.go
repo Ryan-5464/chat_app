@@ -671,6 +671,11 @@ func (dbs *DbService) GetLatestChatMessageId(chatId typ.ChatId) (typ.MessageId, 
 
 	util.Log.Dbugf("rows: %v", rows)
 
+	if len(rows) == 0 {
+		util.Log.Dbugf("no messages found for chatId: %v", chatId)
+		return 0, nil
+	}
+
 	messageId := rows[0][schema.MessageId].(int64)
 	return typ.MessageId(messageId), nil
 }

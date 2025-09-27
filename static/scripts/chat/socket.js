@@ -33,6 +33,14 @@ socket.onmessage = function (e) {
         return;
     }
 
+    if (payload.Type == "AddContact") {
+        const activeChat = QSelectByClass(document, APP.CLS.GEN.ACTIVE);
+        const activeChatId = GetDataAttribute(activeChat, APP.DATA.CHAT.ID)
+        RenderContactElements(payload.Contacts, true);
+        SetChatToActive(activeChatId)
+        return;
+    }
+
     if (payload.Chats != null) {
         if (payload.Messages) {
             if (!payload.Messages[0].IsUserMessage) {

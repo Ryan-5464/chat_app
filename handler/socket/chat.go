@@ -103,8 +103,6 @@ func (h chatWebSocket) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		util.Log.Dbug("->>>> RESPONSE SENT")
 
 	}
-
-	util.Log.Dbug("User disconnected")
 }
 
 func (h chatWebSocket) readIncomingMessage(conn i.Socket) (websocketPayload, error) {
