@@ -12,15 +12,17 @@ import (
 	"server/util"
 )
 
-func NewChat(a i.AuthService, c i.ChatService) http.Handler {
+func NewChat(a i.AuthService, c i.ChatService, m i.MessageService) http.Handler {
 	h := newChat{
 		chatS: c,
+		msgS:  m,
 	}
 	return mw.AddMiddleware(h, mw.WithAuth(a), mw.WithMethod(mw.POST))
 }
 
 type newChat struct {
 	chatS i.ChatService
+	msgS  i.MessageService
 }
 
 func (h newChat) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -56,8 +58,20 @@ func (h newChat) handleNewChatRequest(cr ncrequest, userId typ.UserId) (ncrespon
 		return ncresponse{}, err
 	}
 
+	var replyId typ.MessageId
+	if err := h.msgS.HandleNewMessage(userId, chat.Id, &replyId, "Add someone to chat with!"); err != nil {
+		return ncresponse{}, err
+	}
+
+	messages, err := h.msgS.GetChatMessages(chat.Id, userId)
+	if err != nil {
+		return ncresponse{}, err
+	}
+
 	res := ncresponse{
-		Chats: []ent.Chat{*chat},
+		Chats:        []ent.Chat{*chat},
+		Messages:     messages,
+		ActiveChatId: chat.Id,
 	}
 
 	return res, nil
@@ -68,5 +82,7 @@ type ncrequest struct {
 }
 
 type ncresponse struct {
-	Chats []ent.Chat
+	Chats        []ent.Chat
+	ActiveChatId typ.ChatId    `json:"ActiveChatId"`
+	Messages     []ent.Message `json:"Messages"`
 }

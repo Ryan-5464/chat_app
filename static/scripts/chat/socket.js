@@ -92,7 +92,7 @@ function UpdateUnreadMessageCount(elem, chat) {
     if (!umc) { return; }
     if (chat.UnreadMessageCount == 0) { HideElement(umc); return; };
     if (elem.classList.contains(APP.CLS.GEN.ACTIVE)) { return; };
-    if (umc.innerHTML === chat.UnreadMessageCount) { return; };
+    if (umc.innerHTML == chat.UnreadMessageCount) { return; };
     umc.innerHTML = chat.UnreadMessageCount;
     ShowElement(umc);
     PulseElement(umc);

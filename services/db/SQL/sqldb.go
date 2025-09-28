@@ -875,6 +875,8 @@ func populateMessageModels(rows typ.Rows) []model.Message {
 
 	var msgMs []model.Message
 	for _, row := range rows {
+		log.Println(row[schema.UserId])
+		log.Println(row)
 		msgM := model.Message{
 			Id:         parseMessageId(row[schema.MessageId]),
 			UserId:     parseUserId(row[schema.UserId]),
@@ -886,6 +888,7 @@ func populateMessageModels(rows typ.Rows) []model.Message {
 		}
 		msgMs = append(msgMs, msgM)
 	}
+	log.Println("successfully populated messages")
 
 	return msgMs
 }
@@ -973,15 +976,18 @@ func parsePwdHash(v any) cred.PwdHash {
 func parseString(v any) string {
 	name, ok := v.(string)
 	if !ok {
-		log.Fatalf("parseName: v does not hold a MyType (it is %T)", v)
+		log.Fatalf("parseString: v does not hold a MyType (it is %T)", v)
 	}
 	return name
 }
 
 func parseMessageId(v any) typ.MessageId {
+	if v == nil {
+		return 0
+	}
 	mid, ok := v.(int64)
 	if !ok {
-		log.Fatalf("parseUserId: v does not hold a MyType (it is %T)", v)
+		log.Fatalf("parseMessageId: v does not hold a MyType (it is %T)", v)
 	}
 	return typ.MessageId(mid)
 }
@@ -989,7 +995,7 @@ func parseMessageId(v any) typ.MessageId {
 func parseChatId(v any) typ.ChatId {
 	cid, ok := v.(int64)
 	if !ok {
-		log.Fatalf("parseUserId: v does not hold a MyType (it is %T)", v)
+		log.Fatalf("parseChatId: v does not hold a MyType (it is %T)", v)
 	}
 	return typ.ChatId(cid)
 }

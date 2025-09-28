@@ -7,4 +7,3 @@ TODO: unread message count for contacts
 
 
 TODO: hide messages before member added for added member
-TODO: fix bugs where all counts pulse on new message

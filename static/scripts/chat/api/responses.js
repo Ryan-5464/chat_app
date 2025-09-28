@@ -54,7 +54,8 @@ function HandleEditMessageResponse(data) {
 
 function HandleNewChatResponse(data) {
     const callbacks = {
-        Chats: (data) => RenderChatElements(data, false), 
+        Chats: (data) => RenderChatElements(data, false),
+        ActiveChatId: (data) => SetChatToActive(data),
         Messages: (data) => RenderMessageElements(data, true)
     };
     return HandleResponse(data, callbacks);
