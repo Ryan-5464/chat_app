@@ -105,6 +105,7 @@ func Get() []string {
         %s INTEGER NOT NULL,
         %s INTEGER NOT NULL,
         %s INTEGER DEFAULT 0,
+	%s INTEGER DEFAULT 0,
         UNIQUE (%s, %s)
     );`,
 		MemberTable,
@@ -112,6 +113,7 @@ func Get() []string {
 		ChatId,
 		UserId,
 		LastReadMsgId,
+		MsgIdWhenJoined,
 		ChatId,
 		UserId,
 	)

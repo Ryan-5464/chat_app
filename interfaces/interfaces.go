@@ -50,6 +50,7 @@ type MessageRepository interface {
 	UpdateLastReadMsgId(lastReadMsgId typ.MessageId, c typ.ChatId, u typ.UserId) error
 	GetLatestChatMessageId(c typ.ChatId) (typ.MessageId, error)
 	GetLatestMessageId() (typ.MessageId, error)
+	UpdateMemberJoinMsgId(msgId typ.MessageId, chatId typ.ChatId, userId typ.UserId) error
 }
 
 type DbService interface {
@@ -67,6 +68,7 @@ type DbService interface {
 	GetMember(c typ.ChatId, u typ.UserId) (*model.Member, error)
 	GetMembers(c typ.ChatId) ([]model.Member, error)
 	GetMemberships(u typ.UserId) ([]model.Member, error)
+	UpdateMemberJoinMsgId(msgId typ.MessageId, chatId typ.ChatId, userId typ.UserId) error
 
 	CreateChat(chatname string, adminId typ.UserId) (typ.LastInsertId, error)
 	DeleteChat(c typ.ChatId) error
@@ -125,6 +127,7 @@ type MessageService interface {
 	UpdateLastReadMsgId(lastReadMsgId typ.MessageId, c typ.ChatId, u typ.UserId) error
 	GetLatestChatMessageId(c typ.ChatId) (typ.MessageId, error)
 	GetLatestMessageId() (typ.MessageId, error)
+	UpdateMemberJoinMsgId(msgId typ.MessageId, chatId typ.ChatId, userId typ.UserId) error
 }
 
 type UserService interface {

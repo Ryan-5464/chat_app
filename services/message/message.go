@@ -239,6 +239,11 @@ func (m *MessageService) UpdateLastReadMsgId(lastReadMsgId typ.MessageId, chatId
 	return m.msgR.UpdateLastReadMsgId(lastReadMsgId, chatId, userId)
 }
 
+func (m *MessageService) UpdateMemberJoinMsgId(msgId typ.MessageId, chatId typ.ChatId, userId typ.UserId) error {
+	util.Log.FunctionInfo()
+	return m.msgR.UpdateMemberJoinMsgId(msgId, chatId, userId)
+}
+
 func getUniqueUserIdsFromMessages(slice []typ.UserId) []typ.UserId {
 	seen := make(map[typ.UserId]struct{})
 	var result []typ.UserId

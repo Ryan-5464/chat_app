@@ -123,6 +123,11 @@ func (m *MessageRepository) GetLatestMessageId() (typ.MessageId, error) {
 	return m.dbS.GetLatestMessageId()
 }
 
+func (m *MessageRepository) UpdateMemberJoinMsgId(msgId typ.MessageId, chatId typ.ChatId, userId typ.UserId) error {
+	util.Log.FunctionInfo()
+	return m.dbS.UpdateMemberJoinMsgId(msgId, chatId, userId)
+}
+
 func messageEntitiesFromModels(messages []model.Message) []ent.Message {
 	if len(messages) == 0 {
 		return []ent.Message{}
