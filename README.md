@@ -32,10 +32,12 @@
 
 <p>Users can be added to the chat by entering their email under the list of chat members.</p>
 
-<h2></h2>
+<h2>Real-Time Messaging</h2>
 
+[![Watch the video](https://img.youtube.com/vi/pisHYtknUJ0/hqdefault.jpg)](https://www.youtube.com/watch?v=pisHYtknUJ0)
 
-[![Watch the video](https://img.youtube.com/vi/MoZRt9O_67c/hqdefault.jpg)](https://www.youtube.com/watch?v=MoZRt9O_67c)
+<p>Users can see new messages, edits to messages, and message deletions in real-time</p>
+
 [![Watch the video](https://img.youtube.com/vi/MoZRt9O_67c/hqdefault.jpg)](https://www.youtube.com/watch?v=MoZRt9O_67c)
 [![Watch the video](https://img.youtube.com/vi/MoZRt9O_67c/hqdefault.jpg)](https://www.youtube.com/watch?v=MoZRt9O_67c)
 [![Watch the video](https://img.youtube.com/vi/MoZRt9O_67c/hqdefault.jpg)](https://www.youtube.com/watch?v=MoZRt9O_67c)
