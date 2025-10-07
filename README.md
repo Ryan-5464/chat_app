@@ -8,7 +8,13 @@
 
 <p>Users can register and login. Password and email verifcation are performed. Users are given an encrypted web token on login/regstration. Users without a token are redirected to the landing page upon trying to access server resources.</p>
 
-[![Watch the video](https://img.youtube.com/vi/MoZRt9O_67c/hqdefault.jpg)](https://www.youtube.com/watch?v=MoZRt9O_67c)
+<h2>Add Contact</h2>
+
+[![Watch the video](https://img.youtube.com/vi/XLF5jOyDFWg/hqdefault.jpg)](https://www.youtube.com/watch?v=XLF5jOyDFWg)
+
+<p>Users can add contacts by entering the contact's email address.</p>
+
+
 [![Watch the video](https://img.youtube.com/vi/MoZRt9O_67c/hqdefault.jpg)](https://www.youtube.com/watch?v=MoZRt9O_67c)
 [![Watch the video](https://img.youtube.com/vi/MoZRt9O_67c/hqdefault.jpg)](https://www.youtube.com/watch?v=MoZRt9O_67c)
 [![Watch the video](https://img.youtube.com/vi/MoZRt9O_67c/hqdefault.jpg)](https://www.youtube.com/watch?v=MoZRt9O_67c)
