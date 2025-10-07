@@ -38,7 +38,12 @@
 
 <p>Users can see new messages, edits to messages, and message deletions in real-time</p>
 
-[![Watch the video](https://img.youtube.com/vi/MoZRt9O_67c/hqdefault.jpg)](https://www.youtube.com/watch?v=MoZRt9O_67c)
+<h2>User Permissions</h2>
+
+[![Watch the video](https://img.youtube.com/vi/cRwuk0wtSlo/hqdefault.jpg)](https://www.youtube.com/watch?v=cRwuk0wtSlo)
+
+<p>Users are verified as the owners of chats and messages using their encrypted web token. Owners have the ability to edit and deletes messages, edit chat names, add/remove users from chats. If the owner of a chat leaves it, a new admin is automatically picked from the remianing members, if no members exist, the chat is deleted.</p>
+
 [![Watch the video](https://img.youtube.com/vi/MoZRt9O_67c/hqdefault.jpg)](https://www.youtube.com/watch?v=MoZRt9O_67c)
 [![Watch the video](https://img.youtube.com/vi/MoZRt9O_67c/hqdefault.jpg)](https://www.youtube.com/watch?v=MoZRt9O_67c)
 [![Watch the video](https://img.youtube.com/vi/MoZRt9O_67c/hqdefault.jpg)](https://www.youtube.com/watch?v=MoZRt9O_67c)
