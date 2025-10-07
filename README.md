@@ -1,6 +1,6 @@
 <h1>ChatApp - WhatsApp like app.</h1>
 
-<p>Below are short descriptions of the main functionality accompanied by short video demonstrations. Click the images to watch the videos. After that are high level diagrams of the architecture of the app.</p>
+<p>IMPORTANT! Below are short descriptions of the main functionality accompanied by short video demonstrations. Click the images to watch the videos. After that are high level diagrams of the architecture of the app.</p>
 
 <h2>Register User</h2>
 
