@@ -56,3 +56,14 @@
 
 <p>Users are able to add any members of a chat as new contacts.</p>
 
+<h2>ChatApp Architecture</h2>
+
+<img width="1345" height="1000" alt="chatapp-architecture" src="https://github.com/user-attachments/assets/d32087e7-635d-429e-8bc4-0f9120154957" />
+
+<p>The image shows the high level architecture for the app. The design was chosen to minimize coupling of functionality, to clearly seperate data models from domain entities and orchestration from data retrieval, and allow the database layer to be swapped for other non-SQL solutions in the future if needed.</p>
+
+<h2>User Authentication</h2>
+
+<img width="1549" height="638" alt="secretkeygen" src="https://github.com/user-attachments/assets/e9a855b2-0ca1-4f32-b07f-b97023e59d4e" />
+
+<p>The image shows a high level view of user verification using secret keys. Keys are ethemeral and generated periodically to increase server security and old keys stored temporarily to prevent users being logged out unexpectedly.</p>
