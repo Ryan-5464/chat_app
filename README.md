@@ -38,6 +38,12 @@
 
 <p>Users can see new messages, edits to messages, and message deletions in real-time</p>
 
+<h2>Unread Message Tracking</h2>
+
+<p>The app will track counts for new unread messages for each user. </p> 
+
+[![Watch the video](https://img.youtube.com/vi/piBxBzaGaqo/hqdefault.jpg)](https://www.youtube.com/watch?v=piBxBzaGaqo)
+
 <h2>User Permissions</h2>
 
 [![Watch the video](https://img.youtube.com/vi/cRwuk0wtSlo/hqdefault.jpg)](https://www.youtube.com/watch?v=cRwuk0wtSlo)
