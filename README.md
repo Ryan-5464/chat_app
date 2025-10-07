@@ -40,9 +40,9 @@
 
 <h2>Unread Message Tracking</h2>
 
-<p>The app will track counts for new unread messages for each user. </p> 
-
 [![Watch the video](https://img.youtube.com/vi/piBxBzaGaqo/hqdefault.jpg)](https://www.youtube.com/watch?v=piBxBzaGaqo)
+
+<p>The app will track counts for new unread messages for each user. </p> 
 
 <h2>User Permissions</h2>
 
