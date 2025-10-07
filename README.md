@@ -44,6 +44,9 @@
 
 <p>Users are verified as the owners of chats and messages using their encrypted web token. Owners have the ability to edit and deletes messages, edit chat names, add/remove users from chats. If the owner of a chat leaves it, a new admin is automatically picked from the remianing members, if no members exist, the chat is deleted.</p>
 
-[![Watch the video](https://img.youtube.com/vi/MoZRt9O_67c/hqdefault.jpg)](https://www.youtube.com/watch?v=MoZRt9O_67c)
-[![Watch the video](https://img.youtube.com/vi/MoZRt9O_67c/hqdefault.jpg)](https://www.youtube.com/watch?v=MoZRt9O_67c)
-[![Watch the video](https://img.youtube.com/vi/MoZRt9O_67c/hqdefault.jpg)](https://www.youtube.com/watch?v=MoZRt9O_67c)
+<h2>Adding Chat Members as New Contacts</h2>
+
+[![Watch the video](https://img.youtube.com/vi/gFTw9vpm8yg/hqdefault.jpg)](https://www.youtube.com/watch?v=gFTw9vpm8yg)
+
+<p>Users are able to add any members of a chat as new contacts.</p>
+
