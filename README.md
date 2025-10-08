@@ -67,3 +67,7 @@
 <img width="1549" height="638" alt="secretkeygen" src="https://github.com/user-attachments/assets/e9a855b2-0ca1-4f32-b07f-b97023e59d4e" />
 
 <p>The image shows a high level view of user verification using secret keys. Keys are ethemeral and generated periodically to increase server security and old keys stored temporarily to prevent users being logged out unexpectedly.</p>
+
+<h2>E-R Diagram</h2>
+
+<p>The image shows the E-R diagram for the database design for the app. The database is snowflake schema design. This design is chosen because it reduces the storage requirement due to being normalized and is easier to maintain as it ensures a single source of truth for the stored data. A snowflake design would likely not be suitable for a high traffic app as the joins/multiple calls required when using a snowflake schema would bottleneck performance. A star schema would be a better choice of design.</p>
