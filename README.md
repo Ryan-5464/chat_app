@@ -72,4 +72,4 @@
 
 ![e-rdiagram](https://github.com/user-attachments/assets/fec07f66-ac7a-4e6b-a22f-6a4f74785a7a)
 
-<p>The image shows the E-R diagram for the database design for the app. The database is snowflake schema design. This design is chosen because it reduces the storage requirement due to being normalized and is easier to maintain as it ensures a single source of truth for the stored data. A snowflake design would likely not be suitable for a high traffic app as the joins/multiple calls required when using a snowflake schema would bottleneck performance. A star schema would be a better choice of design.</p>
+<p>The image shows the E-R diagram for the database design for the app.</p>
